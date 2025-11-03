@@ -34,11 +34,9 @@ import Transactor from './transactor'
 import Turnstile from 'node:turnstile'
 
 // DOM interfaces swiped from JSDOM.
-import { EventTarget } from './living/generated/EventTarget'
 import { Event } from './living/generated/Event'
 
 // IndexedDB interfaces.
-import { IDBRequest } from './living/generated/IDBRequest'
 import { IDBOpenDBRequest } from './living/generated/IDBOpenDBRequest'
 import { IDBVersionChangeEvent } from './living/generated/IDBVersionChangeEvent'
 import { IDBDatabase } from './living/generated/IDBDatabase'
@@ -47,9 +45,6 @@ import { DOMException } from 'node:domexception/lib/DOMException'
 
 // WebIDL helpers.
 import { webidl } from './living/generated/utils'
-
-// Create event accessors.
-import { createEventAccessor } from './living/helpers/create-event-accessor'
 
 // Extract keys from record objects.
 import { extractor } from './extractor'
@@ -109,13 +104,13 @@ class Opener {
         for (const db of this._handles) {
             if (! db._closing) {
                 await dispatchEvent(null, db, IDBVersionChangeEvent.createImpl(this._connector._factory._globalObject, [
-                    'versionchange', { oldVersion: this._connector._version, newVersion: version }
+                    'versionchange', { newVersion: version, oldVersion: this._connector._version }
                 ], {}))
             }
         }
         if (this._handles.some(db => ! db._closing)) {
             await dispatchEvent(null, event.request, Event.createImpl(this._connector._factory._globalObject, [
-                'blocked', { oldVersion: this._connector._version, newVersion: version }
+                'blocked', { newVersion: version, oldVersion: this._connector._version }
             ], {}))
         }
         for (const db of this._handles) {
@@ -134,7 +129,7 @@ class Opener {
         if (db._closing && db._transactions.size === 0) {
             const index = this._handles.indexOf(db)
             if (~index) {
-                assert(index !== -1)
+                assert.ok(index !== -1)
                 this._handles.splice(index, 1)
                 db._closed.resolve()
                 if (this._handles.length === 0) {
@@ -157,7 +152,7 @@ class Opener {
         let count = 0
         for await (const event of shifter) {
             switch (event.method) {
-            case 'transact': {
+            case 'transact': { {
                     const { extra: { db, transaction } } = event
                     if (transaction._state === 'active') {
                         transaction._state = 'inactive'
@@ -174,11 +169,13 @@ class Opener {
                     })
                 }
                 break
-            case 'close': {
+            }
+            case 'close': { {
                     const { extra: { db } } = event
                     this._maybeClose(db)
                 }
                 break
+            }
             }
         }
     }
@@ -234,11 +231,7 @@ class Opener {
             // version.previous? Snapshot and Mutator return a result from the
             // user function, how would upgrade do same?
             opener.memento = await Memento.open({
-                destructible: destructible.durable('memento'),
-                turnstile: Opener._turnstile,
-                version: connector._version,
-                directory: path.join(connector._factory._directory, connector._name),
-                comparators: { indexeddb: connector._factory.cmp }
+                comparators: { indexeddb: connector._factory.cmp }, destructible: destructible.durable('memento'), directory: path.join(connector._factory._directory, connector._name), turnstile: Opener._turnstile, version: connector._version
             }, async upgrade => {
                 current = upgrade.version.current
                 db.version = upgrade.version.target
@@ -251,14 +244,15 @@ class Opener {
                 for await (const items of upgrade.cursor('schema')) {
                     for (const item of items) {
                         if (item.autoIncrement != null) {
-                            const array = await upgrade.cursor(item.qualified).reverse().limit(1).array()
+                            const array = await upgrade.cursor(item.qualified).toReversed().limit(1).array()
                             item.autoIncrement = array.length === 0 ? 1 : array.shift().key + 1
                         }
                         schema._root.store[item.id] = item
                         switch (item.type) {
-                        case 'store':
+                        case 'store': {
                             schema._root.name[item.name] = item.id
                             break
+                        }
                         case 'index':
                             // **TODO** What? Why not?
                         }
@@ -270,11 +264,7 @@ class Opener {
                 schema.reset()
                 request.readyState = 'done'
                 transaction = IDBTransaction.createImpl(connector._factory._globalObject, [], {
-                    schema: schema,
-                    request: request,
-                    database: db,
-                    mode: 'versionchange',
-                    previousVersion: upgrade.version.current
+                    database: db, mode: 'versionchange', previousVersion: upgrade.version.current, request: request, schema: schema
                 })
                 request.transaction = webidl.wrapperForImpl(transaction)
                 db._transaction = transaction
@@ -298,7 +288,7 @@ class Opener {
                     for await (const items of snapshot.cursor('schema')) {
                         for (const item of items) {
                             if (item.autoIncrement != null) {
-                                const array = await snapshot.cursor(item.qualified).reverse().limit(1).array()
+                                const array = await snapshot.cursor(item.qualified).toReversed().limit(1).array()
                                 item.autoIncrement = array.length === 0 ? 1 : array.shift().key + 1
                             }
                             schema._root.store[item.id] = item
@@ -331,7 +321,7 @@ class Opener {
             await dispatchEvent(null, request, Event.createImpl(connector._factory._globalObject, [
                 'error', { bubbles: true, cancelable: true }
             ], {}))
-            opener._transactor.queue.push({ method: 'close', extra: { db } })
+            opener._transactor.queue.push({ extra: { db }, method: 'close' })
             return { destructible: new Destructible('errored').destroy() }
         }
     }
@@ -360,7 +350,7 @@ class Connector {
         this.destructible.destruct(() => factory.deferrable.decrement())
         // Start a connection loop.
         this.destructible.durable('connections', this._connect({
-            name: {}, store: {}, max: 0, index: {}, extractor: {}
+            extractor: {}, index: {}, max: 0, name: {}, store: {}
         }))
     }
 
@@ -368,7 +358,7 @@ class Connector {
 
     //
     push (event) {
-        assert(! this.destructible.destroyed)
+        assert.ok(! this.destructible.destroyed)
         this._events.push(event)
         this._sleep.resolve()
     }
@@ -420,54 +410,95 @@ class Connector {
             }
             const event = this._events.shift()
             switch (event.method) {
-            case 'open': {
-                    if (this._opener.destructible.destroyed || (event.version != null && this._opener.memento.version < event.version)) {
-                        if (! this._opener.destructible.destroyed) {
-                            await this._opener.close(event, event.version)
-                        }
-                        this._version = event.version || 1
-                        await this._opener.destructible.promise.catch(noop)
-                        this._opener = await Opener.open(this.destructible.ephemeral('opener'), this, new Schema(schema), event)
-                        this._opener.destructible.promise.then(() => this._sleep.resolve())
-                        // **TODO** Spaghetti.
-                        if (this._opener.memento != null) {
-                            await this._checkVersion(event)
-                        }
-                    } else {
-                        this._opener.connect(new Schema(schema), event)
-                        await this._checkVersion(event)
-                    }
-                }
+            case 'open':
+                await this._handleOpen(event, schema)
                 break
-            case 'delete': {
-                    const { request } = event
-                    if (! this._opener.destructible.destroyed) {
-                        await this._opener.close(event, null)
-                    }
-                    await coalesce(fs.rm, fs.rmdir).call(fs, path.join(this._factory._directory, this._name), { force: true, recursive: true })
-                    const id = schema.name[this._name]
-                    if (id != null) {
-                        delete schema.store[id]
-                        delete schema.extractor[id]
-                        delete schema.name[this._name]
-                    }
-                    request.source = null
-                    delete request._result
-                    request.readyState = 'done'
-                    await dispatchEvent(null, event.request, IDBVersionChangeEvent.createImpl(this._factory._globalObject, [ 'success', {
-                        oldVersion: this._version, newVersion: null
-                    } ], {}))
-                }
+            case 'delete':
+                await this._handleDelete(event, schema)
                 break
             }
         }
         delete this._factory._connectors[this._name]
         this.destructible.destroy()
     }
+
+    // Handle an 'open' event by either creating a new opener or connecting to an existing one.
+    //
+    async _handleOpen (event, schema) {
+        if (this._needsNewOpener(event)) {
+            await this._openNewOpener(event, schema)
+        } else {
+            await this._connectToExistingOpener(event, schema)
+        }
+    }
+
+    // Determine if a new opener is needed based on the event and current opener state.
+    //
+    _needsNewOpener (event) {
+        return this._opener.destructible.destroyed ||
+               (event.version != null && this._opener.memento != null && this._opener.memento.version < event.version)
+    }
+
+    // Open a new opener, closing the previous one if necessary.
+    //
+    async _openNewOpener (event, schema) {
+        if (!this._opener.destructible.destroyed) {
+            await this._opener.close(event, event.version)
+        }
+        this._version = event.version || 1
+        await this._opener.destructible.promise.catch(noop)
+        this._opener = await Opener.open(this.destructible.ephemeral('opener'), this, new Schema(schema), event)
+        this._opener.destructible.promise.then(() => this._sleep.resolve())
+        // Only check version if opener successfully created with memento.
+        if (this._opener.memento != null) {
+            await this._checkVersion(event)
+        }
+    }
+
+    // Connect to an existing opener.
+    //
+    async _connectToExistingOpener (event, schema) {
+        this._opener.connect(new Schema(schema), event)
+        await this._checkVersion(event)
+    }
+
+    // Handle a 'delete' event by closing connections, deleting files, and cleaning up schema.
+    //
+    async _handleDelete (event, schema) {
+        const { request } = event
+        if (!this._opener.destructible.destroyed) {
+            await this._opener.close(event, null)
+        }
+        await this._deleteDatabaseFiles()
+        this._removeFromSchema(schema)
+        request.source = null
+        delete request._result
+        request.readyState = 'done'
+        await dispatchEvent(null, event.request, IDBVersionChangeEvent.createImpl(this._factory._globalObject, ['success', {
+            oldVersion: this._version, newVersion: null
+        }], {}))
+    }
+
+    // Delete database files from the filesystem.
+    //
+    async _deleteDatabaseFiles () {
+        await coalesce(fs.rm, fs.rmdir).call(fs, path.join(this._factory._directory, this._name), { force: true, recursive: true })
+    }
+
+    // Remove this database from the schema.
+    //
+    _removeFromSchema (schema) {
+        const id = schema.name[this._name]
+        if (id != null) {
+            delete schema.store[id]
+            delete schema.extractor[id]
+            delete schema.name[this._name]
+        }
+    }
 }
 
 class IDBFactoryImpl {
-    constructor (globalObject, args, { destructible, directory }) {
+    constructor (globalObject, { destructible, directory }) {
         this._globalObject = globalObject
 
         this.destructible = destructible
