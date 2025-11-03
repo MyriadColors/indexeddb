@@ -1,5 +1,4 @@
-"use strict";
-const util = require("util");
+const util = require("node:util");
 const idlUtils = require("../generated/utils");
 const ErrorEvent = require("../generated/ErrorEvent");
 const { createAnEvent } = require("../helpers/events");
@@ -23,27 +22,22 @@ function reportAnError(line, col, target, errorObject, message, location) {
   }
 
   const event = createAnEvent("error", target._globalObject, ErrorEvent, {
-    cancelable: true,
-    message,
-    filename: location,
-    lineno: line,
-    colno: col,
-    error: errorObject
+    cancelable: true, colno: col, error: errorObject, filename: location, lineno: line, message
   });
 
   try {
     target._dispatch(event);
   } finally {
     target[errorReportingMode] = false;
-    return event.defaultPrevented;
   }
+  return event.defaultPrevented;
 }
 
 module.exports = function reportException(window, error, filenameHint) {
   // This function will give good results on real Error objects with stacks; poor ones otherwise
 
-  const stack = error && error.stack;
-  const lines = stack && stack.split("\n");
+  const stack = error?.stack;
+  const lines = stack?.split("\n");
 
   // Find the first line that matches; important for multi-line messages
   let pieces;
@@ -53,13 +47,13 @@ module.exports = function reportException(window, error, filenameHint) {
     }
   }
 
-  const fileName = (pieces && pieces[2]) || filenameHint || window._document.URL;
-  const lineNumber = (pieces && parseInt(pieces[3])) || 0;
-  const columnNumber = (pieces && parseInt(pieces[4])) || 0;
+  const fileName = (pieces?.[2]) || filenameHint || window._document.URL;
+  const lineNumber = (pieces && parseInt(pieces[3], 10)) || 0;
+  const columnNumber = (pieces && parseInt(pieces[4], 10)) || 0;
 
   const windowImpl = idlUtils.implForWrapper(window);
 
-  const handled = reportAnError(lineNumber, columnNumber, windowImpl, error, error && error.message, fileName);
+  const handled = reportAnError(lineNumber, columnNumber, windowImpl, error, error?.message, fileName);
 
   if (!handled) {
     const errorString = shouldBeDisplayedAsError(error) ? `[${error.name}: ${error.message}]` : util.inspect(error);
@@ -72,5 +66,5 @@ module.exports = function reportException(window, error, filenameHint) {
 };
 
 function shouldBeDisplayedAsError(x) {
-  return x && x.name && x.message !== undefined && x.stack;
+  return x?.name && x.message !== undefined && x.stack;
 }

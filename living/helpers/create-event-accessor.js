@@ -56,11 +56,11 @@ exports.appendHandler = (el, eventName) => {
 
 // "Simple" in this case means "no content attributes involved"
 exports.setupForSimpleEventAccessors = (prototype, events) => {
-  prototype._getEventHandlerFor = function (event) {
+  prototype._getEventHandlerFor = function  _getEventHandlerFor(event) {
     return this._eventHandlers ? this._eventHandlers[event] : undefined;
   };
 
-  prototype._setEventHandlerFor = function (event, handler) {
+  prototype._setEventHandlerFor = function  _setEventHandlerFor(event, handler) {
     if (!this._registeredHandlers) {
       this._registeredHandlers = new Set();
       this._eventHandlers = Object.create(null);
@@ -103,9 +103,9 @@ exports.getCurrentEventHandlerValue = (target, event) => {
       // eslint-disable-next-line no-new-func
       Function(body); // properly error out on syntax errors
       // Note: this won't execute body; that would require `Function(body)()`.
-    } catch (e) {
+    } catch (error) {
       if (window) {
-        reportException(window, e);
+        reportException(window, error);
       }
       target._setEventHandlerFor(event, null);
       return null;

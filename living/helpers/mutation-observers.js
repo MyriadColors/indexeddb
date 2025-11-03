@@ -73,15 +73,7 @@ function queueMutationRecord(
 
   for (const [observer, mappedOldValue] of interestedObservers.entries()) {
     const record = MutationRecord.createImpl(target._globalObject, [], {
-      type,
-      target,
-      attributeName: name,
-      attributeNamespace: namespace,
-      oldValue: mappedOldValue,
-      addedNodes,
-      removedNodes,
-      previousSibling,
-      nextSibling
+      addedNodes, attributeName: name, attributeNamespace: namespace, nextSibling, oldValue: mappedOldValue, previousSibling, removedNodes, target, type
     });
 
     observer._recordQueue.push(record);
@@ -138,11 +130,11 @@ function queueMutationObserverMicrotask() {
 function notifyMutationObservers() {
   mutationObserverMicrotaskQueueFlag = false;
 
-  const notifyList = [...activeMutationObservers].sort((a, b) => a._id - b._id);
+  const notifyList = [...activeMutationObservers].toSorted((a, b) => a._id - b._id);
   activeMutationObservers.clear();
 
   const signalList = [...signalSlotList];
-  signalSlotList.splice(0, signalSlotList.length);
+  signalSlotList.splice(0);
 
   for (const mo of notifyList) {
     const records = [...mo._recordQueue];
@@ -162,11 +154,11 @@ function notifyMutationObservers() {
           records.map(idlUtils.wrapperForImpl),
           moWrapper
         );
-      } catch (e) {
+      } catch (error) {
         const { target } = records[0];
         const window = target._ownerDocument._defaultView;
 
-        reportException(window, e);
+        reportException(window, error);
       }
     }
   }
@@ -186,13 +178,5 @@ function notifyMutationObservers() {
 }
 
 module.exports = {
-  MUTATION_TYPE,
-
-  queueMutationRecord,
-  queueTreeMutationRecord,
-  queueAttributeMutationRecord,
-
-  queueMutationObserverMicrotask,
-
-  signalSlotList
+  MUTATION_TYPE, queueAttributeMutationRecord, queueMutationObserverMicrotask, queueMutationRecord, queueTreeMutationRecord, signalSlotList
 };

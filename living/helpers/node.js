@@ -6,16 +6,19 @@ const { domSymbolTree } = require("./internal-constants");
 // https://dom.spec.whatwg.org/#concept-node-length
 function nodeLength(node) {
   switch (node.nodeType) {
-    case NODE_TYPE.DOCUMENT_TYPE_NODE:
+    case NODE_TYPE.DOCUMENT_TYPE_NODE: {
       return 0;
+    }
 
     case NODE_TYPE.TEXT_NODE:
     case NODE_TYPE.PROCESSING_INSTRUCTION_NODE:
-    case NODE_TYPE.COMMENT_NODE:
+    case NODE_TYPE.COMMENT_NODE: {
       return node.data.length;
+    }
 
-    default:
+    default: {
       return domSymbolTree.childrenCount(node);
+    }
   }
 }
 
@@ -60,9 +63,5 @@ function isFollowing(nodeA, nodeB) {
 }
 
 module.exports = {
-  nodeLength,
-  nodeRoot,
-
-  isInclusiveAncestor,
-  isFollowing
+  isFollowing, isInclusiveAncestor, nodeLength, nodeRoot
 };

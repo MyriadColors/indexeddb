@@ -259,27 +259,5 @@ function* shadowIncludingDescendantsIterator(node) {
 }
 
 module.exports = {
-  isValidHostElementName,
-
-  isNode,
-  isSlotable,
-  isSlot,
-  isShadowRoot,
-
-  isShadowInclusiveAncestor,
-  retarget,
-  getEventTargetParent,
-  shadowIncludingRoot,
-
-  assignSlot,
-  assignSlotable,
-  assignSlotableForTree,
-
-  findSlot,
-  findFlattenedSlotables,
-
-  signalSlotChange,
-
-  shadowIncludingInclusiveDescendantsIterator,
-  shadowIncludingDescendantsIterator
+  assignSlot, assignSlotable, assignSlotableForTree, findFlattenedSlotables, findSlot, getEventTargetParent, isNode, isShadowInclusiveAncestor, isShadowRoot, isSlot, isSlotable, isValidHostElementName, retarget, shadowIncludingDescendantsIterator, shadowIncludingInclusiveDescendantsIterator, shadowIncludingRoot, signalSlotChange
 };
