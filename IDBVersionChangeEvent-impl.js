@@ -7,6 +7,7 @@ class IDBVersionChangeEventImpl extends EventImpl {
         const [type, eventInitDict = this.constructor.defaultInit] = args
         this.newVersion = eventInitDict.newVersion
         this.oldVersion = eventInitDict.oldVersion
+        this.type = type
     }
 }
 IDBVersionChangeEventImpl.defaultInit = IDBVersionChangeEventInit.convert(undefined)
