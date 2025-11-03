@@ -84,26 +84,20 @@ class IDBCursorImpl {
                     if (compare(this._globalObject, key, this._key) <= 0) {
                         throw DOMException.create(this._globalObject, [ 'TODO: message', 'DataError' ], {})
                     }
-                }
                 break
+            }
             case 'prev':
             case 'prevunique': {
                     if (compare(this._globalObject, key, this._key) >= 0) {
                         throw DOMException.create(this._globalObject, [ 'TODO: message', 'DataError' ], {})
                     }
-                }
                 break
+            }
             }
         }
         this._gotValue = false
         this._transaction._queue.push({
-            method: 'continue',
-            type: this._type,
-            key: key,
-            primaryKey: null,
-            cursor: this,
-            request: this.request,
-            store: JSON.parse(JSON.stringify(this._store))
+            cursor: this, key: key, method: 'continue', primaryKey: null, request: this.request, store: JSON.parse(JSON.stringify(this._store)), type: this._type
         })
     }
 
@@ -135,8 +129,8 @@ class IDBCursorImpl {
                         throw DOMException.create(this._globalObject, [ 'TODO: message', 'DataError' ], {})
                     }
                 }
-            }
             break
+        }
         case 'prev': {
                 const test = compare(this._globalObject, key, this._key)
                 if (test > 0) {
@@ -146,21 +140,15 @@ class IDBCursorImpl {
                         throw DOMException.create(this._globalObject, [ 'TODO: message', 'DataError' ], {})
                     }
                 }
-            }
             break
+        }
         default: {
                 throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidAccessError' ], {})
             }
         }
         this._gotValue = false
         this._transaction._queue.push({
-            method: 'item',
-            type: this._type,
-            key: key,
-            primaryKey: primaryKey,
-            cursor: this,
-            request: this.request,
-            store: JSON.parse(JSON.stringify(this._store))
+            cursor: this, key: key, method: 'item', primaryKey: primaryKey, request: this.request, store: JSON.parse(JSON.stringify(this._store)), type: this._type
         })
     }
 
@@ -175,7 +163,7 @@ class IDBCursorImpl {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
         const request = IDBRequest.createImpl(this._globalObject, [], {
-            transaction: this._transaction, source: this
+            source: this, transaction: this._transaction
         })
         // Transaction must not be active during a structured clone.
         try {
@@ -191,13 +179,7 @@ class IDBCursorImpl {
             }
         }
         this._transaction._queue.push({
-            method: 'set',
-            overwrite: true,
-            request: request,
-            type: this._type,
-            key: this._value.key,
-            value: value,
-            store: JSON.parse(JSON.stringify(this._store))
+            key: this._value.key, method: 'set', overwrite: true, request: request, store: JSON.parse(JSON.stringify(this._store)), type: this._type, value: value
         })
         return request
     }
@@ -214,14 +196,11 @@ class IDBCursorImpl {
         }
         const request = IDBRequest.createImpl(this._globalObject, [], {
             // **TODO** parent is always transaction, so...
-            transaction: this._transaction, source: this
+            source: this, transaction: this._transaction
         })
         this._transaction._queue.push({
-            method: 'delete',
-            store: JSON.parse(JSON.stringify(this._store)),
-            request: request,
-            query:
-            this._globalObject.IDBKeyRange.only(convert.key(this._globalObject, this._value.key))
+            method: 'delete', query:
+            this._globalObject.IDBKeyRange.only(convert.key(this._globalObject, this._value.key)), request: request, store: JSON.parse(JSON.stringify(this._store))
         })
         return request
     }
