@@ -3,20 +3,17 @@ const hooks = require('node:async_hooks')
 
 const idlUtils = require("../generated/utils");
 const { nodeRoot } = require("../helpers/node");
-const {
+import {
   isNode, isShadowRoot, isSlotable, getEventTargetParent,
   isShadowInclusiveAncestor, retarget
-} = require("../helpers/shadow-dom");
+} from "../helpers/shadow-dom.js";
 
 const cadence = require('cadence')
 
 const MouseEvent = require("../generated/MouseEvent");
 
 const EVENT_PHASE = {
-  NONE: 0,
-  CAPTURING_PHASE: 1,
-  AT_TARGET: 2,
-  BUBBLING_PHASE: 3
+  AT_TARGET: 2, BUBBLING_PHASE: 3, CAPTURING_PHASE: 1, NONE: 0
 };
 
 function setEqual (left, right) {
@@ -121,7 +118,7 @@ class EventTargetImpl {
 
   // https://dom.spec.whatwg.org/#concept-event-dispatch
   // legacyOutputDidListenersThrowFlag optional parameter is not necessary here since it is only used by indexDB.
-  _dispatch = cadence(function (step, eventImpl, targetOverride, legacyOutputDidListenersThrowFlag, asynchronous) {
+  _dispatch = cadence(function  _dispatch(step, eventImpl, targetOverride, legacyOutputDidListenersThrowFlag, asynchronous) {
         let targetImpl = this;
         const originalTarget = targetImpl; // Preserve original target for event path logic
         let clearTargets = false;
@@ -130,13 +127,12 @@ class EventTargetImpl {
         const trace = (() => {
             if (asynchronous) {
                 const hook = hooks.createHook({
-                    init(asyncId, type, triggerAsyncId, resource) {
-                        trace.map.set(asyncId, { asyncId, type, triggerAsyncId })
-                        console.log('init', asyncId, type, triggerAsyncId, resource)
-                    },
                     after (asyncId) {
                         trace.map.delete(asyncId)
                         console.log('after', asyncId)
+                    }, init(asyncId, type, triggerAsyncId, resource) {
+                        trace.map.set(asyncId, { asyncId, type, triggerAsyncId })
+                        console.log('init', asyncId, type, triggerAsyncId, resource)
                     }
                 })
                 hook.enable()
@@ -341,7 +337,7 @@ const _innerInvokeEventListeners = cadence((step, eventImpl, listeners, phase, i
     }
 
     // Copy event listeners before iterating since the list can be modified during the iteration.
-    const handlers = listeners[type].slice();
+    const handlers = [...listeners[type]];
 
     step.forEach([ handlers ], (listener) => {
         const { capture, once, passive } = listener.options;
@@ -362,8 +358,8 @@ const _innerInvokeEventListeners = cadence((step, eventImpl, listeners, phase, i
 
         try {
           listener.callback.call(eventImpl.currentTarget, eventImpl);
-        } catch (e) {
-            console.log(e.stack)
+        } catch (error) {
+            console.log(error.stack)
           if (legacyOutputDidListenersThrowFlag) {
             eventImpl._legacyOutputDidListenersThrowFlag = true
           }
@@ -422,12 +418,6 @@ function appendToEventPath(eventImpl, target, targetOverride, relatedTarget, tou
   const rootOfClosedTree = isShadowRoot(target) && target.mode === "closed";
 
   eventImpl._path.push({
-    item: target,
-    itemInShadowTree,
-    target: targetOverride,
-    relatedTarget,
-    touchTargets,
-    rootOfClosedTree,
-    slotInClosedTree
+    item: target, itemInShadowTree, relatedTarget, rootOfClosedTree, slotInClosedTree, target: targetOverride, touchTargets
   });
 }
