@@ -1,5 +1,4 @@
-const EventImpl = require('./living/idl/Event-impl.js').implementation
-const IDBVersionChangeEventInit = require('./living/generated/IDBVersionChangeEventInit')
+import { implementation as EventImpl } from './living/idl/Event-impl.js';
 
 class IDBVersionChangeEventImpl extends EventImpl {
     constructor (globalObject, args, privateData) {
@@ -10,8 +9,6 @@ class IDBVersionChangeEventImpl extends EventImpl {
         this.type = type
     }
 }
-IDBVersionChangeEventImpl.defaultInit = IDBVersionChangeEventInit.convert(undefined)
+IDBVersionChangeEventImpl.defaultInit = convert(undefined)
 
-module.exports = {
-    implementation: IDBVersionChangeEventImpl
-}
+export const implementation = IDBVersionChangeEventImpl;
