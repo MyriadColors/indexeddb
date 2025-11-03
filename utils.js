@@ -1,9 +1,9 @@
-import { resolve } from "path";
-const whatwgURL = require("whatwg-url");
-const { domSymbolTree } = require("./living/helpers/internal-constants");
+import { resolve } from "node:path";
+import whatwgURL from "whatwg-url";
+import { domSymbolTree } from "./living/helpers/internal-constants";
 const SYMBOL_TREE_POSITION = require("symbol-tree").TreePosition;
 
-exports.hasWeakRefs = typeof WeakRef === "function";
+export const hasWeakRefs = typeof WeakRef === "function";
 
 export function toFileUrl(fileName) {
   // Beyond just the `path.resolve`, this is mostly for the benefit of Windows,
@@ -25,7 +25,7 @@ export function toFileUrl(fileName) {
  * - `object` {Object} the target object
  * - `properties` {Object} the source from which to copy property descriptors
  */
-exports.define = function define(object, properties) {
+export function define(object, properties) {
   for (const name of Object.getOwnPropertyNames(properties)) {
     const propDesc = Object.getOwnPropertyDescriptor(properties, name);
     Object.defineProperty(object, name, propDesc);
@@ -94,7 +94,7 @@ exports.memoizeQuery = function memoizeQuery(fn) {
     if (args.length === 1 && typeof args[0] === "string") {
       key = args[0];
     } else if (args.length === 2 && typeof args[0] === "string" && typeof args[1] === "string") {
-      key = args[0] + "::" + args[1];
+      key = `${args[0]}::${args[1]}`;
     } else {
       return fn.apply(this, args);
     }
