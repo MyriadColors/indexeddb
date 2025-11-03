@@ -1,6 +1,6 @@
-const { valuify, MAX } = require('./value')
+import { valuify, MAX } from './value'
 
-function is (globalObject, object) {
+export function is (object) {
     switch (typeof object) {
     case 'string':
     case 'number':
@@ -19,10 +19,11 @@ function is (globalObject, object) {
     throw new Error
 }
 
-module.exports = function compare (globalObject, left, right) {
-    if (arguments.length != 3) {
+module.exports = function compare (...args) {
+    if (args.length !== 3) {
         throw new TypeError
     }
+    let [globalObject, left, right] = args
     if (left === MAX) {
         return 1
     }
@@ -32,8 +33,8 @@ module.exports = function compare (globalObject, left, right) {
     // TODO: Why am I converting to a value every time?
     left = valuify(globalObject, left)
     right = valuify(globalObject, right)
-    const type = { left: is(globalObject, left), right: is(globalObject, right) }
-    if (type.left != type.right) {
+    const type = { left: is(left), right: is(right) }
+    if (type.left !== type.right) {
         switch (type.left) {
         case 'array':
             return 1
@@ -53,7 +54,7 @@ module.exports = function compare (globalObject, left, right) {
             }
             break
         case 'date':
-            if  (type.right == 'number') {
+            if  (type.right === 'number') {
                 return 1
             }
             break
@@ -64,7 +65,7 @@ module.exports = function compare (globalObject, left, right) {
     case 'array':
         for (let i = 0, I = Math.min(left.length, right.length); i < I; i++) {
             const diff = compare(globalObject, left[i], right[i])
-            if (diff != 0) {
+            if (diff !== 0) {
                 return diff
             }
         }
@@ -74,18 +75,18 @@ module.exports = function compare (globalObject, left, right) {
         right = new Uint8Array(right)
         for (let i = 0, I = Math.min(left.length, right.length); i < I; i++) {
             const diff = (left[i] > right[i]) - (left[i] < right[i])
-            if (diff != 0) {
+            if (diff !== 0) {
                 return diff
             }
         }
         return  (left.length > right.length) - (left.length < right.length)
     case 'date':
-        if (left.getTime() == right.getTime()) {
+        if (left.getTime() === right.getTime()) {
             return 0
         }
         break
     default:
-        if (left == right) {
+        if (left === right) {
             return 0
         }
         break
