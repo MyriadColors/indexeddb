@@ -19,6 +19,7 @@
         "verbatim": "0.1.8",
       },
       "devDependencies": {
+        "@types/domexception": "^4.0.3",
         "arguable": "13.0.0-alpha.6",
         "cheerio": "1.0.0-rc.10",
         "programmatic": "2.0.0-alpha.11",
@@ -31,7 +32,11 @@
   "packages": {
     "@tootallnate/once": ["@tootallnate/once@2.0.0", "", {}, "sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A=="],
 
+    "@types/domexception": ["@types/domexception@4.0.3", "", { "dependencies": { "@types/webidl-conversions": "*" } }, "sha512-lYPlkldpQqYTgqj5tJgKg5UEa6/vOsaiCc54q6pJ1LPNphJ5UjE4yFjZx/bsvsijzS6Z9OkJYvFiAZZEvYy+Gw=="],
+
     "@types/node": ["@types/node@24.10.0", "", { "dependencies": { "undici-types": "~7.16.0" } }, "sha512-qzQZRBqkFsYyaSWXuEHc2WR9c0a0CXwiE5FWUvn7ZM+vdy1uZLfCunD38UzhuB7YN/J11ndbDBcTmOdxJo9Q7A=="],
+
+    "@types/webidl-conversions": ["@types/webidl-conversions@7.0.3", "", {}, "sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA=="],
 
     "abab": ["abab@2.0.6", "", {}, "sha512-j2afSsaIENvHZN2B8GOpF566vZ5WVk5opAiMTvWgaQT8DkbOqsTfvNAvHoRGU2zzP8cPoqys+xHTRDWW8L+/BA=="],
 
