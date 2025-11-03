@@ -3,12 +3,16 @@ const compare = require('./compare')
 const { valuify } = require('./value')
 
 class IDBKeyRangeImpl {
-    // TODO: Consider if we need to be passing args to the constructor.
-    // TODO: Do we need to valuify the lower and upper values?
-    constructor (globalObject, args, { lower, upper, lowerOpen, upperOpen }) {
+    // The args parameter is provided by the generated create method but we use
+    // the options object instead, which contains the properly mapped values.
+    // We valuify lower and upper to ensure they're always in the correct format
+    // for comparison operations, even if they were already valuified by the
+    // static construction methods.
+    constructor (globalObject, _args, { lower, upper, lowerOpen, upperOpen }) {
         this._globalObject = globalObject
-        this._lower = lower
-        this._upper = upper
+        // Valuify lower and upper to ensure they're in the correct format for comparisons
+        this._lower = lower !== undefined ? valuify(globalObject, lower) : undefined
+        this._upper = upper !== undefined ? valuify(globalObject, upper) : undefined
         this._lowerOpen = lowerOpen
         this._upperOpen = upperOpen
     }
