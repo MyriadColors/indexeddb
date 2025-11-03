@@ -1,16 +1,16 @@
-const DOMException = require('domexception/lib/DOMException')
+import { create } from 'domexception/lib/DOMException'
 
-exports.vivify = function (globalObject, object, path, value) {
+export function vivify(globalObject, object, path, value) {
     const parts = path.split('.')
     let iterator = object
-    while (parts.length != 1) {
+    while (parts.length !== 1) {
         const part = parts.shift()
-        if (! iterator.hasOwnProperty(part)) {
+        if (! Object.hasOwn(iterator, part)) {
             Object.defineProperty(iterator, part, { value: {}, enumerable: true, configurable: true, writable: true })
         }
         const object = iterator[part]
         if (typeof object !== 'object' || object === null || Array.isArray(object)) {
-            throw DOMException.create(globalObject, [ 'TODO: message', 'DataError' ], {})
+            throw create(globalObject, [ 'TODO: message', 'DataError' ], {})
         }
         iterator = object
     }
