@@ -9,7 +9,7 @@ const convert = require('./convert')
 
 class IDBIndexImpl {
     // TODO Make loop a property of transaction.
-    constructor (globalObject, [], { index, objectStore }) {
+    constructor (globalObject, _args, { index, objectStore }) {
         this._globalObject = globalObject
         this._index = index
         // Different instances of index need different instances of keyPath, but
@@ -31,13 +31,13 @@ class IDBIndexImpl {
         if (this._isDeleted()) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
-        if (this.objectStore._transaction.mode != 'versionchange') {
+        if (this.objectStore._transaction.mode !== 'versionchange') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
-        if (this.objectStore._transaction._state != 'active') {
+        if (this.objectStore._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
-        if (this._index.name != to) {
+        if (this._index.name !== to) {
             if (to in this.objectStore._store.index) {
                 throw DOMException.create(this._globalObject, [ 'TODO: message', 'ConstraintError' ], {})
             }
@@ -63,7 +63,7 @@ class IDBIndexImpl {
         if (this._isDeleted()) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
-        if (this.objectStore._transaction._state != 'active') {
+        if (this.objectStore._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         if (query == null) {
@@ -96,7 +96,7 @@ class IDBIndexImpl {
         if (this._isDeleted()) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
-        if (this.objectStore._transaction._state != 'active') {
+        if (this.objectStore._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         if (query == null) {
@@ -130,7 +130,7 @@ class IDBIndexImpl {
         if (this._isDeleted()) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
-        if (this.objectStore._transaction._state != 'active') {
+        if (this.objectStore._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         if (query == null) {
@@ -154,7 +154,7 @@ class IDBIndexImpl {
         if (this._isDeleted()) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
-        if (this.objectStore._transaction._state != 'active') {
+        if (this.objectStore._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         if (query == null) {
