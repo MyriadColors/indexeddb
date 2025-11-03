@@ -10,8 +10,9 @@
         "comeuppance": "0.0.3",
         "domexception": "4.0.0",
         "jsdom": "18.0.1",
+        "lodash": "^4.17.21",
         "lodash.isplainobject": "4.0.6",
-        "memento": "^0.1.47",
+        "memento": "^0.1.51",
         "nop": "1.0.0",
         "perhaps": "0.0.12",
         "rescue": "7.0.0-alpha.18",
@@ -23,7 +24,7 @@
         "arguable": "13.0.0-alpha.6",
         "cheerio": "1.0.0-rc.10",
         "programmatic": "2.0.0-alpha.11",
-        "proof": "^9.0.3",
+        "proof": "^9.0.4",
         "rimraf": "3.0.2",
         "webidl2js": "17.0.0",
       },
@@ -197,6 +198,8 @@
     "jsdom": ["jsdom@18.0.1", "", { "dependencies": { "abab": "^2.0.5", "acorn": "^8.5.0", "acorn-globals": "^6.0.0", "cssom": "^0.5.0", "cssstyle": "^2.3.0", "data-urls": "^3.0.1", "decimal.js": "^10.3.1", "domexception": "^4.0.0", "escodegen": "^2.0.0", "form-data": "^4.0.0", "html-encoding-sniffer": "^3.0.0", "http-proxy-agent": "^5.0.0", "https-proxy-agent": "^5.0.0", "is-potential-custom-element-name": "^1.0.1", "nwsapi": "^2.2.0", "parse5": "6.0.1", "saxes": "^5.0.1", "symbol-tree": "^3.2.4", "tough-cookie": "^4.0.0", "w3c-hr-time": "^1.0.2", "w3c-xmlserializer": "^3.0.0", "webidl-conversions": "^7.0.0", "whatwg-encoding": "^2.0.0", "whatwg-mimetype": "^3.0.0", "whatwg-url": "^10.0.0", "ws": "^8.2.3", "xml-name-validator": "^4.0.0" }, "peerDependencies": { "canvas": "^2.5.0" }, "optionalPeers": ["canvas"] }, "sha512-mgVzrYP4IJiJKVqXkAdBn+jg+nQgPusBxTJulz3m1Y/1RIrkk8aDoNaQE5BNbHwe72WwiwE7k3Av2THXDpvzPQ=="],
 
     "keyify": ["keyify@3.0.1", "", {}, "sha512-BeTslMDjc841Aq+Ej2sPRSRf+ypQcsgTbgGH/uxX3vx1QOh3AaQs6qW3vfMcWcQPRLVP8IdfnDuj6irVQb3oog=="],
+
+    "lodash": ["lodash@4.17.21", "", {}, "sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg=="],
 
     "lodash.isplainobject": ["lodash.isplainobject@4.0.6", "", {}, "sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA=="],
 
