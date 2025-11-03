@@ -1,6 +1,9 @@
 import { implementation as EventImpl } from './living/idl/Event-impl.js';
 import { convert } from './living/generated/IDBVersionChangeEventInit';
 
+/**
+ * @extends {import('./living/idl/Event-impl.js').implementation}
+ */
 class IDBVersionChangeEventImpl extends EventImpl {
     constructor (globalObject, args, privateData) {
         super(globalObject, args, privateData)
