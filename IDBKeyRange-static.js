@@ -1,19 +1,10 @@
-const IDBKeyRangeImpl = require('./IDBKeyRange-impl')
-const IDBKeyRange = require('./living/generated/IDBKeyRange')
+import { IDBKeyRange } from './living/generated/IDBKeyRange'
 
 const { valuify } = require('./value')
 
-exports.patch = function (globalObject) {
-    globalObject.IDBKeyRange.bound = function (lower, upper, lowerOpen = false, upperOpen = false) {
-        return IDBKeyRange.create(globalObject, [ valuify(globalObject, lower), valuify(globalObject, upper), lowerOpen, upperOpen ], {})
-    }
-    globalObject.IDBKeyRange.upperBound = function (upper, open = false) {
-        return IDBKeyRange.create(globalObject, [ undefined, valuify(globalObject, upper), true, open ], {})
-    }
-    globalObject.IDBKeyRange.lowerBound = function (lower, open = false) {
-        return IDBKeyRange.create(globalObject, [ valuify(globalObject, lower), undefined, open, true ], {})
-    }
-    globalObject.IDBKeyRange.only = function (only) {
-        return globalObject.IDBKeyRange.bound(only, only)
-    }
+exports.patch = (globalObject) => {
+    globalObject.IDBKeyRange.bound = (lower, upper, lowerOpen = false, upperOpen = false) => IDBKeyRange.create(globalObject, [ valuify(globalObject, lower), valuify(globalObject, upper), lowerOpen, upperOpen ], {})
+    globalObject.IDBKeyRange.upperBound = (upper, open = false) => IDBKeyRange.create(globalObject, [ undefined, valuify(globalObject, upper), true, open ], {})
+    globalObject.IDBKeyRange.lowerBound = (lower, open = false) => IDBKeyRange.create(globalObject, [ valuify(globalObject, lower), undefined, open, true ], {})
+    globalObject.IDBKeyRange.only = (only) => globalObject.IDBKeyRange.bound(only, only)
 }
