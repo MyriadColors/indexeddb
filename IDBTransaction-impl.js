@@ -2,7 +2,6 @@ const assert = require('assert')
 
 const compare = require('./compare')
 
-const rescue = require('rescue')
 const { Future } = require('perhaps')
 const { dispatchEvent } = require('./dispatch')
 
@@ -155,10 +154,14 @@ class IDBTransactionImpl extends EventTargetImpl {
             try {
                 extracted = valuify(this._globalObject, this._schema.getExtractor(index.id)(value))
             } catch (error) {
-                // **TODO** Why doesn't `{ name: 'DataError' }` work. Step through
-                // it with `test/idbobjectstore_add14.wpt.t.js`.
-                rescue(error, [ this._globalObject.DOMException ])
-                continue
+                // Only catch DataError from invalid index key values - silently skip invalid keys
+                // Note: Can't use `rescue(error, [{ name: 'DataError' }])` because semblance only
+                // checks own properties, and DOMException.name is not an own property.
+                if (error instanceof this._globalObject.DOMException && error.name === 'DataError') {
+                    continue
+                }
+                // Re-throw any other errors (other DOMException types or non-DOMException errors)
+                throw error
             }
             transaction.unset(index.qualified, [ extracted, key ])
         }
@@ -172,18 +175,30 @@ class IDBTransactionImpl extends EventTargetImpl {
                 try {
                     values.push(valuify(this._globalObject, value))
                 } catch (error) {
-                    // **TODO** Why doesn't `{ name: 'DataError' }` work. Step through
-                    // it with `test/idbobjectstore_add14.wpt.t.js`.
-                    rescue(error, [ this._globalObject.DOMException ])
+                    // Only catch DataError from invalid index key values - silently skip invalid keys
+                    // Note: Can't use `rescue(error, [{ name: 'DataError' }])` because semblance only
+                    // checks own properties, and DOMException.name is not an own property.
+                    if (error instanceof this._globalObject.DOMException && error.name === 'DataError') {
+                        // Skip this invalid key value
+                        continue
+                    }
+                    // Re-throw any other errors (other DOMException types or non-DOMException errors)
+                    throw error
                 }
             }
         } else {
             try {
                 values.push(valuify(this._globalObject, extracted))
             } catch (error) {
-                // **TODO** Why doesn't `{ name: 'DataError' }` work. Step through
-                // it with `test/idbobjectstore_add14.wpt.t.js`.
-                rescue(error, [ this._globalObject.DOMException ])
+                // Only catch DataError from invalid index key values - silently skip invalid keys
+                // Note: Can't use `rescue(error, [{ name: 'DataError' }])` because semblance only
+                // checks own properties, and DOMException.name is not an own property.
+                if (error instanceof this._globalObject.DOMException && error.name === 'DataError') {
+                    // Skip this invalid key value
+                    return values
+                }
+                // Re-throw any other errors (other DOMException types or non-DOMException errors)
+                throw error
             }
         }
         return values
