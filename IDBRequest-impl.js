@@ -1,5 +1,3 @@
-const assert = require('assert')
-
 const EventTargetImpl = require('./living/idl/EventTarget-impl.js').implementation
 const DOMException = require('domexception/lib/DOMException')
 
@@ -23,15 +21,15 @@ class IDBRequestImpl extends EventTargetImpl {
     // Error getter performs a [state
     // check](https://www.w3.org/TR/IndexedDB-3/#dom-idbrequest-error).
     get error () {
-        if (this.readyState != 'done') {
-            throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
+        if (this.readyState !== 'done') {
+            throw DOMException.create(this._globalObject, [ 'Cannot access the error property. The request has not completed yet. Wait for the request to finish before accessing the error property.', 'InvalidStateError' ], {})
         }
         return this._error
     }
 
     get result () {
-        if (this.readyState != 'done') {
-            throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
+        if (this.readyState !== 'done') {
+            throw DOMException.create(this._globalObject, [ 'Cannot access the result property. The request has not completed yet. Wait for the request to finish before accessing the result property.', 'InvalidStateError' ], {})
         }
         return this._result
     }
