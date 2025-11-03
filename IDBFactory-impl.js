@@ -1,61 +1,61 @@
 // Node.js API.
-const assert = require('assert')
-const fs = require('fs').promises
-const path = require('path')
+import assert from 'node:assert'
+const fs = require('node:fs').promises
+const path = require('node:path')
 
 // SQL COALESCE in JavaScript; return the first value that is not null.
-const { coalesce } = require('extant')
+import { coalesce } from 'node:extant'
 
 // Do nothing.
-const noop = require('nop')
+import noop from 'node:nop'
 
 // Catch exceptions by type or properties.
-const rescue = require('rescue')
+import rescue from 'node:rescue'
 
 // In-memory model of IndexedDB schema.
-const Schema = require('./schema')
+import Schema from './schema'
 
 // A future wrapper around a Promise.
-const { Future } = require('perhaps')
+import { Future } from 'node:perhaps'
 
 // Controlled demoltion of `async`/`await` stacks.
-const Destructible = require('destructible')
+import Destructible from 'node:destructible'
 
 // An `async`/`await` indexed, concurrent, transactional, persistent database.
-const Memento = require('memento')
+import Memento from 'node:memento'
 
 // IndexedDB key comparison implemenation.
-const comparator = require('./compare')
+import comparator from './compare'
 
 // IndexedDB transaction scheduler implemenation.
-const Transactor = require('./transactor')
+import Transactor from './transactor'
 
 // An evented, throttled work queue.
-const Turnstile = require('turnstile')
+import Turnstile from 'node:turnstile'
 
 // DOM interfaces swiped from JSDOM.
-const EventTarget = require('./living/generated/EventTarget')
-const Event = require('./living/generated/Event')
+import { EventTarget } from './living/generated/EventTarget'
+import { Event } from './living/generated/Event'
 
 // IndexedDB interfaces.
-const IDBRequest = require('./living/generated/IDBRequest')
-const IDBOpenDBRequest = require('./living/generated/IDBOpenDBRequest')
-const IDBVersionChangeEvent = require('./living/generated/IDBVersionChangeEvent')
-const IDBDatabase = require('./living/generated/IDBDatabase')
-const IDBTransaction = require('./living/generated/IDBTransaction')
-const DOMException = require('domexception/lib/DOMException')
+import { IDBRequest } from './living/generated/IDBRequest'
+import { IDBOpenDBRequest } from './living/generated/IDBOpenDBRequest'
+import { IDBVersionChangeEvent } from './living/generated/IDBVersionChangeEvent'
+import { IDBDatabase } from './living/generated/IDBDatabase'
+import { IDBTransaction } from './living/generated/IDBTransaction'
+import { DOMException } from 'node:domexception/lib/DOMException'
 
 // WebIDL helpers.
-const webidl = require('./living/generated/utils')
+import { webidl } from './living/generated/utils'
 
 // Create event accessors.
-const { createEventAccessor } = require('./living/helpers/create-event-accessor')
+import { createEventAccessor } from './living/helpers/create-event-accessor'
 
 // Extract keys from record objects.
-const extractor = require('./extractor')
+import { extractor } from './extractor'
 
 // Dispatch an event adjusted a transactions active state.
-const { dispatchEvent } = require('./dispatch')
+import { dispatchEvent } from './dispatch'
 
 // We must implement a bridge between the W3C Event based interface of IndexedDB
 // with the `async`/`await` interface of Memento. Ideally we might be able to
@@ -131,13 +131,13 @@ class Opener {
 
     //
     _maybeClose (db) {
-        if (db._closing && db._transactions.size == 0) {
+        if (db._closing && db._transactions.size === 0) {
             const index = this._handles.indexOf(db)
             if (~index) {
-                assert(index != -1)
+                assert(index !== -1)
                 this._handles.splice(index, 1)
                 db._closed.resolve()
-                if (this._handles.length == 0) {
+                if (this._handles.length === 0) {
                     this.destructible.destroy()
                     this._transactor.queue.push(null)
                 }
@@ -159,11 +159,11 @@ class Opener {
             switch (event.method) {
             case 'transact': {
                     const { extra: { db, transaction } } = event
-                    if (transaction._state == 'active') {
+                    if (transaction._state === 'active') {
                         transaction._state = 'inactive'
                     }
                     this.destructible.ephemeral(`transaction.${count++}`, async () => {
-                        if (transaction.mode == 'readonly') {
+                        if (transaction.mode === 'readonly') {
                             await this.memento.snapshot(snapshot => transaction._run(snapshot))
                         } else {
                             await this.memento.mutator(mutator => transaction._run(mutator))
@@ -173,6 +173,7 @@ class Opener {
                         this._transactor.complete(transaction._names)
                     })
                 }
+                break
             case 'close': {
                     const { extra: { db } } = event
                     this._maybeClose(db)
@@ -234,14 +235,14 @@ class Opener {
             // user function, how would upgrade do same?
             opener.memento = await Memento.open({
                 destructible: destructible.durable('memento'),
-                turnstile: this._turnstile,
+                turnstile: Opener._turnstile,
                 version: connector._version,
                 directory: path.join(connector._factory._directory, connector._name),
                 comparators: { indexeddb: connector._factory.cmp }
             }, async upgrade => {
                 current = upgrade.version.current
                 db.version = upgrade.version.target
-                if (upgrade.version.current == 0) {
+                if (upgrade.version.current === 0) {
                     await upgrade.store('schema', { 'id': Number })
                 }
                 const max = (await upgrade.cursor('schema').array()).pop()
@@ -251,7 +252,7 @@ class Opener {
                     for (const item of items) {
                         if (item.autoIncrement != null) {
                             const array = await upgrade.cursor(item.qualified).reverse().limit(1).array()
-                            item.autoIncrement = array.length == 0 ? 1 : array.shift().key + 1
+                            item.autoIncrement = array.length === 0 ? 1 : array.shift().key + 1
                         }
                         schema._root.store[item.id] = item
                         switch (item.type) {
@@ -298,10 +299,10 @@ class Opener {
                         for (const item of items) {
                             if (item.autoIncrement != null) {
                                 const array = await snapshot.cursor(item.qualified).reverse().limit(1).array()
-                                item.autoIncrement = array.length == 0 ? 1 : array.shift().key + 1
+                                item.autoIncrement = array.length === 0 ? 1 : array.shift().key + 1
                             }
                             schema._root.store[item.id] = item
-                            if (item.type == 'store') {
+                            if (item.type === 'store') {
                                 schema._root.name[item.name] = item.id
                             }
                             if (item.keyPath != null) {
@@ -380,7 +381,7 @@ class Connector {
     //
     async _checkVersion ({ request, version }) {
         request.readyState = 'done'
-        if (version == null || this._opener.memento.version == version) {
+        if (version == null || this._opener.memento.version === version) {
             await dispatchEvent(null, request, Event.createImpl(this._factory._globalObject, [ 'success' ], {}))
         } else {
             const db = webidl.implForWrapper(request._result)
@@ -409,7 +410,7 @@ class Connector {
         for (;;) {
             // **TODO** Seeing a log of Lists gathering in _isolation.panic in
             // Destructible.
-            if (this._events.length == 0) {
+            if (this._events.length === 0) {
                 if (this._opener.destructible.destroyed) {
                     break
                 }
@@ -487,7 +488,7 @@ class IDBFactoryImpl {
 
         this._turnstile = new Turnstile(this.deferrable.durable('turnstile'))
 
-        this.cmp = function (left, right) { return comparator(globalObject, left, right) }
+        this.cmp = (left, right) => comparator(globalObject, left, right)
     }
 
     // IDBFactory.
@@ -516,8 +517,8 @@ class IDBFactoryImpl {
             version = null
         } else {
             if (
-                typeof version != 'number' ||
-                isNaN(version) ||
+                typeof version !== 'number' ||
+                Number.isNaN(version) ||
                 version < 1 ||
                 version > Number.MAX_SAFE_INTEGER
             ) {
