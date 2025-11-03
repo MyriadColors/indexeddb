@@ -6,7 +6,7 @@ require('proof')(4, okay => {
     const errors = []
     try {
         extractor.create(null, {})
-    } catch (e) {
+    } catch {
         errors.push(true)
     }
     okay(errors, [ true ], 'not a path')
