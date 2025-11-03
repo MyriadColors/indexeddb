@@ -1,6 +1,6 @@
 require('proof')(63, async okay => {
     await require('./harness')(okay, 'key-conversion-exceptions')
-    await harness(async function () {
+    await harness(async () => {
 
         // Convenience function for tests that only need to run code in onupgradeneeded.
         function indexeddb_upgrade_only_test(upgrade_callback, description) {
@@ -9,11 +9,11 @@ require('proof')(63, async okay => {
 
         // Key that throws during conversion.
         function throwing_key(name) {
-            var throws = [];
+            const throws = [];
             throws.length = 1;
             const err = new Error('throwing from getter');
             err.name = name;
-            Object.defineProperty(throws, '0', {get: function() {
+            Object.defineProperty(throws, '0', {get: () => {
                 throw err;
             }, enumerable: true});
             return [throws, err];
@@ -39,7 +39,7 @@ require('proof')(63, async okay => {
                     receiver[method](invalid_key);
                 }, 'key conversion with invalid key should throw DataError');
             } else {
-                debugger
+                
                 const [key1, err1] = throwing_key('getter 1');
                 const [key2, err2] = throwing_key('getter 2');
                 assert_throws_exactly(err1, () => {
@@ -61,7 +61,7 @@ require('proof')(63, async okay => {
         }
 
         // Static key comparison utility on IDBFactory.
-        test(t => {
+        test(_ => {
             check_method(indexedDB, 'cmp', 2);
         }, 'IDBFactory cmp() static with throwing/invalid keys');
 
@@ -126,18 +126,18 @@ require('proof')(63, async okay => {
 
         // Static constructors on IDBKeyRange
         ['only', 'lowerBound', 'upperBound'].forEach(method => {
-            test(t => {
+            test(_ => {
                 check_method(IDBKeyRange, method);
-            }, 'IDBKeyRange ' + method + '() static with throwing/invalid keys');
+            }, `IDBKeyRange ${method}() static with throwing/invalid keys`);
         });
 
-        test(t => {
+        test(_ => {
             check_method(IDBKeyRange, 'bound', 2);
         }, 'IDBKeyRange bound() static with throwing/invalid keys');
 
         // Insertion methods on IDBObjectStore.
         ['add', 'put'].forEach(method => {
-            indexeddb_upgrade_only_test((t, db) => {
+            indexeddb_upgrade_only_test((_, db) => {
                 var out_of_line = db.createObjectStore('out-of-line keys');
                 var in_line = db.createObjectStore('in-line keys', {keyPath: 'prop'});
                 var [key, err] = throwing_key('getter');
@@ -172,7 +172,7 @@ require('proof')(63, async okay => {
             'delete', 'get', 'getKey', 'getAll', 'getAllKeys', 'count', 'openCursor',
             'openKeyCursor'
         ].forEach(method => {
-            indexeddb_upgrade_only_test((t, db) => {
+            indexeddb_upgrade_only_test((_, db) => {
                 var store = db.createObjectStore('store');
 
                 check_method(store, method);
@@ -184,7 +184,7 @@ require('proof')(63, async okay => {
             'get', 'getKey', 'getAll', 'getAllKeys', 'count', 'openCursor',
             'openKeyCursor'
         ].forEach(method => {
-            indexeddb_upgrade_only_test((t, db) => {
+            indexeddb_upgrade_only_test((_, db) => {
                 var store = db.createObjectStore('store');
                 var index = store.createIndex('index', 'keyPath');
 
