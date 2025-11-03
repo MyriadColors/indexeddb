@@ -2,8 +2,10 @@ const compare = require('./compare')
 
 const { valuify } = require('./value')
 
-class IDBKeyRange {
-    constructor (globalObject, [ lower, upper, lowerOpen, upperOpen ]) {
+class IDBKeyRangeImpl {
+    // TODO: Consider if we need to be passing args to the constructor.
+    // TODO: Do we need to valuify the lower and upper values?
+    constructor (globalObject, args, { lower, upper, lowerOpen, upperOpen }) {
         this._globalObject = globalObject
         this._lower = lower
         this._upper = upper
@@ -37,4 +39,4 @@ class IDBKeyRange {
     }
 }
 
-module.exports = { implementation: IDBKeyRange }
+export const implementation = IDBKeyRangeImpl
