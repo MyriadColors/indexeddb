@@ -1,10 +1,8 @@
-"use strict";
+import { mixin } from "../../utils";
+import { implementation as EventModifierMixinImpl } from "./EventModifierMixin-impl.js";
+import { implementation as UIEventImpl } from "./UIEvent-impl.js";
 
-const { mixin } = require("../../utils");
-const EventModifierMixinImpl = require("./EventModifierMixin-impl").implementation;
-const UIEventImpl = require("./UIEvent-impl").implementation;
-
-const MouseEventInit = require("../generated/MouseEventInit");
+import { convert } from "../generated/MouseEventInit";
 
 class MouseEventImpl extends UIEventImpl {
   initMouseEvent(
@@ -42,8 +40,6 @@ class MouseEventImpl extends UIEventImpl {
   }
 }
 mixin(MouseEventImpl.prototype, EventModifierMixinImpl.prototype);
-MouseEventImpl.defaultInit = MouseEventInit.convert(undefined);
+MouseEventImpl.defaultInit = convert();
 
-module.exports = {
-  implementation: MouseEventImpl
-};
+export const implementation = MouseEventImpl;

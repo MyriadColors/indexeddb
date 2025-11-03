@@ -1,8 +1,6 @@
-"use strict";
-
-const idlUtils = require("../generated/utils");
-const UIEventInit = require("../generated/UIEventInit");
-const EventImpl = require("./Event-impl").implementation;
+import idlUtils from "../generated/utils.js";
+import UIEventInit from "../generated/UIEventInit.js";
+import { implementation as EventImpl } from "./Event-impl.js";
 
 // Until webidl2js gains support for checking for Window, this would have to do.
 function isWindow(val) {
@@ -52,8 +50,6 @@ class UIEventImpl extends EventImpl {
     this.detail = detail;
   }
 }
-UIEventImpl.defaultInit = UIEventInit.convert(undefined);
+UIEventImpl.defaultInit = UIEventInit.convert();
 
-module.exports = {
-  implementation: UIEventImpl
-};
+export const implementation = UIEventImpl;

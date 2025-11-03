@@ -20,9 +20,9 @@ async function dispatchEvent (transaction, eventTargetImpl, eventImpl) {
                 eventTargetImpl._setEventHandlerFor('error', null)
                 handlerWasSaved = true
             }
-        } catch (e) {
+        } catch (error) {
             // If handler management fails, log but don't break dispatch
-            console.warn('Failed to save error handler:', e)
+            console.warn('Failed to save error handler:', error)
         }
     }
     
@@ -45,9 +45,9 @@ async function dispatchEvent (transaction, eventTargetImpl, eventImpl) {
             try {
                 // Restore to original value (which could be null, undefined, or a function)
                 eventTargetImpl._setEventHandlerFor('error', originalErrorHandler)
-            } catch (e) {
+            } catch (error) {
                 // Log but don't throw - dispatch already completed
-                console.warn('Failed to restore error handler:', e)
+                console.warn('Failed to restore error handler:', error)
             }
         }
     }

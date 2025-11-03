@@ -1,7 +1,7 @@
 const DOMException = require('domexception/lib/DOMException')
 const identifier = new RegExp(`^${require('./identifier.json')}$`)
 
-exports.create = (path) => {
+export function create (path) {
     function extractor (path) {
         if (path === '') {
             return (object) => object
@@ -20,7 +20,7 @@ exports.create = (path) => {
     }
     if (typeof path === 'string') {
         return extractor(path)
-    } else {
+    }
         const fields = []
         for (const field of path) {
             fields.push(extractor(field))
@@ -28,10 +28,9 @@ exports.create = (path) => {
         return (object) => {
             return fields.map(field => field(object))
         }
-    }
 }
 
-exports.verify = (globalObject, keyPath) => {
+export function verify (globalObject, keyPath) {
     function verify (path) {
         if (typeof path !== 'string') {
             throw DOMException.create(globalObject, [ `TODO: message ${path}`, 'SyntaxError' ], {})

@@ -26,11 +26,10 @@ const calledback = cadence((step, callbacks, asynchronous = true) => {
     const trace = (() => {
         if (asynchronous) {
             const hook = hooks.createHook({
-                init(asyncId, type, triggerAsyncId, _resource) {
-                    trace.map.set(asyncId, { asyncId, type, triggerAsyncId })
-                },
                 after (asyncId) {
                     trace.map.delete(asyncId)
+                }, init(asyncId, type, triggerAsyncId, _resource) {
+                    trace.map.set(asyncId, { asyncId, type, triggerAsyncId })
                 }
             })
             hook.enable()
@@ -71,17 +70,16 @@ async function asyncAwait (callbacks) {
     events.length = 0
     const map = new Map
     const hook = hooks.createHook({
-        init(asyncId, type, triggerAsyncId, _resource) {
-            map.set(asyncId, { asyncId, type, triggerAsyncId })
-        },
         after (asyncId) {
             map.delete(asyncId)
+        }, init(asyncId, type, triggerAsyncId, _resource) {
+            map.set(asyncId, { asyncId, type, triggerAsyncId })
         }
     })
     hook.enable()
     await (async () => {
         true
-        while (callbacks.length !== 0) {
+        while (callbacks.length > 0) {
             callbacks.shift()()
             let previous = new Set
             for (;;) {
@@ -108,15 +106,14 @@ function _trampolined (trampoline, callbacks, asynchronous) {
     const trace = (() => {
         if (asynchronous) {
             const hook = hooks.createHook({
-                init(asyncId, type, triggerAsyncId, _resource) {
-                    trace.map.set(asyncId, { asyncId, type, triggerAsyncId })
-                },
                 after (asyncId) {
                     trace.map.delete(asyncId)
+                }, init(asyncId, type, triggerAsyncId, _resource) {
+                    trace.map.set(asyncId, { asyncId, type, triggerAsyncId })
                 }
             })
             hook.enable()
-            return { map: new Map, hook, previous: new Set }
+            return { hook, map: new Map, previous: new Set }
         }
         return null
     }) ()
@@ -134,7 +131,7 @@ function _trampolined (trampoline, callbacks, asynchronous) {
         }
     }
     function dispatch () {
-        if (callbacks.length !== 0) {
+        if (callbacks.length > 0) {
             callbacks.shift()()
             if (asynchronous) {
                 trampoline.promised(() => seek())
@@ -158,11 +155,11 @@ function _trampolined (trampoline, callbacks, asynchronous) {
 }
 
 async function main (callbacks) {
-    await asyncAwait(callbacks.slice())
+    await asyncAwait([...callbacks])
     await new Promise(resolve => setTimeout(resolve, 1000))
-    await callback(callback => calledback(callbacks.slice(), callback))
+    await callback(callback => calledback([...callbacks], callback))
     await new Promise(resolve => setTimeout(resolve, 1000))
-    calledback(callbacks.slice(), false, (_error) => {
+    calledback([...callbacks], false, (_error) => {
         events.push('called back')
     })
 }
