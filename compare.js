@@ -1,11 +1,12 @@
-import { valuify, MAX } from './value'
+import { MAX, valuify } from './value'
 
 export function is (object) {
     switch (typeof object) {
     case 'string':
-    case 'number':
+    case 'number': {
         return typeof object
-    default:
+    }
+    default: {
         if (object instanceof ArrayBuffer) {
             return 'binary'
         }
@@ -15,6 +16,7 @@ export function is (object) {
         if (Array.isArray(object)) {
             return 'array'
         }
+    }
     }
     throw new Error
 }
@@ -36,9 +38,10 @@ module.exports = function compare (...args) {
     const type = { left: is(left), right: is(right) }
     if (type.left !== type.right) {
         switch (type.left) {
-        case 'array':
+        case 'array': {
             return 1
-        case 'binary':
+        }
+        case 'binary': {
             switch (type.right) {
             case 'string':
             case 'date':
@@ -46,23 +49,26 @@ module.exports = function compare (...args) {
                 return 1
             }
             break
-        case 'string':
+        }
+        case 'string': {
             switch (type.right) {
             case 'date':
             case 'number':
                 return 1
             }
             break
-        case 'date':
+        }
+        case 'date': {
             if  (type.right === 'number') {
                 return 1
             }
             break
         }
+        }
         return -1
     }
     switch (type.left) {
-    case 'array':
+    case 'array': {
         for (let i = 0, I = Math.min(left.length, right.length); i < I; i++) {
             const diff = compare(globalObject, left[i], right[i])
             if (diff !== 0) {
@@ -70,7 +76,8 @@ module.exports = function compare (...args) {
             }
         }
         return  (left.length > right.length) - (left.length < right.length)
-    case 'binary':
+    }
+    case 'binary': {
         left = new Uint8Array(left)
         right = new Uint8Array(right)
         for (let i = 0, I = Math.min(left.length, right.length); i < I; i++) {
@@ -80,16 +87,19 @@ module.exports = function compare (...args) {
             }
         }
         return  (left.length > right.length) - (left.length < right.length)
-    case 'date':
+    }
+    case 'date': {
         if (left.getTime() === right.getTime()) {
             return 0
         }
         break
-    default:
+    }
+    default: {
         if (left === right) {
             return 0
         }
         break
+    }
     }
     return left > right ? 1 : -1
 }
