@@ -246,7 +246,7 @@ function structuredClone(globalObject, input, memory) {
     } else if (input instanceof ArrayBuffer) {
         output = input.slice();
     } else if (typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView && ArrayBuffer.isView(input)) {
-        var outputBuffer = structuredClone(globalObject, input.buffer, memory);
+        const outputBuffer = structuredClone(globalObject, input.buffer, memory);
         if (input instanceof DataView) {
             output = new DataView(outputBuffer, input.byteOffset, input.byteLength);
         } else {
@@ -278,9 +278,7 @@ function structuredClone(globalObject, input, memory) {
         // for now.
 
         // Supposed to also handle FileList, ImageData, ImageBitmap, but fuck it
-        console.log(input)
-        throw new Error
-        throw DOMException.create(globalObject, [ 'TODO: message', 'DataCloneError' ], {})
+        throw DOMException.create(globalObject, [ 'The object cannot be cloned. Only plain objects and supported types can be cloned.', 'DataCloneError' ], {})
     } else {
         output = {};
         deepClone = 'own';
@@ -289,18 +287,18 @@ function structuredClone(globalObject, input, memory) {
     memory.set(input, output);
 
     if (deepClone === 'map') {
-        input.forEach(function (v, k) {
+        input.forEach((v, k) => {
             output.set(structuredClone(globalObject, k, memory), structuredClone(globalObject, v, memory));
         });
     } else if (deepClone === 'set') {
-        input.forEach(function (v) {
+        input.forEach((v) => {
             output.add(structuredClone(globalObject, v, memory));
         });
     } else if (deepClone === 'own') {
-        for (var name in input) {
-            if (input.hasOwnProperty(name)) {
-                var sourceValue = input[name];
-                var clonedValue = structuredClone(globalObject, sourceValue, memory);
+        for (const name in input) {
+            if (Object.hasOwn(input, name)) {
+                const sourceValue = input[name];
+                const clonedValue = structuredClone(globalObject, sourceValue, memory);
                 Object.defineProperty(output, name, {
                     value: clonedValue, configurable: true, writable: true, enumerable: true
                 });
