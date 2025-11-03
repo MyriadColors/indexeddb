@@ -1,14 +1,8 @@
-"use strict";
+import { implementation as EventImpl } from './living/idl/Event-impl.js';
 
-const EventImpl = require("./Event-impl").implementation;
+import { convert } from './living/generated/ErrorEventInit';
 
-const ErrorEventInit = require("../generated/ErrorEventInit");
+class ErrorEventImpl extends EventImpl {}
+ErrorEventImpl.defaultInit = convert();
 
-class ErrorEventImpl extends EventImpl {
-
-}
-ErrorEventImpl.defaultInit = ErrorEventInit.convert(undefined);
-
-module.exports = {
-  implementation: ErrorEventImpl
-};
+export const implementation = ErrorEventImpl;

@@ -1,7 +1,5 @@
-"use strict";
-
-const idlUtils = require("../generated/utils");
-const EventInit = require("../generated/EventInit");
+import idlUtils from "../generated/utils.js";
+import { convert } from "../generated/EventInit.js";
 
 class EventImpl {
   constructor(globalObject, args, privateData) {
@@ -191,8 +189,6 @@ class EventImpl {
     this._initialize(type, bubbles, cancelable);
   }
 }
-EventImpl.defaultInit = EventInit.convert(undefined);
+EventImpl.defaultInit = convert();
 
-module.exports = {
-  implementation: EventImpl
-};
+export const implementation = EventImpl;

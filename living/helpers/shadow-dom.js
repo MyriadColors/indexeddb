@@ -1,11 +1,9 @@
-"use strict";
+import NODE_TYPE from "../node-type.js";
 
-const NODE_TYPE = require("../node-type");
-
-const { nodeRoot } = require("./node");
-const { HTML_NS } = require("./namespaces");
-const { domSymbolTree } = require("./internal-constants");
-const { signalSlotList, queueMutationObserverMicrotask } = require("./mutation-observers");
+import { nodeRoot } from "./node.js";
+import { HTML_NS } from "./namespaces.js";
+import { domSymbolTree } from "./internal-constants.js";
+import { signalSlotList, queueMutationObserverMicrotask } from "./mutation-observers.js";
 
 // Valid host element for ShadowRoot.
 // Defined in: https://dom.spec.whatwg.org/#dom-element-attachshadow
@@ -258,6 +256,6 @@ function* shadowIncludingDescendantsIterator(node) {
   }
 }
 
-module.exports = {
+export {
   assignSlot, assignSlotable, assignSlotableForTree, findFlattenedSlotables, findSlot, getEventTargetParent, isNode, isShadowInclusiveAncestor, isShadowRoot, isSlot, isSlotable, isValidHostElementName, retarget, shadowIncludingDescendantsIterator, shadowIncludingInclusiveDescendantsIterator, shadowIncludingRoot, signalSlotChange
 };
