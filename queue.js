@@ -1,8 +1,7 @@
-class Queue {
+export default class Queue {
     constructor (destructible) {
         this.destructible = destructible
     }
 
-    transaction (set) {
-    }
+    transaction (set) {}
 }

@@ -49,18 +49,18 @@ class Transactor {
                     iterator = iterator.next
                 }
                 const { names, readOnly, extra } = wait
-                this.queue.push({ method: 'transact', names, readOnly, extra })
+                this.queue.push({ extra, method: 'transact', names, readOnly })
             }
         }
     }
 
     transaction (extra, names, readOnly) {
-        const wait = { head: null, readOnly, count: 1, names, extra }
+        const wait = { count: 1, extra, head: null, names, readOnly }
         for (const name of names) {
-            const node = { wait, name, next: wait.head }
+            const node = { name, next: wait.head, wait }
             wait.head = node
             if (!this._queues[name]) {
-                this._queues[name] = { waiting: [], running: null }
+                this._queues[name] = { running: null, waiting: [] }
             }
             this._queues[name].waiting.push(node)
         }

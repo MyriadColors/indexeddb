@@ -9,7 +9,7 @@ export function toFileUrl(fileName) {
   // Beyond just the `path.resolve`, this is mostly for the benefit of Windows,
   // where we need to convert "\" to "/" and add an extra "/" prefix before the
   // drive letter.
-  let pathname = resolve(process.cwd(), fileName).replace(/\\/g, "/");
+  let pathname = resolve(process.cwd(), fileName).replaceAll(/\\/g, "/");
   if (pathname[0] !== "/") {
     pathname = `/${pathname}`;
   }
@@ -48,10 +48,7 @@ exports.addConstants = function addConstants(Constructor, propertyMap) {
 
 function addConstant(object, property, value) {
   Object.defineProperty(object, property, {
-    configurable: false,
-    enumerable: true,
-    writable: false,
-    value
+    configurable: false, enumerable: true, value, writable: false
   });
 }
 
@@ -81,7 +78,7 @@ exports.memoizeQuery = function memoizeQuery(fn) {
 
   const type = memoizeQueryTypeCounter++;
 
-  return function (...args) {
+  return function  memoizeQuery(...args) {
     if (!this._memoizedQueries) {
       return fn.apply(this, args);
     }
@@ -152,8 +149,8 @@ let canvasInstalled = false;
 try {
   require.resolve("canvas");
   canvasInstalled = true;
-} catch (e) {
-  console.error(e);
+} catch (error) {
+  console.error(error);
 }
 if (canvasInstalled) {
   const Canvas = require("canvas");

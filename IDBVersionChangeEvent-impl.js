@@ -9,6 +9,6 @@ class IDBVersionChangeEventImpl extends EventImpl {
         this.type = type
     }
 }
-IDBVersionChangeEventImpl.defaultInit = convert(undefined)
+IDBVersionChangeEventImpl.defaultInit = convert()
 
 export const implementation = IDBVersionChangeEventImpl;

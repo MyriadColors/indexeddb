@@ -1,10 +1,6 @@
-/* eslint-disable no-console, no-process-exit */
-
-"use strict";
-
-const path = require("path");
-const fs = require("fs");
-const rimraf = require("rimraf");
+import path from "node:path";
+import fs from "node:fs";
+import rimraf from "rimraf";
 
 const Webidl2js = require("webidl2js");
 
@@ -41,9 +37,9 @@ const transformer = new Webidl2js({
   // https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#reflecting-content-attributes-in-idl-attributes
   processReflect(idl, implObj) {
     const reflectAttr = idl.extAttrs.find(attr => attr.name === "Reflect");
-    const attrName = (reflectAttr && reflectAttr.rhs && JSON.parse(reflectAttr.rhs.value)) || idl.name.toLowerCase();
+    const attrName = (reflectAttr?.rhs && JSON.parse(reflectAttr.rhs.value)) || idl.name.toLowerCase();
 
-    if (idl.extAttrs.find(attr => attr.name === "ReflectURL")) {
+    if (idl.extAttrs.some(attr => attr.name === "ReflectURL")) {
       // Allow DOMString also due to https://github.com/whatwg/html/issues/5241.
       if (!isSimpleIDLType(idl.idlType, "USVString") && !isSimpleIDLType(idl.idlType, "DOMString")) {
         throw new Error("[ReflectURL] specified on non-USV/DOMString attribute");
@@ -153,7 +149,7 @@ rimraf.sync(outputDir);
 fs.mkdirSync(outputDir);
 
 transformer.generate(outputDir)
-  .catch(err => {
-    console.error(err);
+  .catch(error => {
+    console.error(error);
     process.exit(1);
   });

@@ -6,7 +6,7 @@ export function vivify(globalObject, object, path, value) {
     while (parts.length !== 1) {
         const part = parts.shift()
         if (! Object.hasOwn(iterator, part)) {
-            Object.defineProperty(iterator, part, { value: {}, enumerable: true, configurable: true, writable: true })
+            Object.defineProperty(iterator, part, { configurable: true, enumerable: true, value: {}, writable: true })
         }
         const object = iterator[part]
         if (typeof object !== 'object' || object === null || Array.isArray(object)) {
@@ -14,5 +14,5 @@ export function vivify(globalObject, object, path, value) {
         }
         iterator = object
     }
-    Object.defineProperty(iterator, parts[0], { value: value, enumerable: true, configurable: true, writable: true })
+    Object.defineProperty(iterator, parts[0], { configurable: true, enumerable: true, value: value, writable: true })
 }
