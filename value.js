@@ -5,14 +5,16 @@ export const MAX = Symbol('MAX')
 // https://w3c.github.io/IndexedDB/#convert-a-value-to-a-input
 function valuify (globalObject, value, seen = new Set) {
     switch (typeof value) {
-    case 'number':
+    case 'number': {
         if (Number.isNaN(value)) {
             throw DOMException.create(globalObject, [ 'Invalid number: NaN values are not allowed in IndexedDB', 'DataError' ], {})
         }
         return value
-    case 'string':
+    }
+    case 'string': {
         return value
-    case 'object':
+    }
+    case 'object': {
         if (value instanceof Date) {
             if (Number.isNaN(value.valueOf())) {
                 throw DOMException.create(globalObject, [ 'Invalid Date: Invalid date values (NaN) are not allowed in IndexedDB', 'DataError' ], {})
@@ -41,13 +43,16 @@ function valuify (globalObject, value, seen = new Set) {
         } else {
             throw DOMException.create(globalObject, [ 'Invalid value: Object type is not supported in IndexedDB (only Date, ArrayBuffer, typed arrays, and plain arrays are allowed)', 'DataError' ], {})
         }
-    case 'symbol':
+    }
+    case 'symbol': {
         if (value === MAX) {
             return value
         }
         throw DOMException.create(globalObject, [ 'Invalid value: Symbol type is not supported in IndexedDB (only MAX symbol is allowed)', 'DataError' ], {})
-    default:
+    }
+    default: {
         throw DOMException.create(globalObject, [ 'Invalid value: Type is not supported in IndexedDB', 'DataError' ], {})
+    }
     }
 }
 
