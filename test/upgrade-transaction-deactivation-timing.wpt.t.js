@@ -1,14 +1,17 @@
-require('proof')(6, async okay => {
-    await require('./harness')(okay, 'upgrade-transaction-deactivation-timing')
-    await harness(async function () {
+import { proof } from 'proof'
+import { indexeddb_test, harness } from './harness'
+
+proof(6, async okay => {
+    await harness(okay, 'upgrade-transaction-deactivation-timing')
+    await harness(async () => {
 
         indexeddb_test(
-          (t, db, tx) => {
+          (_t, db, tx) => {
             db.createObjectStore('store');
             assert_true(is_transaction_active(tx, 'store'),
                         'Transaction should be active in upgradeneeded callback');
           },
-          (t, db) => { t.done(); },
+          (t) => { t.done(); },
           'Upgrade transactions are active in upgradeneeded callback');
 
         indexeddb_test(
@@ -22,7 +25,7 @@ require('proof')(6, async okay => {
                           'Transaction should be active in microtask checkpoint');
             }));
           },
-          (t, db) => { t.done(); },
+          (t) => { t.done(); },
           'Upgrade transactions are active in upgradeneeded callback and microtasks');
 
 
@@ -37,7 +40,7 @@ require('proof')(6, async okay => {
               release_tx();
             }), 0);
           },
-          (t, db) => { t.done(); },
+          (t) => { t.done(); },
           'Upgrade transactions are deactivated before next task');
 
     })
