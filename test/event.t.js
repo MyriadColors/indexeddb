@@ -11,11 +11,7 @@ require('proof')(2, okay => {
 
     console.log(new object.EventTarget)
 
-    class Targetable extends object.EventTarget {
-        constructor () {
-            super()
-        }
-    }
+    class Targetable extends object.EventTarget {}
 
     const targetable = new Targetable
 
