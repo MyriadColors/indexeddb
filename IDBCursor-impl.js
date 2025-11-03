@@ -1,6 +1,6 @@
 const IDBRequest = require('./living/generated/IDBRequest')
 const DOMException = require('domexception/lib/DOMException')
-const Verbatim = require('verbatim')
+const _Verbatim = require('verbatim')
 
 const { valuify } = require('./value')
 
@@ -10,7 +10,7 @@ const convert = require('./convert')
 const structuredClone = require('./structuredClone')
 
 class IDBCursorImpl {
-    constructor (globalObject, [], { type, transaction, store, request, direction, source, query, index }) {
+    constructor (globalObject, { type, transaction, store, request, direction, source, query, index }) {
         this._globalObject = globalObject
         this._type = type
         this._store = store
@@ -41,10 +41,10 @@ class IDBCursorImpl {
     }
 
     advance (count) {
-        if (count == 0) {
+        if (count === 0) {
             throw new TypeError('count must not be zero')
         }
-        if (this._transaction._state != 'active') {
+        if (this._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         if (this.source._isDeleted()) {
@@ -67,7 +67,7 @@ class IDBCursorImpl {
     }
 
     continue (key) {
-        if (this._transaction._state != 'active') {
+        if (this._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         if (this.source._isDeleted()) {
@@ -108,13 +108,13 @@ class IDBCursorImpl {
     }
 
     continuePrimaryKey (key, primaryKey) {
-        if (this._transaction._state != 'active') {
+        if (this._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         if (this.source._isDeleted()) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
-        if (this._type != 'index') {
+        if (this._type !== 'index') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidAccessError' ], {})
         }
         if (this._direction.endsWith('unique')) {
@@ -130,7 +130,7 @@ class IDBCursorImpl {
                 const test = compare(this._globalObject, key, this._key)
                 if (test < 0) {
                     throw DOMException.create(this._globalObject, [ 'TODO: message', 'DataError' ], {})
-                } else if (test == 0) {
+                } else if (test === 0) {
                     if (compare(this._globalObject, primaryKey, this._value.key) <= 0) {
                         throw DOMException.create(this._globalObject, [ 'TODO: message', 'DataError' ], {})
                     }
@@ -141,7 +141,7 @@ class IDBCursorImpl {
                 const test = compare(this._globalObject, key, this._key)
                 if (test > 0) {
                     throw DOMException.create(this._globalObject, [ 'TODO: message', 'DataError' ], {})
-                } else if (test == 0) {
+                } else if (test === 0) {
                     if (compare(this._globalObject, primaryKey, this._value.key) >= 0) {
                         throw DOMException.create(this._globalObject, [ 'TODO: message', 'DataError' ], {})
                     }
@@ -151,7 +151,6 @@ class IDBCursorImpl {
         default: {
                 throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidAccessError' ], {})
             }
-            break
         }
         this._gotValue = false
         this._transaction._queue.push({
@@ -166,10 +165,10 @@ class IDBCursorImpl {
     }
 
     update (value) {
-        if (this._transaction._state != 'active') {
+        if (this._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
-        if (this._transaction._mode == 'readonly') {
+        if (this._transaction._mode === 'readonly') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'ReadOnlyError' ], {})
         }
         if (this.source._isDeleted() || ! this._gotValue || this._keyOnly) {
@@ -187,7 +186,7 @@ class IDBCursorImpl {
         }
         if (this._store.keyPath != null) {
             const key = valuify(this._globalObject, (this.source.objectStore || this.source)._schema.getExtractor(this._store.id)(value))
-            if (compare(this._globalObject, key, this._value.key) != 0) {
+            if (compare(this._globalObject, key, this._value.key) !== 0) {
                 throw DOMException.create(this._globalObject, [ 'TODO: message', 'DataError' ], {})
             }
         }
@@ -204,10 +203,10 @@ class IDBCursorImpl {
     }
 
     delete () {
-        if (this._transaction._state != 'active') {
+        if (this._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
-        if (this._transaction._mode == 'readonly') {
+        if (this._transaction._mode === 'readonly') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'ReadOnlyError' ], {})
         }
         if (this.source._isDeleted() || ! this._gotValue || this._keyOnly) {
