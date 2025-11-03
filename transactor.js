@@ -13,7 +13,7 @@ class Transactor {
             // Necessary to pass web platform tests. Some Web Platform Tests
             // monkey patch Object in order to assert that clone and injection
             // assignments are done through property definitions, not setters.
-            if (! this._queues.hasOwnProperty(name)) {
+            if (! Object.hasOwn(this._queues, name)) {
                 continue
             }
             const queue = this._queues[name]
@@ -59,7 +59,9 @@ class Transactor {
         for (const name of names) {
             const node = { wait, name, next: wait.head }
             wait.head = node
-            this._queues[name] || (this._queues[name] = { waiting: [], running: null })
+            if (!this._queues[name]) {
+                this._queues[name] = { waiting: [], running: null }
+            }
             this._queues[name].waiting.push(node)
         }
         this._startTransactions()
@@ -69,9 +71,9 @@ class Transactor {
         for (const name of names) {
             const queue = this._queues[name]
             queue.running.count--
-            if (queue.running.count == 0) {
+            if (queue.running.count === 0) {
                 queue.running = null
-                if (queue.waiting.length == 0) {
+                if (queue.waiting.length === 0) {
                     delete this._queues[name]
                 }
             }
@@ -80,4 +82,4 @@ class Transactor {
     }
 }
 
-module.exports = Transactor
+export default Transactor
