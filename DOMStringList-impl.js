@@ -1,7 +1,7 @@
-const { supportedPropertyIndices, supportsPropertyIndex } = require('./living/generated/utils')
+import { supportedPropertyIndices, supportsPropertyIndex } from './living/generated/utils'
 
 class DOMStringListImpl {
-    constructor (globalObject, args, { array = [] }) {
+    constructor (_globalObject, _args, { array = [] }) {
         this._array = array
     }
 
@@ -22,8 +22,8 @@ class DOMStringListImpl {
     }
 
     get [supportedPropertyIndices]() {
-        return this._array.map((value, index) => index)
+        return this._array.map((_value, index) => index)
     }
 }
 
-module.exports = { implementation: DOMStringListImpl }
+export const implementation = DOMStringListImpl
