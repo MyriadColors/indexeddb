@@ -37,6 +37,7 @@
         "perhaps": "0.0.12",
         "rescue": "7.0.0-alpha.18",
         "turnstile": "6.0.0-alpha.82",
+        "typescript": "^5.9.3",
         "verbatim": "0.1.8"
     },
     "devDependencies": {
@@ -51,7 +52,7 @@
     },
     "main": "indexeddb",
     "scripts": {
-        "test": "proof test/*.t.js"
+        "proof": "proof test/*.t.js"
     },
     "nyc": {
         "exclude": [
