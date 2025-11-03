@@ -1,0 +1,256 @@
+{
+    "categories": {
+        "correctness": "error",
+        "suspicious": "error",
+        "pedantic": "warn",
+        "perf": "warn",
+        "style": "warn",
+        "restriction": "off",
+        "nursery": "off"
+    },
+    "plugins": [
+        "unicorn",
+        "typescript",
+        "react",
+        "oxc"
+    ],
+    "rules": {
+        "no-console": [
+            "warn",
+            {
+                "allow": [
+                    "warn",
+                    "error",
+                    "info"
+                ]
+            }
+        ],
+        "no-debugger": "error",
+        "no-alert": "error",
+        "no-unused-vars": [
+            "error",
+            {
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_"
+            }
+        ],
+        "no-undef": "error",
+        "no-unreachable": "error",
+        "no-constant-condition": "error",
+        "no-dupe-keys": "error",
+        "no-duplicate-case": "error",
+        "no-empty": [
+            "error",
+            {
+                "allowEmptyCatch": false
+            }
+        ],
+        "no-ex-assign": "error",
+        "no-extra-boolean-cast": "error",
+        "no-func-assign": "error",
+        "no-inner-declarations": "error",
+        "no-invalid-regexp": "error",
+        "no-obj-calls": "error",
+        "no-sparse-arrays": "error",
+        "use-isnan": "error",
+        "valid-typeof": "error",
+        "eqeqeq": [
+            "error",
+            "always",
+            {
+                "null": "ignore"
+            }
+        ],
+        "no-eval": "error",
+        "no-implied-eval": "error",
+        "no-new-func": "error",
+        "no-new-wrappers": "error",
+        "no-return-await": "error",
+        "no-throw-literal": "error",
+        "no-with": "error",
+        "prefer-promise-reject-errors": "error",
+        "radix": "error",
+        "typescript/no-explicit-any": "warn",
+        "typescript/no-unused-vars": [
+            "error",
+            {
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_"
+            }
+        ],
+        "typescript/no-non-null-assertion": "warn",
+        "typescript/prefer-as-const": "error",
+        "typescript/ban-ts-comment": [
+            "error",
+            {
+                "ts-expect-error": "allow-with-description",
+                "ts-ignore": true,
+                "ts-nocheck": true,
+                "ts-check": false
+            }
+        ],
+        "react/jsx-key": "error",
+        "react/jsx-no-comment-textnodes": "error",
+        "react/jsx-no-duplicate-props": "error",
+        "react/jsx-no-target-blank": [
+            "error",
+            {
+                "allowReferrer": false,
+                "enforceDynamicLinks": "always"
+            }
+        ],
+        "react/jsx-no-undef": "error",
+        "react/no-children-prop": "error",
+        "react/no-danger-with-children": "error",
+        "react/no-deprecated": "warn",
+        "react/no-direct-mutation-state": "error",
+        "react/no-find-dom-node": "error",
+        "react/no-is-mounted": "error",
+        "react/no-render-return-value": "error",
+        "react/no-string-refs": "error",
+        "react/no-unescaped-entities": "error",
+        "react/no-unknown-property": "error",
+        "react/require-render-return": "error",
+        "import/no-default-export": "off",
+        "import/named": "error",
+        "import/no-duplicates": "error",
+        "jsx-a11y/alt-text": "warn",
+        "jsx-a11y/anchor-has-content": "warn",
+        "jsx-a11y/aria-props": "error",
+        "jsx-a11y/aria-role": "error",
+        "jsx-a11y/aria-unsupported-elements": "error",
+        "jsx-a11y/heading-has-content": "warn",
+        "jsx-a11y/html-has-lang": "warn",
+        "jsx-a11y/img-redundant-alt": "warn",
+        "jsx-a11y/no-access-key": "warn",
+        "jsx-a11y/no-autofocus": [
+            "warn",
+            {
+                "ignoreNonDOM": true
+            }
+        ],
+        "unicorn/better-regex": "warn",
+        "unicorn/catch-error-name": "warn",
+        "unicorn/consistent-function-scoping": "warn",
+        "unicorn/error-message": "error",
+        "unicorn/no-array-for-each": "off",
+        "unicorn/no-null": "off",
+        "unicorn/prefer-module": "warn",
+        "unicorn/prefer-node-protocol": "warn",
+        "no-plusplus": [
+            "off",
+            {
+                "allowForLoopAfterthoughts": true
+            }
+        ],
+        "no-mixed-operators": "off"
+    },
+    "env": {
+        "browser": true,
+        "node": true,
+        "esnext": true
+    },
+    "globals": {},
+    "overrides": [
+        {
+            "files": [
+                "**/*.{ts,tsx}"
+            ],
+            "plugins": [
+                "typescript"
+            ],
+            "rules": {
+                "no-undef": "off",
+                "typescript/no-explicit-any": "error",
+                "typescript/no-unused-vars": "error"
+            }
+        },
+        {
+            "files": [
+                "**/__tests__/**",
+                "**/*.{test,spec}.{js,jsx,ts,tsx}"
+            ],
+            "plugins": [
+                "jest"
+            ],
+            "env": {
+                "jest": true
+            },
+            "rules": {
+                "no-console": "off",
+                "jest/no-disabled-tests": "warn",
+                "jest/no-focused-tests": "error",
+                "jest/no-identical-title": "error",
+                "jest/valid-expect": "error"
+            }
+        },
+        {
+            "files": [
+                "*.config.{js,ts}",
+                ".*.{js,ts}",
+                "*rc.{js,ts}"
+            ],
+            "env": {
+                "node": true
+            },
+            "rules": {
+                "no-console": "off",
+                "import/no-default-export": "off"
+            }
+        },
+        {
+            "files": [
+                "scripts/**/*.{js,ts}"
+            ],
+            "env": {
+                "node": true
+            },
+            "rules": {
+                "no-console": "off"
+            }
+        },
+        {
+            "files": [
+                "**/examples/**",
+                "**/demo/**",
+                "**/playground/**"
+            ],
+            "rules": {
+                "no-console": "off",
+                "typescript/no-explicit-any": "warn"
+            }
+        }
+    ],
+    "ignorePatterns": [
+        "node_modules",
+        "vendor",
+        "dist",
+        "build",
+        "out",
+        ".next",
+        ".nuxt",
+        ".output",
+        ".vercel",
+        ".cache",
+        ".turbo",
+        ".parcel-cache",
+        "coverage",
+        ".nyc_output",
+        "*.generated.*",
+        "**/*.min.js",
+        "**/*.bundle.js",
+        "**/__snapshots__/**",
+        ".vscode",
+        ".idea",
+        ".DS_Store",
+        "docs/.vitepress/cache",
+        "pnpm-lock.yaml",
+        "package-lock.json",
+        "yarn.lock"
+    ],
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    }
+}
