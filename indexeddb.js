@@ -1,12 +1,4 @@
 // # IndexedDB
-//
-// Issues requiring interpretation of the spec.
-//
-//  * What is `legacyOutputDidListenersThrowFlag`? Possible related
-//  [issue](https://github.com/w3c/IndexedDB/issues/140).
-
-//
-const path = require('path')
 
 const Event = require('./living/generated/Event')
 const EventTarget = require('./living/generated/EventTarget')
@@ -46,6 +38,4 @@ WrapperDOMException.install(exports, [ 'Window' ])
 
 require('./IDBKeyRange-static').patch(exports)
 
-exports.create = function (destructible, directory) {
-    return IDBFactory.create(exports, [], { destructible, directory })
-}
+exports.create = (destructible, directory) => IDBFactory.create(exports, [], { destructible, directory })
