@@ -1,8 +1,6 @@
-"use strict";
 const DOMException = require("domexception/webidl2js-wrapper");
-const hooks = require('async_hooks')
+const hooks = require('node:async_hooks')
 
-const reportException = require("../helpers/runtime-script-errors");
 const idlUtils = require("../generated/utils");
 const { nodeRoot } = require("../helpers/node");
 const {
@@ -11,7 +9,6 @@ const {
 } = require("../helpers/shadow-dom");
 
 const cadence = require('cadence')
-const noop = require('nop')
 
 const MouseEvent = require("../generated/MouseEvent");
 
@@ -23,7 +20,7 @@ const EVENT_PHASE = {
 };
 
 function setEqual (left, right) {
-    if (left.size != right.size) {
+    if (left.size !== right.size) {
         return false
     }
     for (const object of left) {
@@ -107,11 +104,14 @@ class EventTargetImpl {
 
     eventImpl.isTrusted = false;
 
-    let cancelled
+    let cancelled;
+    const callback = (_error, result) => {
+      cancelled = result;
+    };
 
-    this._dispatch(eventImpl, false, false, false, (error, $) => cancelled = $);
+    this._dispatch(eventImpl, false, false, false, callback);
 
-    return cancelled
+    return cancelled;
   }
 
   // https://dom.spec.whatwg.org/#get-the-parent
@@ -123,31 +123,35 @@ class EventTargetImpl {
   // legacyOutputDidListenersThrowFlag optional parameter is not necessary here since it is only used by indexDB.
   _dispatch = cadence(function (step, eventImpl, targetOverride, legacyOutputDidListenersThrowFlag, asynchronous) {
         let targetImpl = this;
+        const originalTarget = targetImpl; // Preserve original target for event path logic
         let clearTargets = false;
         let activationTarget = null;
 
-        const trace = function () {
+        const trace = (() => {
             if (asynchronous) {
                 const hook = hooks.createHook({
                     init(asyncId, type, triggerAsyncId, resource) {
                         trace.map.set(asyncId, { asyncId, type, triggerAsyncId })
+                        console.log('init', asyncId, type, triggerAsyncId, resource)
                     },
                     after (asyncId) {
                         trace.map.delete(asyncId)
+                        console.log('after', asyncId)
                     }
                 })
                 hook.enable()
+                console.log('enable', hook)
                 return { hook, map: new Map, previous: new Set }
             }
             return null
-        } ()
+        }) ()
 
         eventImpl._dispatchFlag = true;
 
         targetOverride = targetOverride || targetImpl;
         let relatedTarget = retarget(eventImpl.relatedTarget, targetImpl);
 
-        step(function () {
+        step(() => {
             if (targetImpl !== relatedTarget || targetImpl === eventImpl.relatedTarget) {
               const touchTargets = [];
 
@@ -185,11 +189,16 @@ class EventTargetImpl {
 
                 relatedTarget = retarget(eventImpl.relatedTarget, parent);
 
-                if (
-                  true || // TODO Hack to get bubbling to work correctly.
-                  (isNode(parent) && isShadowInclusiveAncestor(nodeRoot(targetImpl), parent)) ||
-                  idlUtils.wrapperForImpl(parent).constructor.name === "Window"
-                ) {
+                // Determine if we should add parent to event path without retargeting.
+                // For non-Node EventTargets (like IDBRequest, IDBTransaction, IDBDatabase),
+                // always add parents since there's no shadow DOM retargeting logic needed.
+                // For Node EventTargets, check if parent is a shadow-inclusive ancestor of the original target.
+                const shouldAddParentWithoutRetargeting = 
+                  !isNode(originalTarget) || // Non-Node EventTargets: always bubble without retargeting
+                  (isNode(parent) && isShadowInclusiveAncestor(parent, originalTarget)) || // Parent is ancestor of original target
+                  idlUtils.wrapperForImpl(parent).constructor.name === "Window"; // Special case for Window
+
+                if (shouldAddParentWithoutRetargeting) {
                   if (isActivationEvent && eventImpl.bubbles && activationTarget === null &&
                       parent._hasActivationBehavior) {
                     activationTarget = parent;
@@ -227,12 +236,12 @@ class EventTargetImpl {
                   (isNode(clearTargetsStruct.target) && isShadowRoot(nodeRoot(clearTargetsStruct.target))) ||
                   (isNode(clearTargetsStruct.relatedTarget) && isShadowRoot(nodeRoot(clearTargetsStruct.relatedTarget)));
 
-              if (activationTarget !== null && activationTarget._legacyPreActivationBehavior) {
+              if (activationTarget?._legacyPreActivationBehavior) {
                 activationTarget._legacyPreActivationBehavior();
               }
 
-                step(function () {
-                    step.loop([ eventImpl._path.length - 1 ], function (i) {
+                step(() => {
+                    step.loop([ eventImpl._path.length - 1 ], (i) => {
                         if (i < 0) {
                             return [ step.break ]
                         }
@@ -243,14 +252,12 @@ class EventTargetImpl {
                         } else {
                             eventImpl.eventPhase = EVENT_PHASE.CAPTURING_PHASE;
                         }
-                        step(function () {
+                        step(() => {
                             _invokeEventListeners(struct, eventImpl, "capturing", legacyOutputDidListenersThrowFlag, trace, step());
-                        }, function () {
-                            return i - 1
-                        })
+                        }, () => i - 1)
                     })
-                }, function () {
-                    step.forEach([ eventImpl._path ], function (struct) {
+                }, () => {
+                    step.forEach([ eventImpl._path ], (struct) => {
                         if (struct.target !== null) {
                             eventImpl.eventPhase = EVENT_PHASE.AT_TARGET;
                         } else {
@@ -263,7 +270,7 @@ class EventTargetImpl {
                     })
                 })
             }
-        }, function () {
+        }, () => {
             eventImpl.eventPhase = EVENT_PHASE.NONE;
 
             eventImpl.currentTarget = null;
@@ -277,7 +284,7 @@ class EventTargetImpl {
                 eventImpl.relatedTarget = null;
             }
 
-            if (activationTarget !== null) {
+            if (activationTarget) {
                 if (!eventImpl._canceledFlag) {
                     activationTarget._activationBehavior(eventImpl);
                 } else if (activationTarget._legacyCanceledActivationBehavior) {
@@ -299,7 +306,7 @@ module.exports = {
 };
 
 // https://dom.spec.whatwg.org/#concept-event-listener-invoke
-const _invokeEventListeners = cadence(function (step, struct, eventImpl, phase, legacyOutputDidListenersThrowFlag, trace = null) {
+const _invokeEventListeners = cadence((step, struct, eventImpl, phase, legacyOutputDidListenersThrowFlag, trace = null) => {
   const structIndex = eventImpl._path.indexOf(struct);
   for (let i = structIndex; i >= 0; i--) {
     const t = eventImpl._path[i];
@@ -323,7 +330,7 @@ const _invokeEventListeners = cadence(function (step, struct, eventImpl, phase, 
 
 // https://dom.spec.whatwg.org/#concept-event-listener-inner-invoke
 
-const _innerInvokeEventListeners = cadence(function (step, eventImpl, listeners, phase, itemInShadowTree, legacyOutputDidListenersThrowFlag, trace) {
+const _innerInvokeEventListeners = cadence((step, eventImpl, listeners, phase, itemInShadowTree, legacyOutputDidListenersThrowFlag, trace) => {
     let found = false
 
     const { type, target } = eventImpl
@@ -336,7 +343,7 @@ const _innerInvokeEventListeners = cadence(function (step, eventImpl, listeners,
     // Copy event listeners before iterating since the list can be modified during the iteration.
     const handlers = listeners[type].slice();
 
-    step.forEach([ handlers ], function (listener) {
+    step.forEach([ handlers ], (listener) => {
         const { capture, once, passive } = listener.options;
         if (
             (phase === "capturing" && !capture) ||
@@ -365,9 +372,9 @@ const _innerInvokeEventListeners = cadence(function (step, eventImpl, listeners,
         eventImpl._inPassiveListenerFlag = false;
 
         if (trace != null) {
-            step.loop([], function () {
+            step.loop([], () => {
                 return new Promise(resolve => resolve(1))
-            }, function () {
+            }, () => {
                 trace.map.delete(hooks.executionAsyncId())
                 trace.map.delete(hooks.triggerAsyncId())
                 const next = new Set(trace.map.keys())
@@ -376,8 +383,6 @@ const _innerInvokeEventListeners = cadence(function (step, eventImpl, listeners,
                 }
                 trace.previous = next
             })
-        } else {
-            return []
         }
     })
 })
