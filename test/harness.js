@@ -30,11 +30,11 @@ module.exports = async (okay, name) => {
     globalize({ location: { pathname: 'wpt' } }, 'self')
     globalize({
         getElementsByTagName(name) {
+          console.log('getElementsByTagName', name)
             return {
-                nodeType: 0,
-                insertBefore () {}
+                insertBefore () { console.log('insertBefore') }, nodeType: 0
             }
-        }, insertBefore: function () {}, location: 'wpt', nodeType: 0, title: 'wpt'
+        }, insertBefore: function  insertBefore() { console.log('insertBefore') }, location: 'wpt', nodeType: 0, title: 'wpt'
     }, 'document')
     //const { IDBDatabase } = require('../database')
     /*
@@ -100,12 +100,12 @@ module.exports = async (okay, name) => {
         let replace;
         switch (typeof val) {
         case "string": {
-            val = val.replace(/\\/g, "\\\\");
+            val = val.replaceAll(/\\/g, "\\\\");
             for (var p in replacements) {
                 replace = `\\${replacements[p]}`;
-                val = val.replace(RegExp(String.fromCharCode(p), "g"), replace);
+                val = val.replace(RegExp(String.fromCodePoint(p), "g"), replace);
             }
-            return `"${val.replace(/"/g, '\\"')}"`;
+            return `"${val.replaceAll(/"/g, String.raw`\"`)}"`;
         }
         case "boolean":
         case "undefined": {
@@ -137,20 +137,27 @@ module.exports = async (okay, name) => {
                     ret += `>${val.innerHTML}</${val.localName}>`;
                     return `Element node ${truncate(ret, 60)}`;
                 }
-                case Node.TEXT_NODE:
+                case Node.TEXT_NODE: {
                     return `Text node "${truncate(val.data, 60)}"`;
-                case Node.PROCESSING_INSTRUCTION_NODE:
+                }
+                case Node.PROCESSING_INSTRUCTION_NODE: {
                     return `ProcessingInstruction node with target ${format_value(truncate(val.target, 60))} and data ${format_value(truncate(val.data, 60))}`;
-                case Node.COMMENT_NODE:
+                }
+                case Node.COMMENT_NODE: {
                     return `Comment node <!--${truncate(val.data, 60)}-->`;
-                case Node.DOCUMENT_NODE:
+                }
+                case Node.DOCUMENT_NODE: {
                     return `Document node with ${val.childNodes.length} ${val.childNodes.length === 1 ? "child" : "children"}`;
-                case Node.DOCUMENT_TYPE_NODE:
+                }
+                case Node.DOCUMENT_TYPE_NODE: {
                     return "DocumentType node";
-                case Node.DOCUMENT_FRAGMENT_NODE:
+                }
+                case Node.DOCUMENT_FRAGMENT_NODE: {
                     return `DocumentFragment node with ${val.childNodes.length} ${val.childNodes.length === 1 ? "child" : "children"}`;
-                default:
+                }
+                default: {
                     return "Node object of unknown type";
+                }
                 }
             }
             break;
@@ -800,9 +807,9 @@ module.exports = async (okay, name) => {
     // The data in the 'books' object store records in the first example of the
     // IndexedDB specification.
     const BOOKS_RECORD_DATA = [
-      { author: 'Fred', isbn: 123456, title: 'Quarry Memories' },
-      { author: 'Fred', isbn: 234567, title: 'Water Buffaloes' },
-      { author: 'Barney', isbn: 345678, title: 'Bedrock Nights' },
+      { author: 'Fred', isbn: 123_456, title: 'Quarry Memories' },
+      { author: 'Fred', isbn: 234_567, title: 'Water Buffaloes' },
+      { author: 'Barney', isbn: 345_678, title: 'Bedrock Nights' },
     ];
 
     globalize(BOOKS_RECORD_DATA, 'BOOKS_RECORD_DATA')
@@ -934,8 +941,8 @@ module.exports = async (okay, name) => {
     async function deleteAllDatabases(testCase) {
       const dbs_to_delete = await indexedDB.databases();
       for( const db_info of dbs_to_delete) {
-        let request = indexedDB.deleteDatabase(db_info.name);
-        let eventWatcher = requestWatcher(testCase, request);
+        const request = indexedDB.deleteDatabase(db_info.name);
+        const eventWatcher = requestWatcher(testCase, request);
         await eventWatcher.wait_for('success');
       }
     }

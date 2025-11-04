@@ -292,62 +292,51 @@ class IDBTransactionImpl extends EventTargetImpl {
             case 'deleteStore':
                 // Note: deleteObjectStore uses 'destroy' method, not 'deleteStore'.
                 // This case is kept for backwards compatibility or future use.
-                // The actual deletion is handled by the 'destroy' case with type: 'store'
+                // The actual deletion is handled by the 'destroy' case with type: { 'store'
                 void event
                 break
 
-            case 'set': {
+            case 'set': 
                 await this._handleSet(transaction, event)
                 break
-            }
-            case 'get': {
+            case 'get': 
                 await this._handleGet(transaction, event)
                 break
-            }
 
-            case 'getAll': {
+            case 'getAll': 
                 await this._handleGetAll(transaction, event)
                 break
-            }
-            case 'openCursor': {
+            case 'openCursor': 
                 await this._handleOpenCursor(transaction, event)
                 break
-            }
 
-            case 'continue': {
+            case 'continue': 
                 await this._handleContinue(transaction, event)
                 break
-            }
 
-            case 'advance': {
+            case 'advance': 
                 await this._handleAdvance(transaction, event)
                 break
-            }
 
-            case 'count': {
+            case 'count': 
                 await this._handleCount(transaction, event)
                 break
-            }
 
-            case 'clear': {
+            case 'clear': 
                 await this._handleClear(transaction, event)
                 break
-            }
 
-            case 'delete': {
+            case 'delete': 
                 await this._handleDelete(transaction, event)
                 break
-            }
 
-            case 'rename': {
+            case 'rename': 
                 await this._handleRename(transaction, event)
                 break
-            }
 
-            case 'destroy': {
+            case 'destroy': 
                 await this._handleDestroy(transaction, event)
                 break
-            }
             }
             await new Promise(resolve => setImmediate(resolve))
         }
@@ -491,7 +480,7 @@ class IDBTransactionImpl extends EventTargetImpl {
                     .limit(1)
                     .array()
                 
-                if (results.length !== 0) {
+                if (results.length > 0) {
                     const result = keys ? results[0].key : results[0].value
                     await this._dispatchSuccess(request, structuredClone(this._globalObject, result))
                 } else {
@@ -513,7 +502,7 @@ class IDBTransactionImpl extends EventTargetImpl {
                     .limit(1)
                     .array()
                 
-                if (indexResults.length !== 0) {
+                if (indexResults.length > 0) {
                     const got = await transaction.get(store.qualified, [indexResults[0].referent])
                     const result = key ? got.key : got.value
                     await this._dispatchSuccess(request, deserialize(serialize(result)))
@@ -604,7 +593,7 @@ class IDBTransactionImpl extends EventTargetImpl {
                 if (query.lower !== null) {
                     builder = builder.terminate(item => !query.includes(item.key))
                 }
-                builder = builder.reverse()
+                builder = builder.toReversed()
                 break
             }
             }
@@ -629,7 +618,7 @@ class IDBTransactionImpl extends EventTargetImpl {
             case 'prevunique': {
                 builder = transaction.cursor(qualified, query.upper === null ? null : [query.upper])
                 builder = query.upperOpen ? builder.exclusive() : builder
-                builder = builder.reverse()
+                builder = builder.toReversed()
                 if (query.lower !== null) {
                     builder = builder.terminate(item => !query.includes(item.key))
                 }

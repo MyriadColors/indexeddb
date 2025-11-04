@@ -40,9 +40,9 @@ function valuify (globalObject, value, seen = new Set) {
                 Object.defineProperty(converted, i, { value: valuify(globalObject, x, seen) })
             }
             return converted
-        } else {
-            throw DOMException.create(globalObject, [ 'Invalid value: Object type is not supported in IndexedDB (only Date, ArrayBuffer, typed arrays, and plain arrays are allowed)', 'DataError' ], {})
         }
+            throw DOMException.create(globalObject, [ 'Invalid value: Object type is not supported in IndexedDB (only Date, ArrayBuffer, typed arrays, and plain arrays are allowed)', 'DataError' ], {})
+        
     }
     case 'symbol': {
         if (value === MAX) {

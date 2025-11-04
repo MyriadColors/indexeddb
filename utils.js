@@ -9,7 +9,7 @@ export function toFileUrl(fileName) {
   // Beyond just the `path.resolve`, this is mostly for the benefit of Windows,
   // where we need to convert "\" to "/" and add an extra "/" prefix before the
   // drive letter.
-  let pathname = resolve(process.cwd(), fileName).replaceAll(/\\/g, "/");
+  let pathname = resolve(process.cwd(), fileName).replaceAll("\\\\", "/");
   if (pathname[0] !== "/") {
     pathname = `/${pathname}`;
   }
