@@ -4,7 +4,7 @@ const NodeList = require("../generated/NodeList");
 
 // https://dom.spec.whatwg.org/#mutationrecord
 class MutationRecordImpl {
-  constructor(globalObject, args, privateData) {
+  constructor(globalObject, _args, privateData) {
     this._globalObject = globalObject;
 
     this.type = privateData.type;

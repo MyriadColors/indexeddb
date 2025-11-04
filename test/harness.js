@@ -9,7 +9,7 @@ module.exports = async (okay, name) => {
     await coalesce(fs.rm, fs.rmdir).call(fs, directory, { force: true, recursive: true })
     await fs.mkdir(directory, { recursive: true })
     function globalize (value, name = null) {
-        if (name == null) {
+        if (name === null) {
             switch (typeof value) {
             case 'function': {
                 global[value.name] = value
@@ -112,7 +112,7 @@ module.exports = async (okay, name) => {
             return String(val);
         }
         case "number": {
-            // In JavaScript, -0 === 0 and String(-0) == "0", so we have to
+            // In JavaScript, -0 === 0 and String(-0) === "0", so we have to
             // special-case.
             if (val === 0 || (val !== 0 && 1/val === -Infinity)) {
                 return "-0";
@@ -240,11 +240,11 @@ module.exports = async (okay, name) => {
     function async_test (...vargs) {
         const f = typeof vargs[0] === 'function' ? vargs.shift() : null
         scope.name = typeof vargs[0] === 'string' ? vargs.shift() : name
-        const properties = vargs.pop() || null
+        const _properties = vargs.pop() || null
         scope.count = 0
         const future = new Future
         futures.push(future)
-        if (f != null) {
+        if (f !== null) {
             f(new Test(future, scope.name))
         }
         return new Test(future, scope.name)
@@ -262,7 +262,7 @@ module.exports = async (okay, name) => {
         }.bind(this), t)
     }
     globalize(step_timeout)
-    function fail (test, message) {
+    function fail (_test, message) {
         return (e) => {
             if (e?.message && e.target.error) {
                 assert.fail(`${message} (${e.target.error.name}: ${e.message})`)
@@ -353,7 +353,7 @@ module.exports = async (okay, name) => {
         }
     }
     globalize(assert_throws_js)
-    function assert_throws_exactly (exception, func, description, assertion_type) {
+    function assert_throws_exactly (exception, func, description, _assertion_type) {
         try {
             func.call(null)
             assert(false, 'did not throw')
@@ -439,7 +439,7 @@ module.exports = async (okay, name) => {
 
                 test.step(() => {
                     assert(!!promise, "promise_test", null,
-                           "test body must return a 'thenable' object (received ${value})",
+                           `test body must return a 'thenable' object (received ` + String(promise) + `)`,
                            {value:promise});
                     assert(typeof promise.then === "function", "promise_test", null,
                            "test body must return a 'thenable' object (received an object with no `then` method)",
@@ -463,7 +463,7 @@ module.exports = async (okay, name) => {
                             }
                             console.log(value.stack)
                             assert(false, "promise_test", null,
-                                   "Unhandled rejection with value: ${value}", {value:value});
+                                   `Unhandled rejection with value: ` + String(value), {value:value});
                         }))
                     .then(() => {
                         test.done()
@@ -816,7 +816,7 @@ module.exports = async (okay, name) => {
 
     // Creates a 'books' object store whose contents closely resembles the first
     // example in the IndexedDB specification.
-    const createBooksStore = (testCase, database) => {
+    const createBooksStore = (_testCase, database) => {
       const store = database.createObjectStore('books',
           { autoIncrement: true, keyPath: 'isbn' });
       store.createIndex('by_author', 'author');
@@ -829,7 +829,7 @@ module.exports = async (okay, name) => {
 
     // Creates a 'books' object store whose contents closely resembles the first
     // example in the IndexedDB specification, just without autoincrementing.
-    const createBooksStoreWithoutAutoIncrement = (testCase, database) => {
+    const _createBooksStoreWithoutAutoIncrement = (_testCase, database) => {
       const store = database.createObjectStore('books',
           { keyPath: 'isbn' });
       store.createIndex('by_author', 'author');
@@ -938,11 +938,11 @@ module.exports = async (okay, name) => {
       return buffer;
     }
 
-    async function deleteAllDatabases(testCase) {
+    async function _deleteAllDatabases(_testCase) {
       const dbs_to_delete = await indexedDB.databases();
       for( const db_info of dbs_to_delete) {
         const request = indexedDB.deleteDatabase(db_info.name);
-        const eventWatcher = requestWatcher(testCase, request);
+        const eventWatcher = requestWatcher(_testCase, request);
         await eventWatcher.wait_for('success');
       }
     }
@@ -951,7 +951,7 @@ module.exports = async (okay, name) => {
     // against the named store). Returns a function that asserts that the
     // transaction has not already completed and then ends the request loop so that
     // the transaction may autocommit and complete.
-    function keepAlive(testCase, transaction, storeName) {
+    function _keepAlive(_testCase, transaction, storeName) {
       let completed = false;
       transaction.addEventListener('complete', () => { completed = true; });
 
@@ -972,8 +972,8 @@ module.exports = async (okay, name) => {
 
     // Return a promise that resolves after a setTimeout finishes to break up the
     // scope of a function's execution.
-    function timeoutPromise(ms) {
-      return new Promise(resolve => { setTimeout(resolve, ms); });
+    function _timeoutPromise(_ms) {
+      return new Promise(resolve => { setTimeout(resolve, _ms); });
     }
     // Migrates an IndexedDB database whose name is unique for the test case.
     //
@@ -1066,7 +1066,7 @@ module.exports = async (okay, name) => {
 
     // Creates a 'not_books' object store used to test renaming into existing or
     // deleted store names.
-    function createNotBooksStore(testCase, database) {
+    function createNotBooksStore(database) {
       const store = database.createObjectStore('not_books');
       store.createIndex('not_by_author', 'author');
       store.createIndex('not_by_title', 'title', { unique: true });
@@ -1138,7 +1138,6 @@ module.exports = async (okay, name) => {
     globalize(barrier_func)
     function createdb_for_multiple_tests(dbname, version) {
         var rq_open,
-            fake_open = {},
             test = null;
         
         dbname = dbname || `testdb-${Date.now()}-${Math.random()}`;
@@ -1268,7 +1267,6 @@ module.exports = async (okay, name) => {
             Object.getOwnPropertyNames(value).toSorted(),
             Object.getOwnPropertyNames(descriptor).toSorted(),
             'IndexedDB result object properties should match put() argument');
-        const subChecks = [];
         return Promise.all(Object.getOwnPropertyNames(descriptor).map(property =>
             checkValue(testCase, value[property], descriptor[property])));
       }
@@ -1315,7 +1313,7 @@ module.exports = async (okay, name) => {
 
     function cloningTestInternal(label, valueDescriptors, options) {
       promise_test(testCase => {
-        return createDatabase(testCase, (database, transaction) => {
+        return createDatabase(testCase, (database) => {
           let store;
           if (options.useKeyGenerator) {
             store = database.createObjectStore(

@@ -30,7 +30,7 @@ require('proof')(10, async okay => {
                         });
                     });
                 });
-            }, "BigInts as values in IndexedDB - " + name);
+            }, `BigInts as values in IndexedDB - ${name}`);
         }
 
         value_test(1n,

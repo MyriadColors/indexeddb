@@ -84,10 +84,10 @@ require('proof')(66, async okay => {
                         if (numMatch) {
                             args.push(IDBKeyRange.only(Number(numMatch[1])));
                         }
-                    } else if (part.match(/^'\w+'$/)) {
+                    } else if (/^'\w+'$/.test(part)) {
                         // String argument like 'next'
                         args.push(part.slice(1, -1));
-                    } else if (part.match(/^\d+$/)) {
+                    } else if (/^\d+$/.test(part)) {
                         // Numeric argument
                         args.push(Number(part));
                     }

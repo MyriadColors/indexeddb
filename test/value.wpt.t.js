@@ -1,9 +1,9 @@
 require('proof')(4, async okay => {
     await require('./harness')(okay, 'value')
-    await harness(async function () {
+    await harness(async () => {
         function value(value, _instanceof) {
-            var t = async_test(document.title + " - " + _instanceof.name);
-            t.step(function() {
+            var t = async_test(`${document.title} - ${_instanceof.name}`);
+            t.step(() => {
                 assert_true(value instanceof _instanceof, "TEST ERROR, instanceof");
             });
 
@@ -12,12 +12,12 @@ require('proof')(4, async okay => {
                         .createObjectStore("store")
                         .add(value, 1);
 
-                e.target.onsuccess = t.step_func(function onsuccess(e) {
+                e.target.onsuccess = t.step_func(function onsuccess(_e) {
                     e.target.result
                             .transaction("store")
                             .objectStore("store")
                             .get(1)
-                            .onsuccess = t.step_func(function onsuccess(e)
+                            .onsuccess = t.step_func(function onsuccess(_e)
                     {
                         assert_true(e.target.result instanceof _instanceof, "instanceof")
                         t.done();
