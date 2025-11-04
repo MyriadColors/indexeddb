@@ -29,7 +29,7 @@ const calledback = cadence((step, callbacks, asynchronous = true) => {
                 after (asyncId) {
                     trace.map.delete(asyncId)
                 }, init(asyncId, type, triggerAsyncId, _resource) {
-                    trace.map.set(asyncId, { asyncId, type, triggerAsyncId })
+                    trace.map.set(asyncId, { asyncId, triggerAsyncId, type })
                 }
             })
             hook.enable()
@@ -73,7 +73,7 @@ async function asyncAwait (callbacks) {
         after (asyncId) {
             map.delete(asyncId)
         }, init(asyncId, type, triggerAsyncId, _resource) {
-            map.set(asyncId, { asyncId, type, triggerAsyncId })
+            map.set(asyncId, { asyncId, triggerAsyncId, type })
         }
     })
     hook.enable()
@@ -109,7 +109,7 @@ function _trampolined (trampoline, callbacks, asynchronous) {
                 after (asyncId) {
                     trace.map.delete(asyncId)
                 }, init(asyncId, type, triggerAsyncId, _resource) {
-                    trace.map.set(asyncId, { asyncId, type, triggerAsyncId })
+                    trace.map.set(asyncId, { asyncId, triggerAsyncId, type })
                 }
             })
             hook.enable()

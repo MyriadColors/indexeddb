@@ -1,6 +1,6 @@
 require('proof')(9, async okay => {
     await require('./harness')(okay, 'bindings-inject-keys-bypass-setters')
-    await harness(async function () {
+    await harness(async () => {
 
         promise_test(async t => {
           const db = await createDatabase(t, db => {
@@ -10,7 +10,7 @@ require('proof')(9, async okay => {
           let setter_called = false;
           Object.defineProperty(Object.prototype, '10', {
             configurable: true,
-            set: value => { console.log('set'); setter_called = true; },
+            set: () => { console.log('set'); setter_called = true; },
           });
           t.add_cleanup(() => { delete Object.prototype['10']; });
 
@@ -20,7 +20,7 @@ require('proof')(9, async okay => {
 
           assert_false(setter_called,
                        'Setter should not be called for key result.');
-          assert_true(result.hasOwnProperty('10'),
+          assert_true(Object.hasOwn(result, '10'),
                       'Result should have own-property overriding prototype setter.');
           assert_equals(result[10], 'key',
                         'Result should have expected property.');

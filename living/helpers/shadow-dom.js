@@ -3,7 +3,7 @@ import NODE_TYPE from "../node-type.js";
 import { nodeRoot } from "./node.js";
 import { HTML_NS } from "./namespaces.js";
 import { domSymbolTree } from "./internal-constants.js";
-import { signalSlotList, queueMutationObserverMicrotask } from "./mutation-observers.js";
+import { queueMutationObserverMicrotask, signalSlotList } from "./mutation-observers.js";
 
 // Valid host element for ShadowRoot.
 // Defined in: https://dom.spec.whatwg.org/#dom-element-attachshadow

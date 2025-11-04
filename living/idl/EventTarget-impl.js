@@ -131,7 +131,7 @@ class EventTargetImpl {
                         trace.map.delete(asyncId)
                         console.log('after', asyncId)
                     }, init(asyncId, type, triggerAsyncId, resource) {
-                        trace.map.set(asyncId, { asyncId, type, triggerAsyncId })
+                        trace.map.set(asyncId, { asyncId, triggerAsyncId, type })
                         console.log('init', asyncId, type, triggerAsyncId, resource)
                     }
                 })
@@ -326,11 +326,11 @@ const _invokeEventListeners = cadence((step, struct, eventImpl, phase, legacyOut
 
 // https://dom.spec.whatwg.org/#concept-event-listener-inner-invoke
 
-const _innerInvokeEventListeners = cadence((step, eventImpl, listeners, phase, itemInShadowTree, legacyOutputDidListenersThrowFlag, trace) => {
-    let found = false
+const _innerInvokeEventListeners = cadence((step, eventImpl, listeners, phase, _itemInShadowTree, legacyOutputDidListenersThrowFlag, trace) => {
+    const found = false
 
     const { type, target } = eventImpl
-    const wrapper = idlUtils.wrapperForImpl(target)
+    const _wrapper = idlUtils.wrapperForImpl(target)
 
     if (!listeners || !listeners[type]) {
         return found

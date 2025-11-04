@@ -1,13 +1,13 @@
 require('proof')(10, async okay => {
     await require('./harness')(okay, 'bigint_value')
-    await harness(async function () {
+    await harness(async () => {
         // BigInt and BigInt objects are supported in serialization, per
         // https://github.com/whatwg/html/pull/3480
         // This support allows them to be used as IndexedDB values.
 
         function value_test(value, predicate, name) {
             async_test(t => {
-                t.step(function() {
+                t.step(() => {
                     assert_true(predicate(value),
                                 "Predicate should return true for the initial value.");
                 });
@@ -56,9 +56,9 @@ require('proof')(10, async okay => {
         // https://github.com/w3c/IndexedDB/pull/231
 
         function invalidKey(key, name) {
-            test(t => {
+            test(() => {
                 assert_throws_dom("DataError", () => indexedDB.cmp(0, key));
-            }, "BigInts as keys in IndexedDB - " + name);
+            }, `BigInts as keys in IndexedDB - ${name}`);
         }
 
         invalidKey(1n, "primitive BigInt");

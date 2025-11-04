@@ -1,6 +1,6 @@
 require('proof')(11, async okay => {
     await require('./harness')(okay, 'bindings-inject-values-bypass-chain')
-    await harness(async function () {
+    await harness(async () => {
 
         promise_test(async t => {
           const db = await createDatabase(t, db => {
@@ -14,11 +14,11 @@ require('proof')(11, async okay => {
           tx.objectStore('store').put({});
           const result = await promiseForRequest(t, tx.objectStore('store').get(1));
 
-          assert_true(result.hasOwnProperty('a'),
+          assert_true(Object.hasOwn(result, 'a'),
                       'Result should have own-properties overriding prototype.');
-          assert_true(result.a.hasOwnProperty('b'),
+          assert_true(Object.hasOwn(result.a, 'b'),
                       'Result should have own-properties overriding prototype.');
-          assert_true(result.a.b.hasOwnProperty('c'),
+          assert_true(Object.hasOwn(result.a.b, 'c'),
                       'Result should have own-properties overriding prototype.');
           assert_equals(result.a.b.c, 1,
                         'Own property should match primary key generator value');
