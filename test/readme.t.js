@@ -46,7 +46,7 @@ require('proof')(1, async okay => {
 
     // For the sake of our unit test.
 
-    const path = require('path')
+    const path = require('node:path')
 
     // This will not appear in `README.md`.
 
@@ -55,7 +55,7 @@ require('proof')(1, async okay => {
     // on every run of the test.
 
     // Node.js file system and file path APIs.
-    const fs = require('fs').promises
+    const fs = require('node:fs').promises
 
     // Our directory will live under our test directory.
     const directory = path.join(__dirname, 'tmp', 'readme')
@@ -77,7 +77,7 @@ require('proof')(1, async okay => {
 
     const request = indexedDB.open('test', 1)
 
-    request.onupgradeneeded = function (event) {
+    request.onupgradeneeded = function  onupgradeneeded(event) {
         const db = request.result
         const store = db.createObjectStore('president', { keyPath: [ 'lastName', 'firstName' ] })
         store.put({ firstName: 'George', lastName: 'Washington' })
@@ -85,13 +85,13 @@ require('proof')(1, async okay => {
         store.put({ firstName: 'Thomas', lastName: 'Jefferson' })
     }
 
-    request.onsuccess = function (event) {
+    request.onsuccess = function  onsuccess(event) {
         const db = request.result
         const cursor = db.transaction('president')
                          .objectStore('president')
                          .openCursor()
         const gathered = []
-        cursor.onsuccess = function (event) {
+        cursor.onsuccess = function  onsuccess(event) {
             const cursor = event.target.result
             if (cursor != null) {
                 gathered.push(cursor.value)

@@ -25,15 +25,15 @@
 
  */
 require('arguable')(module, async arguable => {
-    const util = require('util')
-    const fs = require('fs').promises
-    const path = require('path')
+    const util = require('node:util')
+    const fs = require('node:fs').promises
+    const path = require('node:path')
     const cheerio = require('cheerio')
     const test = arguable.argv[0]
     const source = await fs.readFile(test, 'utf8')
     const $_ = require('programmatic')
     const includes = [], blocks = []
-    if (test.match(/\.any\.js$/)) {
+    if (/\.any\.js$/.test(test)) {
         blocks.push(source)
     } else {
         const $ = cheerio.load(source)

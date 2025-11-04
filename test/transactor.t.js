@@ -6,26 +6,17 @@ require('proof')(17, okay => {
         const shifter = transactor.queue.sync.shifter()
         transactor.transaction('request', [ 'chairs' ], true)
         okay(shifter.shift(), {
-            method: 'transact',
-            names: [ 'chairs' ],
-            readOnly: true,
-            extra: 'request'
+            extra: 'request', method: 'transact', names: [ 'chairs' ], readOnly: true
         }, 'started')
         transactor.transaction('request', [ 'chairs', 'locations' ], true)
         okay(shifter.shift(), {
-            method: 'transact',
-            names: [ 'chairs', 'locations' ],
-            readOnly: true,
-            extra: 'request'
+            extra: 'request', method: 'transact', names: [ 'chairs', 'locations' ], readOnly: true
         }, 'started')
         transactor.transaction('blocked write', [ 'locations' ], false)
         okay(shifter.shift(), null, 'blocked write')
         transactor.complete([ 'chairs', 'locations' ])
         okay(shifter.shift(), {
-            method: 'transact',
-            names: [ 'locations' ],
-            readOnly: false,
-            extra: 'blocked write'
+            extra: 'blocked write', method: 'transact', names: [ 'locations' ], readOnly: false
         }, 'unblocked write')
     }
     {
@@ -35,25 +26,16 @@ require('proof')(17, okay => {
         transactor.transaction('request', [ 'a', 'b' ], false)
         transactor.transaction('request', [ 'b', 'c' ], true)
         okay(shifter.shift(), {
-            method: 'transact',
-            names: [ 'a' ],
-            readOnly: false,
-            extra: 'request'
+            extra: 'request', method: 'transact', names: [ 'a' ], readOnly: false
         }, 'started')
         okay(shifter.shift(), null, 'blocked write')
         transactor.complete([ 'a' ])
         okay(shifter.shift(), {
-            method: 'transact',
-            names: [ 'a', 'b' ],
-            readOnly: false,
-            extra: 'request'
+            extra: 'request', method: 'transact', names: [ 'a', 'b' ], readOnly: false
         }, 'started')
         transactor.complete([ 'a', 'b' ])
         okay(shifter.shift(), {
-            method: 'transact',
-            names: [ 'b', 'c' ],
-            readOnly: true,
-            extra: 'request'
+            extra: 'request', method: 'transact', names: [ 'b', 'c' ], readOnly: true
         }, 'started')
     }
     {
@@ -64,34 +46,22 @@ require('proof')(17, okay => {
         transactor.transaction('request', [ 'a', 'c' ], false)
         transactor.transaction('request', [ 'a' ], true)
         okay(shifter.shift(), {
-            method: 'transact',
-            names: [ 'a', 'c' ],
-            readOnly: true,
-            extra: 'request'
+            extra: 'request', method: 'transact', names: [ 'a', 'c' ], readOnly: true
         }, 'started')
         okay(shifter.shift(), {
-            method: 'transact',
-            names: [ 'a', 'b' ],
-            readOnly: true,
-            extra: 'request'
+            extra: 'request', method: 'transact', names: [ 'a', 'b' ], readOnly: true
         }, 'parallel read')
         okay(shifter.shift(), null, 'blocked write')
         transactor.complete([ 'a', 'b' ])
         okay(shifter.shift(), null, 'still blocked write')
         transactor.complete([ 'a', 'c' ])
         okay(shifter.shift(), {
-            method: 'transact',
-            names: [ 'a', 'c' ],
-            readOnly: false,
-            extra: 'request'
+            extra: 'request', method: 'transact', names: [ 'a', 'c' ], readOnly: false
         }, 'still blocked write')
         okay(shifter.shift(), null, 'blocked read')
         transactor.complete([ 'a', 'c' ])
         okay(shifter.shift(), {
-            method: 'transact',
-            names: [ 'a' ],
-            readOnly: true,
-            extra: 'request'
+            extra: 'request', method: 'transact', names: [ 'a' ], readOnly: true
         }, 'unblocked read')
         okay(shifter.shift(), null, 'empty')
     }
@@ -101,15 +71,9 @@ require('proof')(17, okay => {
         transactor.transaction('request', [ 'a' ], true)
         transactor.transaction('request', [ 'a' ], true)
         okay([ shifter.shift(), shifter.shift(), shifter.shift() ], [{
-            method: 'transact',
-            names: [ 'a' ],
-            readOnly: true,
-            extra: 'request'
+            extra: 'request', method: 'transact', names: [ 'a' ], readOnly: true
         }, {
-            method: 'transact',
-            names: [ 'a' ],
-            readOnly: true,
-            extra: 'request'
+            extra: 'request', method: 'transact', names: [ 'a' ], readOnly: true
         }, null ], 'parallel read')
         transactor.complete([ 'a' ])
         transactor.complete([ 'a' ])
