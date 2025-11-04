@@ -1,46 +1,50 @@
-require('proof')(7, async okay => {
-    await require('./harness')(okay, 'idbcursor_continue_index')
-    await harness(async () => {
-        var db,
-          count = 0,
-          t = async_test(),
-          records = [ { iKey: "indexKey_0", pKey: "primaryKey_0" },
-                      { iKey: "indexKey_1", pKey: "primaryKey_1" },
-                      { iKey: "indexKey_1", pKey: "primaryKey_1-2" } ];
+require("proof")(7, async (okay) => {
+	await require("./harness")(okay, "idbcursor_continue_index");
+	await harness(async () => {
+		var db,
+			count = 0,
+			t = async_test(),
+			records = [
+				{ iKey: "indexKey_0", pKey: "primaryKey_0" },
+				{ iKey: "indexKey_1", pKey: "primaryKey_1" },
+				{ iKey: "indexKey_1", pKey: "primaryKey_1-2" },
+			];
 
-        const open_rq = createdb(t);
-        open_rq.onupgradeneeded = function onupgradeneeded(e) {
-            db = e.target.result;
-            const objStore = db.createObjectStore("test", { keyPath:"pKey" });
+		const open_rq = createdb(t);
+		open_rq.onupgradeneeded = function onupgradeneeded(e) {
+			db = e.target.result;
+			const objStore = db.createObjectStore("test", { keyPath: "pKey" });
 
-            objStore.createIndex("index", "iKey");
+			objStore.createIndex("index", "iKey");
 
-            for (let i = 0; i < records.length; i++)
-                {objStore.add(records[i]);}
-        };
+			for (let i = 0; i < records.length; i++) {
+				objStore.add(records[i]);
+			}
+		};
 
-        open_rq.onsuccess = function onsuccess(_e) {
-            const cursor_rq = db.transaction("test")
-                              .objectStore("test")
-                              .index("index")
-                              .openCursor();
+		open_rq.onsuccess = function onsuccess(_e) {
+			const cursor_rq = db
+				.transaction("test")
+				.objectStore("test")
+				.index("index")
+				.openCursor();
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
-                const cursor = e.target.result;
-                if (!cursor) {
-                    assert_equals(count, records.length, "cursor run count");
-                    t.done();
-                    return  // Yes, execeptions throw below but the harness
-                            //ignores them.
-                }
+			cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
+				const cursor = e.target.result;
+				if (!cursor) {
+					assert_equals(count, records.length, "cursor run count");
+					t.done();
+					return; // Yes, execeptions throw below but the harness
+					//ignores them.
+				}
 
-                const record = cursor.value;
-                assert_equals(record.pKey, records[count].pKey, "primary key");
-                assert_equals(record.iKey, records[count].iKey, "index key");
+				const record = cursor.value;
+				assert_equals(record.pKey, records[count].pKey, "primary key");
+				assert_equals(record.iKey, records[count].iKey, "index key");
 
-                cursor.continue();
-                count++;
-            });
-        };
-    })
-})
+				cursor.continue();
+				count++;
+			});
+		};
+	});
+});

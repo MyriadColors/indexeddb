@@ -1,15 +1,15 @@
-const IDBCursorImpl = require('./IDBCursor-impl').implementation
+const IDBCursorImpl = require("./IDBCursor-impl").implementation;
 
 class IDBCursorWithValueImpl extends IDBCursorImpl {
-    constructor (globalObject, [], properties) {
-        super(globalObject, [], properties)
-        this._value = null
-        this._keyOnly = false
-    }
+	constructor(globalObject, [], properties) {
+		super(globalObject, [], properties);
+		this._value = null;
+		this._keyOnly = false;
+	}
 
-    get value () {
-        return this._value.value
-    }
+	get value() {
+		return this._value.value;
+	}
 }
 
-module.exports = { implementation: IDBCursorWithValueImpl }
+module.exports = { implementation: IDBCursorWithValueImpl };

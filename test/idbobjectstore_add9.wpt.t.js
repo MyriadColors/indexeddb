@@ -1,20 +1,21 @@
-require('proof')(2, async okay => {
-    await require('./harness')(okay, 'idbobjectstore_add9')
-    await harness(async () => {
-        var t = async_test(),
-          record = { key: 1, property: "data" };
+require("proof")(2, async (okay) => {
+	await require("./harness")(okay, "idbobjectstore_add9");
+	await harness(async () => {
+		var t = async_test(),
+			record = { key: 1, property: "data" };
 
-        var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function onupgradeneeded(e) {
-            var rq,
-              db = e.target.result,
-              objStore = db.createObjectStore("store", { keyPath: "key" });
+		var open_rq = createdb(t);
+		open_rq.onupgradeneeded = function onupgradeneeded(e) {
+			var rq,
+				db = e.target.result,
+				objStore = db.createObjectStore("store", { keyPath: "key" });
 
-            assert_throws_dom("DataError",
-                function onupgradeneeded() { rq = objStore.add(record, 1); });
+			assert_throws_dom("DataError", function onupgradeneeded() {
+				rq = objStore.add(record, 1);
+			});
 
-            assert_equals(rq);
-            t.done();
-        };
-    })
-})
+			assert_equals(rq);
+			t.done();
+		};
+	});
+});

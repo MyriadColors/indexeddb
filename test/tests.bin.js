@@ -24,42 +24,58 @@
     ___ . ___
 
  */
-require('arguable')(module, async arguable => {
-    const util = require('node:util')
-    const fs = require('node:fs').promises
-    const path = require('node:path')
-    const cheerio = require('cheerio')
-    const test = arguable.argv[0]
-    const source = await fs.readFile(test, 'utf8')
-    const $_ = require('programmatic')
-    const includes = [], blocks = []
-    if (test.endsWith('.any.js')) {
-        blocks.push(source)
-    } else {
-        const $ = cheerio.load(source)
-        $('script').each(function () {
-            const src = this.attribs.src
-            if (src === null) {
-                blocks.push($_($(this).html()))
-            } else {
-                includes.push(src)
-            }
-        })
-    }
-    const dir = path.dirname(test)
-    const sources = []
-    for (const block of blocks) {
-        sources.push(block)
-    }
-    const count = (sources.join('\n').match(/(?:assert_throws_dom|assert_(?:not_|object_)?equals|assert_true|assert_false|assert_array_equals|assert_key_equals|assert_readonly|assert_throws_js)/g) || []).length
-    const name = path.basename(test).replace(/(?:.html?|(?:\.tentative)?\.any\.js)$/, '')
-    console.log(path.resolve(__dirname, `${name}.wpt.t.js`))
-    await fs.writeFile(path.resolve(__dirname, `${name}.wpt.t.js`), $_(`
+require("arguable")(module, async (arguable) => {
+	const util = require("node:util");
+	const fs = require("node:fs").promises;
+	const path = require("node:path");
+	const cheerio = require("cheerio");
+	const test = arguable.argv[0];
+	const source = await fs.readFile(test, "utf8");
+	const $_ = require("programmatic");
+	const includes = [],
+		blocks = [];
+	if (test.endsWith(".any.js")) {
+		blocks.push(source);
+	} else {
+		const $ = cheerio.load(source);
+		$("script").each(function () {
+			const src = this.attribs.src;
+			if (src === null) {
+				blocks.push($_($(this).html()));
+			} else {
+				includes.push(src);
+			}
+		});
+	}
+	const dir = path.dirname(test);
+	const sources = [];
+	for (const block of blocks) {
+		sources.push(block);
+	}
+	const count = (
+		sources
+			.join("\n")
+			.match(
+				/(?:assert_throws_dom|assert_(?:not_|object_)?equals|assert_true|assert_false|assert_array_equals|assert_key_equals|assert_readonly|assert_throws_js)/g,
+			) || []
+	).length;
+	const name = path
+		.basename(test)
+		.replace(/(?:.html?|(?:\.tentative)?\.any\.js)$/, "");
+	console.log(path.resolve(__dirname, `${name}.wpt.t.js`));
+	await fs.writeFile(
+		path.resolve(__dirname, `${name}.wpt.t.js`),
+		$_(
+			`
         require('proof')(${count}, async okay => {
             await require('./harness')(okay, ${util.inspect(name)})
             await harness(async () => {
-                `, sources.join('\n'), `
+                `,
+			sources.join("\n"),
+			`
             })
         })
-    `) + '\n')
-})
+    `,
+		) + "\n",
+	);
+});

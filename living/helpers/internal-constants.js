@@ -1,4 +1,3 @@
-
 const SymbolTree = require("symbol-tree");
 
 exports.cloningSteps = Symbol("cloning steps");

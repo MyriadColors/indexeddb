@@ -1,118 +1,129 @@
-require('proof')(35, async okay => {
-    await require('./harness')(okay, 'key_invalid')
-    await harness(async () => {
-        let db = createdb_for_multiple_tests(),
-            // cache for ObjectStores
-            objStore  = null,
-            objStore2 = null;
+require("proof")(35, async (okay) => {
+	await require("./harness")(okay, "key_invalid");
+	await harness(async () => {
+		let db = createdb_for_multiple_tests(),
+			// cache for ObjectStores
+			objStore = null,
+			objStore2 = null;
 
-        function is_cloneable(o) {
-            try {
-                self.postMessage(o, '*');
-                return true;
-            } catch {
-                return false;
-            }
-        }
+		function is_cloneable(o) {
+			try {
+				self.postMessage(o, "*");
+				return true;
+			} catch {
+				return false;
+			}
+		}
 
-        function invalid_key(desc, key) {
-            const t = async_test(`${document.title} - ${desc}`);
+		function invalid_key(desc, key) {
+			const t = async_test(`${document.title} - ${desc}`);
 
-            // set the current test, and run it
-            db.setTest(t).onupgradeneeded = function onupgradeneeded(e) {
-                objStore = objStore || e.target.result.createObjectStore("store");
-                assert_throws_dom('DataError', function onupgradeneeded() {
-                    objStore.add("value", key);
-                });
+			// set the current test, and run it
+			db.setTest(t).onupgradeneeded = function onupgradeneeded(e) {
+				objStore = objStore || e.target.result.createObjectStore("store");
+				assert_throws_dom("DataError", function onupgradeneeded() {
+					objStore.add("value", key);
+				});
 
-                if (is_cloneable(key)) {
-                    objStore2 = objStore2 || e.target.result.createObjectStore("store2", { keyPath: ["x", "keypath"] });
-                    assert_throws_dom('DataError', function onupgradeneeded() {
-                        objStore2.add({ keypath: key, x: "value" });
-                    });
-                }
-                this.done();
-            };
-        }
+				if (is_cloneable(key)) {
+					objStore2 =
+						objStore2 ||
+						e.target.result.createObjectStore("store2", {
+							keyPath: ["x", "keypath"],
+						});
+					assert_throws_dom("DataError", function onupgradeneeded() {
+						objStore2.add({ keypath: key, x: "value" });
+					});
+				}
+				this.done();
+			};
+		}
 
-        const fake_array = {
-            constructor : Array, length      : 0
-        };
+		const fake_array = {
+			constructor: Array,
+			length: 0,
+		};
 
-        class ArrayClone {}
-        ArrayClone.prototype = Array;
-        var ArrayClone_instance = new ArrayClone();
+		class ArrayClone {}
+		ArrayClone.prototype = Array;
+		var ArrayClone_instance = new ArrayClone();
 
-        // booleans
-        invalid_key( 'true'  , true );
-        invalid_key( 'false' , false );
+		// booleans
+		invalid_key("true", true);
+		invalid_key("false", false);
 
-        // null/NaN/undefined
-        invalid_key( 'null'      , null );
-        invalid_key( 'NaN'       , NaN );
-        invalid_key( 'undefined' );
-        invalid_key( 'undefined2');
+		// null/NaN/undefined
+		invalid_key("null", null);
+		invalid_key("NaN", NaN);
+		invalid_key("undefined");
+		invalid_key("undefined2");
 
-        // functions
-        invalid_key( '() => {}', ()=> {} );
+		// functions
+		invalid_key("() => {}", () => {});
 
-        // objects
-        invalid_key( '{}'                           , {} );
-        invalid_key( '{ obj: 1 }'                   , { obj: 1 });
-        invalid_key( 'Math'                         , Math );
-        invalid_key( 'window'                       , window );
-        invalid_key( '{length:0,constructor:Array}' , fake_array );
-        invalid_key( 'Array clone’s instance'       , ArrayClone_instance );
-        invalid_key( 'Array (object)'               , Array );
-        invalid_key( 'String (object)'              , String );
-        invalid_key( 'new String()'                 , String() );
-        invalid_key( 'new Number()'                 , Number() );
-        invalid_key( 'new Boolean()'                , Boolean() );
+		// objects
+		invalid_key("{}", {});
+		invalid_key("{ obj: 1 }", { obj: 1 });
+		invalid_key("Math", Math);
+		invalid_key("window", window);
+		invalid_key("{length:0,constructor:Array}", fake_array);
+		invalid_key("Array clone’s instance", ArrayClone_instance);
+		invalid_key("Array (object)", Array);
+		invalid_key("String (object)", String);
+		invalid_key("new String()", String());
+		invalid_key("new Number()", Number());
+		invalid_key("new Boolean()", Boolean());
 
-        // arrays
-        invalid_key( '[{}]'                     , [{}] );
-        invalid_key( '[[], [], [], [[ Date ]]]' , [ [], [], [], [[ Date ]] ] );
-        invalid_key( '[undefined]'              , [undefined] );
-        invalid_key( '[,1]'                     , [undefined,1] );
+		// arrays
+		invalid_key("[{}]", [{}]);
+		invalid_key("[[], [], [], [[ Date ]]]", [[], [], [], [[Date]]]);
+		invalid_key("[undefined]", [undefined]);
+		invalid_key("[,1]", [undefined, 1]);
 
-        invalid_key( 'document.getElements'
-                    +'ByTagName("script")'      , document.querySelectorAll("script") );
+		invalid_key(
+			"document.getElements" + 'ByTagName("script")',
+			document.querySelectorAll("script"),
+		);
 
-        //  dates
-        invalid_key( 'new Date(NaN)'      , new Date(NaN) );
-        invalid_key( 'new Date(Infinity)' , new Date(Infinity) );
+		//  dates
+		invalid_key("new Date(NaN)", new Date(NaN));
+		invalid_key("new Date(Infinity)", new Date(Infinity));
 
-        // regexes
-        invalid_key( '/foo/'        , /foo/ );
-        invalid_key( 'new RegExp()' , new RegExp() );
+		// regexes
+		invalid_key("/foo/", /foo/);
+		invalid_key("new RegExp()", new RegExp());
 
-        var sparse = [];
-        sparse[10] = "hei";
-        invalid_key('sparse array', sparse);
+		var sparse = [];
+		sparse[10] = "hei";
+		invalid_key("sparse array", sparse);
 
-        var sparse2 = [];
-        sparse2[0]  = 1;
-        sparse2[""] = 2;
-        sparse2[2]  = 3;
-        invalid_key('sparse array 2', sparse2);
+		var sparse2 = [];
+		sparse2[0] = 1;
+		sparse2[""] = 2;
+		sparse2[2] = 3;
+		invalid_key("sparse array 2", sparse2);
 
-        invalid_key('[[1], [3], [7], [[ sparse array ]]]', [ [1], [3], [7], [[ sparse2 ]] ]);
+		invalid_key("[[1], [3], [7], [[ sparse array ]]]", [
+			[1],
+			[3],
+			[7],
+			[[sparse2]],
+		]);
 
-        // sparse3
-        invalid_key( '[1,2,3,,]', [1,2,3, undefined,] );
+		// sparse3
+		invalid_key("[1,2,3,,]", [1, 2, 3, undefined]);
 
-        var recursive = [];
-        recursive.push(recursive);
-        invalid_key('array directly contains self', recursive);
+		var recursive = [];
+		recursive.push(recursive);
+		invalid_key("array directly contains self", recursive);
 
-        var recursive2 = [];
-        recursive2.push([recursive2]);
-        invalid_key('array indirectly contains self', recursive2);
+		var recursive2 = [];
+		recursive2.push([recursive2]);
+		invalid_key("array indirectly contains self", recursive2);
 
-        var recursive3 = [recursive];
-        invalid_key('array member contains self', recursive3);
+		var recursive3 = [recursive];
+		invalid_key("array member contains self", recursive3);
 
-        invalid_key('proxy of an array', new Proxy([1,2,3], {}));
-
-    })
-})
+		invalid_key("proxy of an array", new Proxy([1, 2, 3], {}));
+	});
+});

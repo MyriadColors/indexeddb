@@ -1,59 +1,68 @@
-require('proof')(1, async okay => {
-    await require('./harness')(okay, 'idbobjectstore_createIndex4-deleteIndex-event_order')
-    await harness(async () => {
-        var db,
-          events = [],
-          t = async_test()
+require("proof")(1, async (okay) => {
+	await require("./harness")(
+		okay,
+		"idbobjectstore_createIndex4-deleteIndex-event_order",
+	);
+	await harness(async () => {
+		var db,
+			events = [],
+			t = async_test();
 
-        var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function onupgradeneeded(e) {
-            db = e.target.result;
-            e.target.transaction.oncomplete = log("transaction.complete");
+		var open_rq = createdb(t);
+		open_rq.onupgradeneeded = function onupgradeneeded(e) {
+			db = e.target.result;
+			e.target.transaction.oncomplete = log("transaction.complete");
 
-            var txn = e.target.transaction,
-              objStore = db.createObjectStore("store");
+			var txn = e.target.transaction,
+				objStore = db.createObjectStore("store");
 
-            var rq_add1 = objStore.add({ animal: "Unicorn" }, 1);
-            rq_add1.onsuccess = log("rq_add1.success");
-            rq_add1.onerror   = log("rq_add1.error");
+			var rq_add1 = objStore.add({ animal: "Unicorn" }, 1);
+			rq_add1.onsuccess = log("rq_add1.success");
+			rq_add1.onerror = log("rq_add1.error");
 
-            objStore.createIndex("index", "animal", { unique: true });
+			objStore.createIndex("index", "animal", { unique: true });
 
-            var rq_add2 = objStore.add({ animal: "Unicorn" }, 2);
-            rq_add2.onsuccess = log("rq_add2.success");
-            rq_add2.onerror   = function onerror(e) {
-                log("rq_add2.error")(e);
-                e.preventDefault();
-                e.stopPropagation();
-            }
+			var rq_add2 = objStore.add({ animal: "Unicorn" }, 2);
+			rq_add2.onsuccess = log("rq_add2.success");
+			rq_add2.onerror = function onerror(e) {
+				log("rq_add2.error")(e);
+				e.preventDefault();
+				e.stopPropagation();
+			};
 
-            objStore.deleteIndex("index");
+			objStore.deleteIndex("index");
 
-            var rq_add3 = objStore.add({ animal: "Unicorn" }, 3);
-            rq_add3.onsuccess = log("rq_add3.success");
-            rq_add3.onerror   = log("rq_add3.error");
-        }
+			var rq_add3 = objStore.add({ animal: "Unicorn" }, 3);
+			rq_add3.onsuccess = log("rq_add3.success");
+			rq_add3.onerror = log("rq_add3.error");
+		};
 
-        open_rq.onsuccess = function onsuccess(_e) {
-            log("open_rq.success")(e);
-            assert_array_equals(events, [ "rq_add1.success",
-                                          "rq_add2.error: ConstraintError",
-                                          "rq_add3.success",
+		open_rq.onsuccess = function onsuccess(_e) {
+			log("open_rq.success")(e);
+			assert_array_equals(
+				events,
+				[
+					"rq_add1.success",
+					"rq_add2.error: ConstraintError",
+					"rq_add3.success",
 
-                                          "transaction.complete",
+					"transaction.complete",
 
-                                          "open_rq.success" ],
-                                "events");
-            t.done();
-        }
+					"open_rq.success",
+				],
+				"events",
+			);
+			t.done();
+		};
 
-        function log(msg) {
-            return (e) => {
-                if(e && e.target && e.target.error)
-                    {events.push(msg + ": " + e.target.error.name);}
-                else
-                    {events.push(msg);}
-            };
-        }
-    })
-})
+		function log(msg) {
+			return (e) => {
+				if (e && e.target && e.target.error) {
+					events.push(msg + ": " + e.target.error.name);
+				} else {
+					events.push(msg);
+				}
+			};
+		}
+	});
+});

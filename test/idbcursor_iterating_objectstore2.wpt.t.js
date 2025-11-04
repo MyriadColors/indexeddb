@@ -1,47 +1,53 @@
-require('proof')(4, async okay => {
-    await require('./harness')(okay, 'idbcursor_iterating_objectstore2')
-    await harness(async () => {
-        var db,
-          count = 0,
-          t = async_test(),
-          records = [ { pKey: "primaryKey_0" },
-                      { pKey: "primaryKey_2" } ],
-          expected_records = [ { pKey: "primaryKey_0" },
-                               { pKey: "primaryKey_1" },
-                               { pKey: "primaryKey_2" } ];
+require("proof")(4, async (okay) => {
+	await require("./harness")(okay, "idbcursor_iterating_objectstore2");
+	await harness(async () => {
+		var db,
+			count = 0,
+			t = async_test(),
+			records = [{ pKey: "primaryKey_0" }, { pKey: "primaryKey_2" }],
+			expected_records = [
+				{ pKey: "primaryKey_0" },
+				{ pKey: "primaryKey_1" },
+				{ pKey: "primaryKey_2" },
+			];
 
-        var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function onupgradeneeded(e) {
-            db = e.target.result;
-            t.add_cleanup(function onupgradeneeded() { db.close(); indexedDB.deleteDatabase(db.name); });
-            var objStore = db.createObjectStore("test", {keyPath:"pKey"});
+		var open_rq = createdb(t);
+		open_rq.onupgradeneeded = function onupgradeneeded(e) {
+			db = e.target.result;
+			t.add_cleanup(function onupgradeneeded() {
+				db.close();
+				indexedDB.deleteDatabase(db.name);
+			});
+			var objStore = db.createObjectStore("test", { keyPath: "pKey" });
 
-            for (let i = 0; i < records.length; i++)
-                {objStore.add(records[i]);}
-        };
+			for (let i = 0; i < records.length; i++) {
+				objStore.add(records[i]);
+			}
+		};
 
-        open_rq.onsuccess = function onsuccess(_e) {
-            var cursor_rq = db.transaction("test", "readwrite")
-                              .objectStore("test")
-                              .openCursor();
+		open_rq.onsuccess = function onsuccess(_e) {
+			var cursor_rq = db
+				.transaction("test", "readwrite")
+				.objectStore("test")
+				.openCursor();
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
-                var cursor = e.target.result;
-                if (!cursor) {
-                    assert_equals(count, 3, "cursor run count");
-                    t.done();
-                    return
-                }
+			cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
+				var cursor = e.target.result;
+				if (!cursor) {
+					assert_equals(count, 3, "cursor run count");
+					t.done();
+					return;
+				}
 
-                var record = cursor.value;
-                if (record.pKey === "primaryKey_0") {
-                   e.target.source.add({ pKey: "primaryKey_1" });
-                }
-                assert_equals(record.pKey, expected_records[count].pKey, "primary key");
+				var record = cursor.value;
+				if (record.pKey === "primaryKey_0") {
+					e.target.source.add({ pKey: "primaryKey_1" });
+				}
+				assert_equals(record.pKey, expected_records[count].pKey, "primary key");
 
-                cursor.continue();
-                count++;
-            });
-        };
-    })
-})
+				cursor.continue();
+				count++;
+			});
+		};
+	});
+});

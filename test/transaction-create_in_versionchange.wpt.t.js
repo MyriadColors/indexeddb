@@ -1,75 +1,84 @@
-require('proof')(3, async okay => {
-    await require('./harness')(okay, 'transaction-create_in_versionchange')
-    await harness(async () => {
-        var db, events = [],
-            open_rq = createdb(async_test())
+require("proof")(3, async (okay) => {
+	await require("./harness")(okay, "transaction-create_in_versionchange");
+	await harness(async () => {
+		var db,
+			events = [],
+			open_rq = createdb(async_test());
 
-        open_rq.onupgradeneeded = function onupgradeneeded(e) {
-            db = e.target.result
+		open_rq.onupgradeneeded = function onupgradeneeded(e) {
+			db = e.target.result;
 
-            db.createObjectStore("store")
-                .add("versionchange1", 1)
-                .addEventListener("success", log("versionchange_add.success"))
+			db.createObjectStore("store")
+				.add("versionchange1", 1)
+				.addEventListener("success", log("versionchange_add.success"));
 
-            assert_throws_dom('InvalidStateError', function onupgradeneeded() { db.transaction("store") })
+			assert_throws_dom("InvalidStateError", function onupgradeneeded() {
+				db.transaction("store");
+			});
 
-            e.target.transaction
-                .objectStore("store")
-                .count(2)
-                .addEventListener("success", log("versionchange_count.success"))
+			e.target.transaction
+				.objectStore("store")
+				.count(2)
+				.addEventListener("success", log("versionchange_count.success"));
 
-            assert_throws_dom('InvalidStateError', function onupgradeneeded() { db.transaction("store", "readwrite") })
+			assert_throws_dom("InvalidStateError", function onupgradeneeded() {
+				db.transaction("store", "readwrite");
+			});
 
-            open_rq.transaction
-                .objectStore("store")
-                .add("versionchange2", 2)
-                .addEventListener("success", log("versionchange_add2.success"))
+			open_rq.transaction
+				.objectStore("store")
+				.add("versionchange2", 2)
+				.addEventListener("success", log("versionchange_add2.success"));
 
-            open_rq.transaction.oncomplete = function oncomplete(e) {
-                log("versionchange_txn.complete")(e)
+			open_rq.transaction.oncomplete = function oncomplete(e) {
+				log("versionchange_txn.complete")(e);
 
-                db.transaction("store")
-                    .objectStore("store")
-                    .count()
-                    .addEventListener("success", log("complete_count.success"))
-            }
-        }
+				db.transaction("store")
+					.objectStore("store")
+					.count()
+					.addEventListener("success", log("complete_count.success"));
+			};
+		};
 
-        open_rq.onsuccess = function onsuccess(_e) {
-            log("open_rq.success")(e)
+		open_rq.onsuccess = function onsuccess(_e) {
+			log("open_rq.success")(e);
 
-            var txn = db.transaction("store", "readwrite")
-            txn.objectStore("store")
-                .put("woo", 1)
-                .addEventListener("success", log("complete2_get.success"))
+			var txn = db.transaction("store", "readwrite");
+			txn
+				.objectStore("store")
+				.put("woo", 1)
+				.addEventListener("success", log("complete2_get.success"));
 
-            txn.oncomplete = this.step_func(function oncomplete(e) {
-                assert_array_equals(events, [
-                                      "versionchange_add.success: 1",
-                                      "versionchange_count.success: 0",
-                                      "versionchange_add2.success: 2",
-                                      "versionchange_txn.complete",
+			txn.oncomplete = this.step_func(function oncomplete(e) {
+				assert_array_equals(
+					events,
+					[
+						"versionchange_add.success: 1",
+						"versionchange_count.success: 0",
+						"versionchange_add2.success: 2",
+						"versionchange_txn.complete",
 
-                                      "open_rq.success: [object IDBDatabase]",
+						"open_rq.success: [object IDBDatabase]",
 
-                                      "complete_count.success: 2",
-                                      "complete2_get.success: 1",
-                                    ],
-                           "events")
-                this.done()
-            })
-        }
+						"complete_count.success: 2",
+						"complete2_get.success: 1",
+					],
+					"events",
+				);
+				this.done();
+			});
+		};
 
-
-        function log(msg) {
-            return (e) => {
-                if(e && e.target && e.target.error)
-                    {events.push(msg + ": " + e.target.error.name)}
-                else if(e && e.target && e.target.result !== undefined)
-                    {events.push(msg + ": " + e.target.result)}
-                else
-                    {events.push(msg)}
-            };
-        }
-    })
-})
+		function log(msg) {
+			return (e) => {
+				if (e && e.target && e.target.error) {
+					events.push(msg + ": " + e.target.error.name);
+				} else if (e && e.target && e.target.result !== undefined) {
+					events.push(msg + ": " + e.target.result);
+				} else {
+					events.push(msg);
+				}
+			};
+		}
+	});
+});

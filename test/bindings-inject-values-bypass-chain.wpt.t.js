@@ -1,30 +1,45 @@
-require('proof')(11, async okay => {
-    await require('./harness')(okay, 'bindings-inject-values-bypass-chain')
-    await harness(async () => {
+require("proof")(11, async (okay) => {
+	await require("./harness")(okay, "bindings-inject-values-bypass-chain");
+	await harness(async () => {
+		promise_test(async (t) => {
+			const db = await createDatabase(t, (db) => {
+				db.createObjectStore("store", {
+					autoIncrement: true,
+					keyPath: "a.b.c",
+				});
+			});
 
-        promise_test(async t => {
-          const db = await createDatabase(t, db => {
-            db.createObjectStore('store', {autoIncrement: true, keyPath: 'a.b.c'});
-          });
+			Object.prototype.a = { b: { c: "on proto" } };
+			t.add_cleanup(() => {
+				delete Object.prototype.a;
+			});
 
-          Object.prototype.a = {b: {c: 'on proto'}};
-          t.add_cleanup(() => { delete Object.prototype.a; });
+			const tx = db.transaction("store", "readwrite");
+			tx.objectStore("store").put({});
+			const result = await promiseForRequest(t, tx.objectStore("store").get(1));
 
-          const tx = db.transaction('store', 'readwrite');
-          tx.objectStore('store').put({});
-          const result = await promiseForRequest(t, tx.objectStore('store').get(1));
-
-          assert_true(Object.hasOwn(result, 'a'),
-                      'Result should have own-properties overriding prototype.');
-          assert_true(Object.hasOwn(result.a, 'b'),
-                      'Result should have own-properties overriding prototype.');
-          assert_true(Object.hasOwn(result.a.b, 'c'),
-                      'Result should have own-properties overriding prototype.');
-          assert_equals(result.a.b.c, 1,
-                        'Own property should match primary key generator value');
-          assert_equals(Object.prototype.a.b.c, 'on proto',
-                        'Prototype should not be modified');
-        }, 'Returning values to script should bypass prototype chain');
-
-    })
-})
+			assert_true(
+				Object.hasOwn(result, "a"),
+				"Result should have own-properties overriding prototype.",
+			);
+			assert_true(
+				Object.hasOwn(result.a, "b"),
+				"Result should have own-properties overriding prototype.",
+			);
+			assert_true(
+				Object.hasOwn(result.a.b, "c"),
+				"Result should have own-properties overriding prototype.",
+			);
+			assert_equals(
+				result.a.b.c,
+				1,
+				"Own property should match primary key generator value",
+			);
+			assert_equals(
+				Object.prototype.a.b.c,
+				"on proto",
+				"Prototype should not be modified",
+			);
+		}, "Returning values to script should bypass prototype chain");
+	});
+});

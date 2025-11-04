@@ -203,172 +203,255 @@
    limitations under the License.
 */
 
-
 // From: https://github.com/dumbmatter/realistic-structured-clone/tree/v1.0.1
 //
 // Modified to use `defineProperty` to satisfy requirement that property
 // assignments do not use setters.
 
-import { isPlainObject } from 'lodash-es';
-import { DOMException } from 'domexception';
+import { DOMException } from "domexception";
+import { isPlainObject } from "lodash-es";
 
 // Helper to detect if an object is likely a platform object
 function isPlatformObject(input) {
-    if (input === null || typeof input !== 'object') {return false;}
-    
-    const inputConstructor = input.constructor;
-    if (!inputConstructor) {return false;}
-    
-    // Plain objects and arrays are not platform objects
-    if (inputConstructor === Object || inputConstructor === Array) {return false;}
-    
-    // Known platform object constructors
-    const platformConstructors = [
-        'HTMLCollection', 'NodeList', 'DOMTokenList', 'StyleSheetList',
-        'MediaList', 'TouchList', 'GeolocationCoordinates', 'FileList'
-    ];
-    
-    if (platformConstructors.includes(inputConstructor.name)) {
-        return true;
-    }
-    
-    // Detect collection-like platform objects by pattern
-    if ('item' in input && typeof input.length === 'number' && 
-        !Array.isArray(input) && typeof input.item === 'function') {
-        return true;
-    }
-    
-    return false;
+	if (input === null || typeof input !== "object") {
+		return false;
+	}
+
+	const inputConstructor = input.constructor;
+	if (!inputConstructor) {
+		return false;
+	}
+
+	// Plain objects and arrays are not platform objects
+	if (inputConstructor === Object || inputConstructor === Array) {
+		return false;
+	}
+
+	// Known platform object constructors
+	const platformConstructors = [
+		"HTMLCollection",
+		"NodeList",
+		"DOMTokenList",
+		"StyleSheetList",
+		"MediaList",
+		"TouchList",
+		"GeolocationCoordinates",
+		"FileList",
+	];
+
+	if (platformConstructors.includes(inputConstructor.name)) {
+		return true;
+	}
+
+	// Detect collection-like platform objects by pattern
+	if (
+		"item" in input &&
+		typeof input.length === "number" &&
+		!Array.isArray(input) &&
+		typeof input.item === "function"
+	) {
+		return true;
+	}
+
+	return false;
 }
 
 // https://html.spec.whatwg.org/multipage/infrastructure.html#structuredclone
 function structuredClone(globalObject, input, memory) {
-    memory = memory !== undefined ? memory : new Map();
+	memory = memory !== undefined ? memory : new Map();
 
-    if (memory.has(input)) {
-        return memory.get(input);
-    }
+	if (memory.has(input)) {
+		return memory.get(input);
+	}
 
-    var type = typeof input;
-    var output;
+	var type = typeof input;
+	var output;
 
-    if (type === 'string' || type === 'number' || type === 'boolean' || type === 'undefined' || type === 'bigint' || input === null) {
-        return input;
-    }
+	if (
+		type === "string" ||
+		type === "number" ||
+		type === "boolean" ||
+		type === "undefined" ||
+		type === "bigint" ||
+		input === null
+	) {
+		return input;
+	}
 
-    if (type === 'symbol') {
-        throw DOMException.create(globalObject, [ 'Symbols cannot be cloned.', 'DataCloneError' ], {})
-    }
+	if (type === "symbol") {
+		throw DOMException.create(
+			globalObject,
+			["Symbols cannot be cloned.", "DataCloneError"],
+			{},
+		);
+	}
 
-    var deepClone = 'none';
+	var deepClone = "none";
 
-    if (input instanceof Boolean || input instanceof Number || input instanceof String || input instanceof Date) {
-        output = new input.constructor(input.valueOf());
-    } else if (input instanceof BigInt) {
-        output = Object(input.valueOf())
-    } else if (input instanceof RegExp) {
-        output = new RegExp(input.source, input.flags);
-    } else if (input instanceof ArrayBuffer) {
-        output = [...input];
-    } else if (typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView && ArrayBuffer.isView(input)) {
-        const outputBuffer = structuredClone(globalObject, input.buffer, memory);
-        if (input instanceof DataView) {
-            output = new DataView(outputBuffer, input.byteOffset, input.byteLength);
-        } else {
-            output = new input.constructor(outputBuffer, input.byteOffset, input.length);
-        }
-    } else if (input instanceof Map) {
-        output = new Map();
-        deepClone = 'map';
-    } else if (input instanceof Set) {
-        output = new Set();
-        deepClone = 'set';
-    } else if (typeof Blob !== 'undefined' && input instanceof Blob) {
-        output = input.slice(0, input.size, input.type);
-    } else if (typeof FileList !== 'undefined' && input instanceof FileList) {
-        // Clone FileList by creating array-like structure with cloned File objects
-        const files = [...input].map(file => structuredClone(globalObject, file, memory));
-        output = Object.assign(Object.create(FileList.prototype), { length: files.length });
-        files.forEach((file, index) => {
-            Object.defineProperty(output, index, { 
-                configurable: true, enumerable: true, value: file, writable: true 
-            });
-        });
-        Object.defineProperty(output, 'length', { 
-            configurable: false, enumerable: false, value: files.length, writable: false 
-        });
-        deepClone = 'none'; // Already cloned files above
-    } else if (typeof ImageData !== 'undefined' && input instanceof ImageData) {
-        // Clone ImageData by cloning the underlying data array
-        const clonedData = structuredClone(globalObject, input.data, memory);
-        output = new ImageData(clonedData, input.width, input.height, { 
-            colorSpace: input.colorSpace 
-        });
-        deepClone = 'none';
-    } else if (typeof ImageBitmap !== 'undefined' && input instanceof ImageBitmap) {
-        // ImageBitmap is a transferable object and cannot be cloned
-        throw DOMException.create(globalObject, [
-            'ImageBitmap cannot be cloned. Use the transferable objects API instead.',
-            'DataCloneError'
-        ], {})
-    } else if (Array.isArray(input)) {
-        output = new Array(input.length);
-        deepClone = 'own';
-    // Duck-type DOM node objects (non-array exotic? objects which cannot be cloned by the SCA)
-    // See:
-    // https://github.com/dfahlander/typeson-registry/blob/master/presets/structured-cloning-throwing.js
-    } else if (input && typeof input === 'object' && typeof input.nodeType === 'number' && typeof input.insertBefore === 'function') {
-        throw DOMException.create(globalObject, [ 'DOM nodes cannot be cloned.', 'DataCloneError' ], {})
-    } else if (typeof input === 'function') {
-        throw DOMException.create(globalObject, [ 'Functions cannot be cloned.', 'DataCloneError' ], {})
-    } else if (!isPlainObject(input)) {
-        // First check if it's a known platform object (excluding FileList which is handled above)
-        if (isPlatformObject(input)) {
-            throw DOMException.create(globalObject, [
-                `The platform object "${input.constructor?.name || 'unknown'}" cannot be cloned unless it has a [[Clone]] internal method.`,
-                'DataCloneError'
-            ], {})
-        }
-        
-        // Allow user-created objects (class instances, etc.) to be cloned
-        // Attempt to clone by creating new instance with same prototype
-        try {
-            output = Object.create(Object.getPrototypeOf(input));
-            deepClone = 'own'; // Will clone own properties in the deep clone section
-        } catch (error) {
-            throw DOMException.create(globalObject, [
-                `The object of type "${input.constructor?.name || 'unknown'}" cannot be cloned. Failed to create clone: ${error.message}`,
-                'DataCloneError'
-            ], {})
-        }
-    } else {
-        output = {};
-        deepClone = 'own';
-    }
+	if (
+		input instanceof Boolean ||
+		input instanceof Number ||
+		input instanceof String ||
+		input instanceof Date
+	) {
+		output = new input.constructor(input.valueOf());
+	} else if (input instanceof BigInt) {
+		output = Object(input.valueOf());
+	} else if (input instanceof RegExp) {
+		output = new RegExp(input.source, input.flags);
+	} else if (input instanceof ArrayBuffer) {
+		output = [...input];
+	} else if (
+		typeof ArrayBuffer !== "undefined" &&
+		ArrayBuffer.isView &&
+		ArrayBuffer.isView(input)
+	) {
+		const outputBuffer = structuredClone(globalObject, input.buffer, memory);
+		if (input instanceof DataView) {
+			output = new DataView(outputBuffer, input.byteOffset, input.byteLength);
+		} else {
+			output = new input.constructor(
+				outputBuffer,
+				input.byteOffset,
+				input.length,
+			);
+		}
+	} else if (input instanceof Map) {
+		output = new Map();
+		deepClone = "map";
+	} else if (input instanceof Set) {
+		output = new Set();
+		deepClone = "set";
+	} else if (typeof Blob !== "undefined" && input instanceof Blob) {
+		output = input.slice(0, input.size, input.type);
+	} else if (typeof FileList !== "undefined" && input instanceof FileList) {
+		// Clone FileList by creating array-like structure with cloned File objects
+		const files = [...input].map((file) =>
+			structuredClone(globalObject, file, memory),
+		);
+		output = Object.assign(Object.create(FileList.prototype), {
+			length: files.length,
+		});
+		files.forEach((file, index) => {
+			Object.defineProperty(output, index, {
+				configurable: true,
+				enumerable: true,
+				value: file,
+				writable: true,
+			});
+		});
+		Object.defineProperty(output, "length", {
+			configurable: false,
+			enumerable: false,
+			value: files.length,
+			writable: false,
+		});
+		deepClone = "none"; // Already cloned files above
+	} else if (typeof ImageData !== "undefined" && input instanceof ImageData) {
+		// Clone ImageData by cloning the underlying data array
+		const clonedData = structuredClone(globalObject, input.data, memory);
+		output = new ImageData(clonedData, input.width, input.height, {
+			colorSpace: input.colorSpace,
+		});
+		deepClone = "none";
+	} else if (
+		typeof ImageBitmap !== "undefined" &&
+		input instanceof ImageBitmap
+	) {
+		// ImageBitmap is a transferable object and cannot be cloned
+		throw DOMException.create(
+			globalObject,
+			[
+				"ImageBitmap cannot be cloned. Use the transferable objects API instead.",
+				"DataCloneError",
+			],
+			{},
+		);
+	} else if (Array.isArray(input)) {
+		output = new Array(input.length);
+		deepClone = "own";
+		// Duck-type DOM node objects (non-array exotic? objects which cannot be cloned by the SCA)
+		// See:
+		// https://github.com/dfahlander/typeson-registry/blob/master/presets/structured-cloning-throwing.js
+	} else if (
+		input &&
+		typeof input === "object" &&
+		typeof input.nodeType === "number" &&
+		typeof input.insertBefore === "function"
+	) {
+		throw DOMException.create(
+			globalObject,
+			["DOM nodes cannot be cloned.", "DataCloneError"],
+			{},
+		);
+	} else if (typeof input === "function") {
+		throw DOMException.create(
+			globalObject,
+			["Functions cannot be cloned.", "DataCloneError"],
+			{},
+		);
+	} else if (!isPlainObject(input)) {
+		// First check if it's a known platform object (excluding FileList which is handled above)
+		if (isPlatformObject(input)) {
+			throw DOMException.create(
+				globalObject,
+				[
+					`The platform object "${input.constructor?.name || "unknown"}" cannot be cloned unless it has a [[Clone]] internal method.`,
+					"DataCloneError",
+				],
+				{},
+			);
+		}
 
-    memory.set(input, output);
+		// Allow user-created objects (class instances, etc.) to be cloned
+		// Attempt to clone by creating new instance with same prototype
+		try {
+			output = Object.create(Object.getPrototypeOf(input));
+			deepClone = "own"; // Will clone own properties in the deep clone section
+		} catch (error) {
+			throw DOMException.create(
+				globalObject,
+				[
+					`The object of type "${input.constructor?.name || "unknown"}" cannot be cloned. Failed to create clone: ${error.message}`,
+					"DataCloneError",
+				],
+				{},
+			);
+		}
+	} else {
+		output = {};
+		deepClone = "own";
+	}
 
-    if (deepClone === 'map') {
-        input.forEach((v, k) => {
-            output.set(structuredClone(globalObject, k, memory), structuredClone(globalObject, v, memory));
-        });
-    } else if (deepClone === 'set') {
-        input.forEach((v) => {
-            output.add(structuredClone(globalObject, v, memory));
-        });
-    } else if (deepClone === 'own') {
-        for (const name in input) {
-            if (Object.hasOwn(input, name)) {
-                const sourceValue = input[name];
-                const clonedValue = structuredClone(globalObject, sourceValue, memory);
-                Object.defineProperty(output, name, {
-                    configurable: true, enumerable: true, value: clonedValue, writable: true
-                });
-            }
-        }
-    }
+	memory.set(input, output);
 
-    return output;
+	if (deepClone === "map") {
+		input.forEach((v, k) => {
+			output.set(
+				structuredClone(globalObject, k, memory),
+				structuredClone(globalObject, v, memory),
+			);
+		});
+	} else if (deepClone === "set") {
+		input.forEach((v) => {
+			output.add(structuredClone(globalObject, v, memory));
+		});
+	} else if (deepClone === "own") {
+		for (const name in input) {
+			if (Object.hasOwn(input, name)) {
+				const sourceValue = input[name];
+				const clonedValue = structuredClone(globalObject, sourceValue, memory);
+				Object.defineProperty(output, name, {
+					configurable: true,
+					enumerable: true,
+					value: clonedValue,
+					writable: true,
+				});
+			}
+		}
+	}
+
+	return output;
 }
 
 module.exports = structuredClone;

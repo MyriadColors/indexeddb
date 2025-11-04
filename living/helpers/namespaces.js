@@ -1,5 +1,3 @@
-
-
 // https://infra.spec.whatwg.org/#namespaces
 
 exports.HTML_NS = "http://www.w3.org/1999/xhtml";

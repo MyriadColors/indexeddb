@@ -1,45 +1,87 @@
-require('proof')(26, okay => {
-    const Schema = require('../schema')
-    const root = Schema.root(0)
-    {
-        const isolated = new Schema(root)
-        const pending = new Schema(root)
-        okay(pending.getObjectStore('store'), null, 'not found')
-        okay(pending.createObjectStore('store', null, null).id, 1, 'create object store')
-        okay(pending.getExtractor(1), null, 'no extractor')
-        okay(pending.getObjectStore('store').name, 'store', 'found')
-        okay(isolated.getObjectStore('store'), null, 'isolated not found')
-        okay(pending.getIndex('store', 'index'), null, 'index not found')
-        okay(pending.createIndex('store', 'index', 'value', false, false).id, 2, 'create index')
-        okay(pending.getIndex('store', 'index').name, 'index', 'index found')
-        okay(typeof pending.getExtractor(2), 'function', 'has extractor')
-        okay(isolated.getIndex('store', 'index'), null, 'isolated index not found')
-        pending.merge()
-        okay(isolated.getIndex('store', 'index'), null, 'isolated index still not found')
-        okay(typeof isolated.getExtractor(2), 'function', 'isolated can see extractor')
-        const subsequent = new Schema(root)
-        okay(subsequent.getObjectStore('store').name, 'store', 'subsequent schema store found')
-        okay(subsequent.getIndex('store', 'index').name, 'index', 'subsequent schema index found')
-        okay(subsequent.createIndex('store', 'index2', 'value', true, true).id, 3, 'subsequent create index')
-        okay(subsequent.createIndex('store', 'index3', 'value', true, true).id, 4, 'subsequent create index store is alreay copied')
-        okay(subsequent.createObjectStore('store2', 'key', true).id, 5, 'subsequent create extracted, auto-increment store')
-        okay(isolated.getObjectStore('store2'), null, 'isolated still isolated')
-        subsequent.merge()
-    }
-    {
-        const isolated = new Schema(root)
-        const pending = new Schema(root)
-        okay(!! pending.getObjectStore('store2'), 'has object store')
-        pending.deleteObjectStore('store2')
-        okay(! pending.getObjectStore('store2'), 'object store deleted')
-        okay(!! isolated.getObjectStore('store2'), 'isolated still has object store')
-        okay(!! pending.getIndex('store', 'index2'), 'has index')
-        pending.deleteIndex('store', 'index2')
-        okay(! pending.getIndex('store', 'index2'), 'has index deleted')
-        okay(!! isolated.getIndex('store', 'index2'), 'isolated still has index')
-        pending.merge()
-        const subsequent = new Schema(root)
-        okay(! subsequent.getObjectStore('store2'), 'subsequent object store deleted')
-        okay(! subsequent.getIndex('store', 'index2'), 'subsequent index deleted')
-    }
-})
+require("proof")(26, (okay) => {
+	const Schema = require("../schema");
+	const root = Schema.root(0);
+	{
+		const isolated = new Schema(root);
+		const pending = new Schema(root);
+		okay(pending.getObjectStore("store"), null, "not found");
+		okay(
+			pending.createObjectStore("store", null, null).id,
+			1,
+			"create object store",
+		);
+		okay(pending.getExtractor(1), null, "no extractor");
+		okay(pending.getObjectStore("store").name, "store", "found");
+		okay(isolated.getObjectStore("store"), null, "isolated not found");
+		okay(pending.getIndex("store", "index"), null, "index not found");
+		okay(
+			pending.createIndex("store", "index", "value", false, false).id,
+			2,
+			"create index",
+		);
+		okay(pending.getIndex("store", "index").name, "index", "index found");
+		okay(typeof pending.getExtractor(2), "function", "has extractor");
+		okay(isolated.getIndex("store", "index"), null, "isolated index not found");
+		pending.merge();
+		okay(
+			isolated.getIndex("store", "index"),
+			null,
+			"isolated index still not found",
+		);
+		okay(
+			typeof isolated.getExtractor(2),
+			"function",
+			"isolated can see extractor",
+		);
+		const subsequent = new Schema(root);
+		okay(
+			subsequent.getObjectStore("store").name,
+			"store",
+			"subsequent schema store found",
+		);
+		okay(
+			subsequent.getIndex("store", "index").name,
+			"index",
+			"subsequent schema index found",
+		);
+		okay(
+			subsequent.createIndex("store", "index2", "value", true, true).id,
+			3,
+			"subsequent create index",
+		);
+		okay(
+			subsequent.createIndex("store", "index3", "value", true, true).id,
+			4,
+			"subsequent create index store is alreay copied",
+		);
+		okay(
+			subsequent.createObjectStore("store2", "key", true).id,
+			5,
+			"subsequent create extracted, auto-increment store",
+		);
+		okay(isolated.getObjectStore("store2"), null, "isolated still isolated");
+		subsequent.merge();
+	}
+	{
+		const isolated = new Schema(root);
+		const pending = new Schema(root);
+		okay(!!pending.getObjectStore("store2"), "has object store");
+		pending.deleteObjectStore("store2");
+		okay(!pending.getObjectStore("store2"), "object store deleted");
+		okay(
+			!!isolated.getObjectStore("store2"),
+			"isolated still has object store",
+		);
+		okay(!!pending.getIndex("store", "index2"), "has index");
+		pending.deleteIndex("store", "index2");
+		okay(!pending.getIndex("store", "index2"), "has index deleted");
+		okay(!!isolated.getIndex("store", "index2"), "isolated still has index");
+		pending.merge();
+		const subsequent = new Schema(root);
+		okay(
+			!subsequent.getObjectStore("store2"),
+			"subsequent object store deleted",
+		);
+		okay(!subsequent.getIndex("store", "index2"), "subsequent index deleted");
+	}
+});

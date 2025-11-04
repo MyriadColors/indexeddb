@@ -11,60 +11,76 @@ const errorReportingMode = Symbol("error reporting mode");
 // Takes error object, message, and location as params, unlike the spec.
 // Returns whether the event was handled or not.
 function reportAnError(line, col, target, errorObject, message, location) {
-  if (target[errorReportingMode]) {
-    return false;
-  }
+	if (target[errorReportingMode]) {
+		return false;
+	}
 
-  target[errorReportingMode] = true;
+	target[errorReportingMode] = true;
 
-  if (typeof message !== "string") {
-    message = "uncaught exception: " + util.inspect(errorObject);
-  }
+	if (typeof message !== "string") {
+		message = "uncaught exception: " + util.inspect(errorObject);
+	}
 
-  const event = createAnEvent("error", target._globalObject, ErrorEvent, {
-    cancelable: true, colno: col, error: errorObject, filename: location, lineno: line, message
-  });
+	const event = createAnEvent("error", target._globalObject, ErrorEvent, {
+		cancelable: true,
+		colno: col,
+		error: errorObject,
+		filename: location,
+		lineno: line,
+		message,
+	});
 
-  try {
-    target._dispatch(event);
-  } finally {
-    target[errorReportingMode] = false;
-  }
-  return event.defaultPrevented;
+	try {
+		target._dispatch(event);
+	} finally {
+		target[errorReportingMode] = false;
+	}
+	return event.defaultPrevented;
 }
 
 module.exports = function reportException(window, error, filenameHint) {
-  // This function will give good results on real Error objects with stacks; poor ones otherwise
+	// This function will give good results on real Error objects with stacks; poor ones otherwise
 
-  const stack = error?.stack;
-  const lines = stack?.split("\n");
+	const stack = error?.stack;
+	const lines = stack?.split("\n");
 
-  // Find the first line that matches; important for multi-line messages
-  let pieces;
-  if (lines) {
-    for (let i = 1; i < lines.length && !pieces; ++i) {
-      pieces = lines[i].match(/at (?:(.+)\s+)?\(?(?:(.+?):(\d+):(\d+)|([^)]+))\)?/);
-    }
-  }
+	// Find the first line that matches; important for multi-line messages
+	let pieces;
+	if (lines) {
+		for (let i = 1; i < lines.length && !pieces; ++i) {
+			pieces = lines[i].match(
+				/at (?:(.+)\s+)?\(?(?:(.+?):(\d+):(\d+)|([^)]+))\)?/,
+			);
+		}
+	}
 
-  const fileName = (pieces?.[2]) || filenameHint || window._document.URL;
-  const lineNumber = (pieces && parseInt(pieces[3], 10)) || 0;
-  const columnNumber = (pieces && parseInt(pieces[4], 10)) || 0;
+	const fileName = pieces?.[2] || filenameHint || window._document.URL;
+	const lineNumber = (pieces && parseInt(pieces[3], 10)) || 0;
+	const columnNumber = (pieces && parseInt(pieces[4], 10)) || 0;
 
-  const windowImpl = idlUtils.implForWrapper(window);
+	const windowImpl = idlUtils.implForWrapper(window);
 
-  const handled = reportAnError(lineNumber, columnNumber, windowImpl, error, error?.message, fileName);
+	const handled = reportAnError(
+		lineNumber,
+		columnNumber,
+		windowImpl,
+		error,
+		error?.message,
+		fileName,
+	);
 
-  if (!handled) {
-    const errorString = shouldBeDisplayedAsError(error) ? `[${error.name}: ${error.message}]` : util.inspect(error);
-    const jsdomError = new Error(`Uncaught ${errorString}`);
-    jsdomError.detail = error;
-    jsdomError.type = "unhandled exception";
+	if (!handled) {
+		const errorString = shouldBeDisplayedAsError(error)
+			? `[${error.name}: ${error.message}]`
+			: util.inspect(error);
+		const jsdomError = new Error(`Uncaught ${errorString}`);
+		jsdomError.detail = error;
+		jsdomError.type = "unhandled exception";
 
-    window._virtualConsole.emit("jsdomError", jsdomError);
-  }
+		window._virtualConsole.emit("jsdomError", jsdomError);
+	}
 };
 
 function shouldBeDisplayedAsError(x) {
-  return x?.name && x.message !== undefined && x.stack;
+	return x?.name && x.message !== undefined && x.stack;
 }

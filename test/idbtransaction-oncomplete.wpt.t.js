@@ -1,35 +1,35 @@
-require('proof')(1, async okay => {
-    await require('./harness')(okay, 'idbtransaction-oncomplete')
-    await harness(async () => {
-        var db, store,
-          t = async_test(),
-          open_rq = createdb(t),
-          stages = [];
+require("proof")(1, async (okay) => {
+	await require("./harness")(okay, "idbtransaction-oncomplete");
+	await harness(async () => {
+		var db,
+			store,
+			t = async_test(),
+			open_rq = createdb(t),
+			stages = [];
 
-        open_rq.onupgradeneeded = function onupgradeneeded(e) {
-            stages.push("upgradeneeded");
+		open_rq.onupgradeneeded = function onupgradeneeded(e) {
+			stages.push("upgradeneeded");
 
-            db = e.target.result;
-            store = db.createObjectStore('store');
+			db = e.target.result;
+			store = db.createObjectStore("store");
 
-            e.target.transaction.oncomplete = function oncomplete() {
-                stages.push("complete");
-            };
-        };
+			e.target.transaction.oncomplete = function oncomplete() {
+				stages.push("complete");
+			};
+		};
 
-        open_rq.onsuccess = function onsuccess(_e) {
-            stages.push("success");
+		open_rq.onsuccess = function onsuccess(_e) {
+			stages.push("success");
 
-            // Making a totally new transaction to check
-            db.transaction('store').objectStore('store').count().onsuccess = t.step_func(function onsuccess(_e) {
-                assert_array_equals(stages, [ "upgradeneeded",
-                                              "complete",
-                                              "success" ]);
-                t.done();
-            });
-            // XXX: Make one with real transactions, not only open() versionchange one
+			// Making a totally new transaction to check
+			db.transaction("store").objectStore("store").count().onsuccess =
+				t.step_func(function onsuccess(_e) {
+					assert_array_equals(stages, ["upgradeneeded", "complete", "success"]);
+					t.done();
+				});
+			// XXX: Make one with real transactions, not only open() versionchange one
 
-            /*db.transaction.objectStore('store').openCursor().onsuccess = function(e) {
+			/*db.transaction.objectStore('store').openCursor().onsuccess = function(e) {
                 stages.push("opencursor1");
             }
 
@@ -41,7 +41,6 @@ require('proof')(1, async okay => {
                 stages.push("opencursor3");
             }
             */
-        }
-
-    })
-})
+		};
+	});
+});

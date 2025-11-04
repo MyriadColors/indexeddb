@@ -1,261 +1,279 @@
-require('proof')(30, async okay => {
-    await require('./harness')(okay, 'idbcursor-advance')
-    await harness(async () => {
+require("proof")(30, async (okay) => {
+	await require("./harness")(okay, "idbcursor-advance");
+	await harness(async () => {
+		function upgrade_func(t, db, tx) {
+			var objStore = db.createObjectStore("test");
+			objStore.createIndex("index", "");
 
-        function upgrade_func(t, db, tx) {
-          var objStore = db.createObjectStore("test");
-          objStore.createIndex("index", "");
+			objStore.add("cupcake", 5);
+			objStore.add("pancake", 3); // Yes, it is intended
+			objStore.add("pie", 1);
+			objStore.add("pie", 4);
+			objStore.add("taco", 2);
+		}
 
-          objStore.add("cupcake", 5);
-          objStore.add("pancake", 3); // Yes, it is intended
-          objStore.add("pie",     1);
-          objStore.add("pie",     4);
-          objStore.add("taco",    2);
-        }
+		indexeddb_test(
+			upgrade_func,
+			(t, db) => {
+				var count = 0;
+				var rq = db
+					.transaction("test")
+					.objectStore("test")
+					.index("index")
+					.openCursor();
 
-        indexeddb_test(
-          upgrade_func,
-          (t, db) => {
-            var count = 0;
-            var rq = db.transaction("test").objectStore("test").index("index").openCursor();
+				rq.onsuccess = t.step_func(function onsuccess(_e) {
+					if (!e.target.result) {
+						assert_equals(count, 3, "count");
+						t.done();
+						return;
+					}
+					var cursor = e.target.result;
 
-            rq.onsuccess = t.step_func(function onsuccess(_e) {
-              if (!e.target.result) {
-                assert_equals(count, 3, "count");
-                t.done();
-                return;
-              }
-              var cursor = e.target.result;
+					switch (count) {
+						case 0: {
+							assert_equals(cursor.value, "cupcake");
+							assert_equals(cursor.primaryKey, 5);
+							break;
+						}
 
-              switch(count) {
-                case 0: {
-                  assert_equals(cursor.value, "cupcake");
-                  assert_equals(cursor.primaryKey, 5);
-                  break;
-                }
+						case 1: {
+							assert_equals(cursor.value, "pie");
+							assert_equals(cursor.primaryKey, 1);
+							break;
+						}
 
-                case 1: {
-                  assert_equals(cursor.value, "pie");
-                  assert_equals(cursor.primaryKey, 1);
-                  break;
-                }
+						case 2: {
+							assert_equals(cursor.value, "taco");
+							assert_equals(cursor.primaryKey, 2);
+							break;
+						}
 
-                case 2: {
-                  assert_equals(cursor.value, "taco");
-                  assert_equals(cursor.primaryKey, 2);
-                  break;
-                }
+						default: {
+							assert_unreached("Unexpected count: " + count);
+						}
+					}
 
-                default: {
-                  assert_unreached("Unexpected count: " + count);
-                }
-              }
+					count++;
+					cursor.advance(2);
+				});
+				rq.onerror = t.unreached_func("unexpected error");
+			},
+			document.title + " - advances",
+		);
 
-              count++;
-              cursor.advance(2);
-            });
-            rq.onerror = t.unreached_func("unexpected error")
-          },
-          document.title + " - advances"
-        );
+		indexeddb_test(
+			upgrade_func,
+			(t, db) => {
+				var count = 0;
+				var rq = db
+					.transaction("test")
+					.objectStore("test")
+					.index("index")
+					.openCursor(null, "prev");
 
-        indexeddb_test(
-          upgrade_func,
-          (t, db) => {
-            var count = 0;
-            var rq = db.transaction("test").objectStore("test").index("index").openCursor(null, "prev");
+				rq.onsuccess = t.step_func(function onsuccess(_e) {
+					if (!e.target.result) {
+						assert_equals(count, 3, "count");
+						t.done();
+						return;
+					}
+					var cursor = e.target.result;
 
-            rq.onsuccess = t.step_func(function onsuccess(_e) {
-              if (!e.target.result) {
-                assert_equals(count, 3, "count");
-                t.done();
-                return;
-              }
-              var cursor = e.target.result;
+					switch (count) {
+						case 0: {
+							assert_equals(cursor.value, "taco");
+							assert_equals(cursor.primaryKey, 2);
+							break;
+						}
 
-              switch(count) {
-                case 0: {
-                  assert_equals(cursor.value, "taco");
-                  assert_equals(cursor.primaryKey, 2);
-                  break;
-                }
+						case 1: {
+							assert_equals(cursor.value, "pie");
+							assert_equals(cursor.primaryKey, 1);
+							break;
+						}
 
-                case 1: {
-                  assert_equals(cursor.value, "pie");
-                  assert_equals(cursor.primaryKey, 1);
-                  break;
-                }
+						case 2: {
+							assert_equals(cursor.value, "cupcake");
+							assert_equals(cursor.primaryKey, 5);
+							break;
+						}
 
-                case 2: {
-                  assert_equals(cursor.value, "cupcake");
-                  assert_equals(cursor.primaryKey, 5);
-                  break;
-                }
+						default: {
+							assert_unreached("Unexpected count: " + count);
+						}
+					}
 
-                default: {
-                  assert_unreached("Unexpected count: " + count);
-                }
-              }
+					count++;
+					cursor.advance(2);
+				});
+				rq.onerror = t.unreached_func("unexpected error");
+			},
+			document.title + " - advances backwards",
+		);
 
-              count++;
-              cursor.advance(2);
-            });
-            rq.onerror = t.unreached_func("unexpected error")
-          },
-          document.title + " - advances backwards"
-        );
+		indexeddb_test(
+			upgrade_func,
+			(t, db) => {
+				var count = 0;
+				var rq = db
+					.transaction("test")
+					.objectStore("test")
+					.index("index")
+					.openCursor();
 
-        indexeddb_test(
-          upgrade_func,
-          (t, db) => {
-            var count = 0;
-            var rq = db.transaction("test").objectStore("test").index("index")
-                       .openCursor();
+				rq.onsuccess = t.step_func(function onsuccess(_e) {
+					if (!e.target.result) {
+						assert_equals(count, 1, "count");
+						t.done();
+						return;
+					}
+					var cursor = e.target.result;
 
-            rq.onsuccess = t.step_func(function onsuccess(_e) {
-              if (!e.target.result) {
-                assert_equals(count, 1, "count");
-                t.done();
-                return;
-              }
-              var cursor = e.target.result;
+					switch (count) {
+						case 0: {
+							assert_equals(cursor.value, "cupcake");
+							assert_equals(cursor.primaryKey, 5);
+							break;
+						}
 
-              switch(count) {
-                case 0: {
-                  assert_equals(cursor.value, "cupcake");
-                  assert_equals(cursor.primaryKey, 5);
-                  break;
-                }
+						default: {
+							assert_unreached("Unexpected count: " + count);
+						}
+					}
 
-                default: {
-                  assert_unreached("Unexpected count: " + count);
-                }
-              }
+					count++;
+					cursor.advance(100_000);
+				});
+				rq.onerror = t.unreached_func("unexpected error");
+			},
+			document.title + " - skip far forward",
+		);
 
-              count++;
-              cursor.advance(100_000);
-            });
-            rq.onerror = t.unreached_func("unexpected error")
-          },
-          document.title + " - skip far forward"
-        );
+		indexeddb_test(
+			upgrade_func,
+			(t, db) => {
+				var count = 0;
+				var rq = db
+					.transaction("test")
+					.objectStore("test")
+					.index("index")
+					.openCursor(IDBKeyRange.lowerBound("cupcake", true));
 
-        indexeddb_test(
-          upgrade_func,
-          (t, db) => {
-            var count = 0;
-            var rq = db.transaction("test").objectStore("test").index("index")
-                       .openCursor(IDBKeyRange.lowerBound("cupcake", true));
+				rq.onsuccess = t.step_func(function onsuccess(_e) {
+					if (!e.target.result) {
+						assert_equals(count, 2, "count");
+						t.done();
+						return;
+					}
+					var cursor = e.target.result;
 
-            rq.onsuccess = t.step_func(function onsuccess(_e) {
-              if (!e.target.result) {
-                assert_equals(count, 2, "count");
-                t.done();
-                return;
-              }
-              var cursor = e.target.result;
+					switch (count) {
+						case 0: {
+							assert_equals(cursor.value, "pancake");
+							assert_equals(cursor.primaryKey, 3);
+							break;
+						}
 
-              switch(count) {
-                case 0: {
-                  assert_equals(cursor.value, "pancake");
-                  assert_equals(cursor.primaryKey, 3);
-                  break;
-                }
+						case 1: {
+							assert_equals(cursor.value, "pie");
+							assert_equals(cursor.primaryKey, 4);
+							break;
+						}
 
-                case 1: {
-                  assert_equals(cursor.value, "pie");
-                  assert_equals(cursor.primaryKey, 4);
-                  break;
-                }
+						default: {
+							assert_unreached("Unexpected count: " + count);
+						}
+					}
 
-                default: {
-                  assert_unreached("Unexpected count: " + count);
-                }
-              }
+					count++;
+					cursor.advance(2);
+				});
+				rq.onerror = t.unreached_func("unexpected error");
+			},
+			document.title + " - within range",
+		);
 
-              count++;
-              cursor.advance(2);
-            });
-            rq.onerror = t.unreached_func("unexpected error")
-          },
-          document.title + " - within range"
-        );
+		indexeddb_test(
+			upgrade_func,
+			(t, db) => {
+				var count = 0;
+				var rq = db
+					.transaction("test")
+					.objectStore("test")
+					.index("index")
+					.openCursor("pancake");
 
-        indexeddb_test(
-          upgrade_func,
-          (t, db) => {
-            var count = 0;
-            var rq = db.transaction("test").objectStore("test").index("index")
-                       .openCursor("pancake");
+				rq.onsuccess = t.step_func(function onsuccess(_e) {
+					if (!e.target.result) {
+						assert_equals(count, 1, "count");
+						t.done();
+						return;
+					}
+					var cursor = e.target.result;
 
-            rq.onsuccess = t.step_func(function onsuccess(_e) {
-              if (!e.target.result) {
-                assert_equals(count, 1, "count");
-                t.done();
-                return;
-              }
-              var cursor = e.target.result;
+					switch (count) {
+						case 0: {
+							assert_equals(cursor.value, "pancake");
+							assert_equals(cursor.primaryKey, 3);
+							break;
+						}
 
-              switch(count) {
-                case 0: {
-                  assert_equals(cursor.value, "pancake");
-                  assert_equals(cursor.primaryKey, 3);
-                  break;
-                }
+						default: {
+							assert_unreached("Unexpected count: " + count);
+						}
+					}
 
-                default: {
-                  assert_unreached("Unexpected count: " + count);
-                }
-              }
+					count++;
+					cursor.advance(1);
+				});
+				rq.onerror = t.unreached_func("unexpected error");
+			},
+			document.title + " - within single key range",
+		);
 
-              count++;
-              cursor.advance(1);
-            });
-            rq.onerror = t.unreached_func("unexpected error")
-          },
-          document.title + " - within single key range"
-        );
+		indexeddb_test(
+			upgrade_func,
+			(t, db) => {
+				var count = 0;
+				var rq = db
+					.transaction("test")
+					.objectStore("test")
+					.index("index")
+					.openCursor("pie");
 
-        indexeddb_test(
-          upgrade_func,
-          (t, db) => {
-            var count = 0;
-            var rq = db.transaction("test").objectStore("test").index("index")
-                       .openCursor("pie");
+				rq.onsuccess = t.step_func(function onsuccess(_e) {
+					if (!e.target.result) {
+						assert_equals(count, 2, "count");
+						t.done();
+						return;
+					}
+					var cursor = e.target.result;
 
-            rq.onsuccess = t.step_func(function onsuccess(_e) {
-              if (!e.target.result) {
-                assert_equals(count, 2, "count");
-                t.done();
-                return;
-              }
-              var cursor = e.target.result;
+					switch (count) {
+						case 0: {
+							assert_equals(cursor.value, "pie");
+							assert_equals(cursor.primaryKey, 1);
+							break;
+						}
 
-              switch(count) {
-                case 0: {
-                  assert_equals(cursor.value, "pie");
-                  assert_equals(cursor.primaryKey, 1);
-                  break;
-                }
+						case 1: {
+							assert_equals(cursor.value, "pie");
+							assert_equals(cursor.primaryKey, 4);
+							break;
+						}
 
-                case 1: {
-                  assert_equals(cursor.value, "pie");
-                  assert_equals(cursor.primaryKey, 4);
-                  break;
-                }
+						default: {
+							assert_unreached("Unexpected count: " + count);
+						}
+					}
 
-                default: {
-                  assert_unreached("Unexpected count: " + count);
-                }
-              }
-
-              count++;
-              cursor.advance(1);
-            });
-            rq.onerror = t.unreached_func("unexpected error")
-          },
-          document.title + " - within single key range, with several results"
-        );
-
-    })
-})
+					count++;
+					cursor.advance(1);
+				});
+				rq.onerror = t.unreached_func("unexpected error");
+			},
+			document.title + " - within single key range, with several results",
+		);
+	});
+});

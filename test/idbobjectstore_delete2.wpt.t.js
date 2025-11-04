@@ -1,20 +1,19 @@
-require('proof')(1, async okay => {
-    await require('./harness')(okay, 'idbobjectstore_delete2')
-    await harness(async () => {
-        var db,
-          t = async_test();
+require("proof")(1, async (okay) => {
+	await require("./harness")(okay, "idbobjectstore_delete2");
+	await harness(async () => {
+		var db,
+			t = async_test();
 
-        var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function onupgradeneeded(e) {
-            db = e.target.result;
+		var open_rq = createdb(t);
+		open_rq.onupgradeneeded = function onupgradeneeded(e) {
+			db = e.target.result;
 
-            var delete_rq = db.createObjectStore("test")
-                              .delete(1);
+			var delete_rq = db.createObjectStore("test").delete(1);
 
-            delete_rq.onsuccess = t.step_func(function onsuccess(_e) {
-                assert_equals(e.target.result);
-                t.done();
-            });
-        };
-    })
-})
+			delete_rq.onsuccess = t.step_func(function onsuccess(_e) {
+				assert_equals(e.target.result);
+				t.done();
+			});
+		};
+	});
+});

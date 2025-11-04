@@ -1,159 +1,180 @@
-const assert = require('node:assert')
+const assert = require("node:assert");
 
-const extractor = require('./extractor')
+const extractor = require("./extractor");
 
 class Schema {
-    static root (max) {
-        return {
-            extractor: {}, max: max, name: {}, store: {}
-        }
-    }
+	static root(max) {
+		return {
+			extractor: {},
+			max: max,
+			name: {},
+			store: {},
+		};
+	}
 
-    constructor (root) {
-        // TODO Expose `root`.
-        this._root = root
-        this._rollbacks = []
-        this.reset()
-    }
+	constructor(root) {
+		// TODO Expose `root`.
+		this._root = root;
+		this._rollbacks = [];
+		this.reset();
+	}
 
-    rename (from, to) {
-        const id = this._pending.name[from]
-        this._pending.name[to] = id
-        delete this._pending.name[from]
-        this._pending.store[id].name = to
-    }
+	rename(from, to) {
+		const id = this._pending.name[from];
+		this._pending.name[to] = id;
+		delete this._pending.name[from];
+		this._pending.store[id].name = to;
+	}
 
-    renameIndex (storeId, from, to) {
-        const store = this._pending.store[storeId]
-        const indexId = store.index[from]
-        store.index[to] = indexId
-        delete store.index[from]
-        this._pending.store[indexId].name = to
-    }
+	renameIndex(storeId, from, to) {
+		const store = this._pending.store[storeId];
+		const indexId = store.index[from];
+		store.index[to] = indexId;
+		delete store.index[from];
+		this._pending.store[indexId].name = to;
+	}
 
-    createObjectStore (name, keyPath, autoIncrement) {
-        const id = ++this._root.max
-        this._added.add(id)
-        const store = {
-            autoIncrement: autoIncrement ? 1 : null, id: id, index: {}, keyPath: keyPath, name: name, qualified: `store.${id}`, type: 'store'
-        }
-        this._pending.store[id] = store
-        this._pending.name[name] = id
-        this._pending.extractor[id] = keyPath !== null ? extractor.create(keyPath) : null
-        return store
-    }
+	createObjectStore(name, keyPath, autoIncrement) {
+		const id = ++this._root.max;
+		this._added.add(id);
+		const store = {
+			autoIncrement: autoIncrement ? 1 : null,
+			id: id,
+			index: {},
+			keyPath: keyPath,
+			name: name,
+			qualified: `store.${id}`,
+			type: "store",
+		};
+		this._pending.store[id] = store;
+		this._pending.name[name] = id;
+		this._pending.extractor[id] =
+			keyPath !== null ? extractor.create(keyPath) : null;
+		return store;
+	}
 
-    deleteObjectStore (name) {
-        const store = this.getObjectStore(name)
-        delete this._pending.name[name]
-        this._deleted.store.add(store.id)
-    }
+	deleteObjectStore(name) {
+		const store = this.getObjectStore(name);
+		delete this._pending.name[name];
+		this._deleted.store.add(store.id);
+	}
 
-    isDeleted (store) {
-        assert(typeof store === 'object')
-        if (store.rolledback) {
-            return true
-        }
-        if (! this._pending.store[store.id]) {
-            return true
-        }
-        if (store.type === 'index') {
-            return this._deleted.index.has(store.id) ||
-                this._deleted.store.has(store.storeId)
-        }
-        return this._deleted.store.has(store.id)
-    }
+	isDeleted(store) {
+		assert(typeof store === "object");
+		if (store.rolledback) {
+			return true;
+		}
+		if (!this._pending.store[store.id]) {
+			return true;
+		}
+		if (store.type === "index") {
+			return (
+				this._deleted.index.has(store.id) ||
+				this._deleted.store.has(store.storeId)
+			);
+		}
+		return this._deleted.store.has(store.id);
+	}
 
-    getObjectStore (name) {
-        const storeId = this._pending.name[name]
-        if (storeId === null) {
-            return null
-        }
-        return this._pending.store[storeId]
-    }
+	getObjectStore(name) {
+		const storeId = this._pending.name[name];
+		if (storeId === null) {
+			return null;
+		}
+		return this._pending.store[storeId];
+	}
 
-    getObjectStoreNames () {
-        return Object.keys(this._pending.name)
-    }
+	getObjectStoreNames() {
+		return Object.keys(this._pending.name);
+	}
 
-    createIndex (storeName, indexName, keyPath, multiEntry, unique) {
-        const store = this.getObjectStore(storeName)
-        const indexId = ++this._root.max
-        this._added.add(indexId)
-        const index = {
-            id: indexId, keyPath: keyPath, multiEntry: multiEntry, name: indexName, qualified: `index.${indexId}`, storeId: store.id, type: 'index', unique: unique
-        }
-        this._pending.store[indexId] = index
-        store.index[indexName] = indexId
-        this._pending.extractor[indexId] = extractor.create(keyPath)
-        return index
-    }
+	createIndex(storeName, indexName, keyPath, multiEntry, unique) {
+		const store = this.getObjectStore(storeName);
+		const indexId = ++this._root.max;
+		this._added.add(indexId);
+		const index = {
+			id: indexId,
+			keyPath: keyPath,
+			multiEntry: multiEntry,
+			name: indexName,
+			qualified: `index.${indexId}`,
+			storeId: store.id,
+			type: "index",
+			unique: unique,
+		};
+		this._pending.store[indexId] = index;
+		store.index[indexName] = indexId;
+		this._pending.extractor[indexId] = extractor.create(keyPath);
+		return index;
+	}
 
-    deleteIndex (storeName, indexName) {
-        const store = this.getObjectStore(storeName)
-        this._deleted.index.add(store.index[indexName])
-        delete store.index[indexName]
-    }
+	deleteIndex(storeName, indexName) {
+		const store = this.getObjectStore(storeName);
+		this._deleted.index.add(store.index[indexName]);
+		delete store.index[indexName];
+	}
 
-    getIndex (storeName, indexName) {
-        const store = this.getObjectStore(storeName)
-        if (store === null) {
-            return null
-        }
-        const id = store.index[indexName]
-        if (id === null) {
-            return null
-        }
-        return this._pending.store[id]
-    }
+	getIndex(storeName, indexName) {
+		const store = this.getObjectStore(storeName);
+		if (store === null) {
+			return null;
+		}
+		const id = store.index[indexName];
+		if (id === null) {
+			return null;
+		}
+		return this._pending.store[id];
+	}
 
-    getIndexNames (storeName) {
-        const store = this.getObjectStore(storeName)
-        return store ? Object.keys(store.index).toSorted() : []
-    }
+	getIndexNames(storeName) {
+		const store = this.getObjectStore(storeName);
+		return store ? Object.keys(store.index).toSorted() : [];
+	}
 
-    getExtractor (id) {
-        return this._pending.extractor[id] || this._root.extractor[id] || null
-    }
+	getExtractor(id) {
+		return this._pending.extractor[id] || this._root.extractor[id] || null;
+	}
 
-    merge () {
-        for (const id of this._deleted.index) {
-            delete this._root.store[id]
-            delete this._pending.store[id]
-        }
-        for (const id of this._deleted.store) {
-            const store = this._pending.store[id]
-            delete this._root.name[store.name]
-            delete this._root.store[id]
-            delete this._pending.store[id]
-        }
-        this._root.name = JSON.parse(JSON.stringify(this._pending.name))
-        for (const id in this._pending.store) {
-            this._root.store[id] = this._pending.store[id]
-        }
-        for (const id in this._pending.extractor) {
-            this._root.extractor[id] = this._pending.extractor[id]
-        }
-        this.reset()
-    }
+	merge() {
+		for (const id of this._deleted.index) {
+			delete this._root.store[id];
+			delete this._pending.store[id];
+		}
+		for (const id of this._deleted.store) {
+			const store = this._pending.store[id];
+			delete this._root.name[store.name];
+			delete this._root.store[id];
+			delete this._pending.store[id];
+		}
+		this._root.name = JSON.parse(JSON.stringify(this._pending.name));
+		for (const id in this._pending.store) {
+			this._root.store[id] = this._pending.store[id];
+		}
+		for (const id in this._pending.extractor) {
+			this._root.extractor[id] = this._pending.extractor[id];
+		}
+		this.reset();
+	}
 
-    abort () {
-        for (const id in this._pending.store) {
-            this._pending.store[id].rolledback = this._added.has(+id)
-            if (id in this._root.store) {
-                this._pending.store[id].name = this._root.store[id].name
-            }
-        }
-        this.reset()
-    }
+	abort() {
+		for (const id in this._pending.store) {
+			this._pending.store[id].rolledback = this._added.has(+id);
+			if (id in this._root.store) {
+				this._pending.store[id].name = this._root.store[id].name;
+			}
+		}
+		this.reset();
+	}
 
-    reset () {
-        this._pending = {
-            extractor: {}, name: JSON.parse(JSON.stringify(this._root.name)), store: JSON.parse(JSON.stringify(this._root.store))
-        }
-        this._added = new Set
-        this._deleted = { index: new Set, store: new Set }
-    }
+	reset() {
+		this._pending = {
+			extractor: {},
+			name: JSON.parse(JSON.stringify(this._root.name)),
+			store: JSON.parse(JSON.stringify(this._root.store)),
+		};
+		this._added = new Set();
+		this._deleted = { index: new Set(), store: new Set() };
+	}
 }
 
-module.exports = Schema
+module.exports = Schema;

@@ -1,20 +1,28 @@
-require('proof')(4, async okay => {
-    await require('./harness')(okay, 'idbfactory_cmp3')
-    await harness(async () => {
-        test(() => {
-          assert_equals(indexedDB.cmp([0], new Uint8Array([0])), 1, "Array > Binary");
-        }, "Array v.s. Binary");
+require("proof")(4, async (okay) => {
+	await require("./harness")(okay, "idbfactory_cmp3");
+	await harness(async () => {
+		test(() => {
+			assert_equals(
+				indexedDB.cmp([0], new Uint8Array([0])),
+				1,
+				"Array > Binary",
+			);
+		}, "Array v.s. Binary");
 
-        test(() => {
-          assert_equals(indexedDB.cmp(new Uint8Array([0]), "0"), 1, "Binary > String");
-        }, "Binary v.s. String");
+		test(() => {
+			assert_equals(
+				indexedDB.cmp(new Uint8Array([0]), "0"),
+				1,
+				"Binary > String",
+			);
+		}, "Binary v.s. String");
 
-        test(() => {
-          assert_equals(indexedDB.cmp("", new Date(0)), 1, "String > Date");
-        }, "String v.s. Date");
+		test(() => {
+			assert_equals(indexedDB.cmp("", new Date(0)), 1, "String > Date");
+		}, "String v.s. Date");
 
-        test(() => {
-          assert_equals(indexedDB.cmp(new Date(0), 0), 1, "Date > Number");
-        }, "Date v.s. Number");
-    })
-})
+		test(() => {
+			assert_equals(indexedDB.cmp(new Date(0), 0), 1, "Date > Number");
+		}, "Date v.s. Number");
+	});
+});

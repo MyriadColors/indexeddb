@@ -1,19 +1,20 @@
-require('proof')(1, async okay => {
-    await require('./harness')(okay, 'idbindex_getKey5')
-    await harness(async () => {
-        var db,
-            t = async_test();
+require("proof")(1, async (okay) => {
+	await require("./harness")(okay, "idbindex_getKey5");
+	await harness(async () => {
+		var db,
+			t = async_test();
 
-        var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function onupgradeneeded(e) {
-            db = e.target.result;
+		var open_rq = createdb(t);
+		open_rq.onupgradeneeded = function onupgradeneeded(e) {
+			db = e.target.result;
 
-            var index = db.createObjectStore("test", { keyPath: "key" })
-                          .createIndex("index", "indexedProperty");
-            assert_throws_dom("DataError",function onupgradeneeded(){
-                index.getKey(NaN);
-            });
-            t.done();
-        };
-    })
-})
+			var index = db
+				.createObjectStore("test", { keyPath: "key" })
+				.createIndex("index", "indexedProperty");
+			assert_throws_dom("DataError", function onupgradeneeded() {
+				index.getKey(NaN);
+			});
+			t.done();
+		};
+	});
+});

@@ -1,111 +1,110 @@
-require('proof')(8, async okay => {
-    await require('./harness')(okay, 'idbcursor_continue_delete_objectstore')
-    await harness(async () => {
-        /* The goal here is to test that any prefetching of cursor values performs
-         * correct invalidation of prefetched data.  This test is motivated by the
-         * particularities of the Firefox implementation of preloading, and is
-         * specifically motivated by an edge case when prefetching prefetches at
-         * least 2 extra records and at most determines whether a mutation is
-         * potentially relevant based on current cursor position and direction and
-         * does not test for key equivalence.  Future implementations may want to
-         * help refine this test if their cursors are more clever.
-         *
-         * Step-wise we:
-         * - Open a cursor, returning key 0.
-         * - When the cursor request completes, without yielding control:
-         *   - Issue a delete() call that won't actually delete anything but looks
-         *     relevant.  This should purge prefetched records 1 and 2.
-         *   - Issue a continue() which should result in record 1 being fetched
-         *     again and record 2 being prefetched again.
-         *   - Delete record 2.  Unless there's a synchronously available source
-         *     of truth, the data from continue() above will not be present and
-         *     we'll expect the implementation to need to set a flag to invalidate
-         *     the prefetched data when it arrives.
-         * - When the cursor request completes, validate we got record 1 and issue
-         *   a continue.
-         * - When the request completes, we should have a null cursor result value
-         *   because 2 was deleted.
-         */
-        var db,
-            count = 0,
-            t = async_test(),
-            records = [{ pKey: "primaryKey_0" },
-            { pKey: "primaryKey_1" },
-            { pKey: "primaryKey_2" }];
+require("proof")(8, async (okay) => {
+	await require("./harness")(okay, "idbcursor_continue_delete_objectstore");
+	await harness(async () => {
+		/* The goal here is to test that any prefetching of cursor values performs
+		 * correct invalidation of prefetched data.  This test is motivated by the
+		 * particularities of the Firefox implementation of preloading, and is
+		 * specifically motivated by an edge case when prefetching prefetches at
+		 * least 2 extra records and at most determines whether a mutation is
+		 * potentially relevant based on current cursor position and direction and
+		 * does not test for key equivalence.  Future implementations may want to
+		 * help refine this test if their cursors are more clever.
+		 *
+		 * Step-wise we:
+		 * - Open a cursor, returning key 0.
+		 * - When the cursor request completes, without yielding control:
+		 *   - Issue a delete() call that won't actually delete anything but looks
+		 *     relevant.  This should purge prefetched records 1 and 2.
+		 *   - Issue a continue() which should result in record 1 being fetched
+		 *     again and record 2 being prefetched again.
+		 *   - Delete record 2.  Unless there's a synchronously available source
+		 *     of truth, the data from continue() above will not be present and
+		 *     we'll expect the implementation to need to set a flag to invalidate
+		 *     the prefetched data when it arrives.
+		 * - When the cursor request completes, validate we got record 1 and issue
+		 *   a continue.
+		 * - When the request completes, we should have a null cursor result value
+		 *   because 2 was deleted.
+		 */
+		var db,
+			count = 0,
+			t = async_test(),
+			records = [
+				{ pKey: "primaryKey_0" },
+				{ pKey: "primaryKey_1" },
+				{ pKey: "primaryKey_2" },
+			];
 
-        // This is a key that is not present in the database, but that is known to
-        // be relevant to a forward iteration of the above keys by comparing to be
-        // greater than all of them.
-        const plausibleFutureKey = "primaryKey_9";
+		// This is a key that is not present in the database, but that is known to
+		// be relevant to a forward iteration of the above keys by comparing to be
+		// greater than all of them.
+		const plausibleFutureKey = "primaryKey_9";
 
-        const open_rq = createdb(t);
-        open_rq.onupgradeneeded = function onupgradeneeded(e) {
-            db = e.target.result;
+		const open_rq = createdb(t);
+		open_rq.onupgradeneeded = function onupgradeneeded(e) {
+			db = e.target.result;
 
-            const objStore = db.createObjectStore("test", { keyPath: "pKey" });
+			const objStore = db.createObjectStore("test", { keyPath: "pKey" });
 
-            for (let i = 0; i < records.length; i++) { objStore.add(records[i]); }
-        };
+			for (let i = 0; i < records.length; i++) {
+				objStore.add(records[i]);
+			}
+		};
 
-        open_rq.onsuccess = t.step_func(CursorDeleteRecord);
+		open_rq.onsuccess = t.step_func(CursorDeleteRecord);
 
+		function CursorDeleteRecord(_e) {
+			const txn = db.transaction("test", "readwrite"),
+				object_store = txn.objectStore("test"),
+				cursor_rq = object_store.openCursor();
 
-        function CursorDeleteRecord(_e) {
-            const txn = db.transaction("test", "readwrite"),
-                object_store = txn.objectStore("test"),
-                cursor_rq = object_store.openCursor();
+			let iteration = 0;
 
-            let iteration = 0;
+			cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
+				const cursor = e.target.result;
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
-                const cursor = e.target.result;
+				switch (iteration) {
+					case 0: {
+						object_store.delete(plausibleFutureKey);
+						assert_true(cursor !== null, "cursor valid");
+						assert_equals(cursor.value.pKey, records[iteration].pKey);
+						cursor.continue();
+						object_store.delete(records[2].pKey);
+						break;
+					}
+					case 1: {
+						assert_true(cursor !== null, "cursor valid");
+						assert_equals(cursor.value.pKey, records[iteration].pKey);
+						cursor.continue();
+						break;
+					}
+					case 2: {
+						assert_equals(cursor, null, "cursor no longer valid");
+						break;
+					}
+				}
+				iteration++;
+			});
 
-                switch (iteration) {
-                    case 0: {
-                        object_store.delete(plausibleFutureKey);
-                        assert_true(cursor !== null, "cursor valid");
-                        assert_equals(cursor.value.pKey, records[iteration].pKey);
-                        cursor.continue();
-                        object_store.delete(records[2].pKey);
-                        break;
-                    }
-                    case 1: {
-                        assert_true(cursor !== null, "cursor valid");
-                        assert_equals(cursor.value.pKey, records[iteration].pKey);
-                        cursor.continue();
-                        break;
-                    }
-                    case 2: {
-                        assert_equals(cursor, null, "cursor no longer valid");
-                        break;
-                    }
-                };
-                iteration++;
-            });
+			txn.oncomplete = t.step_func(VerifyRecordWasDeleted);
+		}
 
-            txn.oncomplete = t.step_func(VerifyRecordWasDeleted);
-        }
+		function VerifyRecordWasDeleted(_e) {
+			var cursor_rq = db.transaction("test").objectStore("test").openCursor();
 
+			cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
+				var cursor = e.target.result;
 
-        function VerifyRecordWasDeleted(_e) {
-            var cursor_rq = db.transaction("test")
-                .objectStore("test")
-                .openCursor();
+				if (!cursor) {
+					assert_equals(count, 2, "count");
+					t.done();
+					return;
+				}
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
-                var cursor = e.target.result;
-
-                if (!cursor) {
-                    assert_equals(count, 2, 'count');
-                    t.done();
-                    return
-                }
-
-                assert_equals(cursor.value.pKey, records[count].pKey);
-                count++;
-                cursor.continue();
-            });
-        }
-
-    })
-})
+				assert_equals(cursor.value.pKey, records[count].pKey);
+				count++;
+				cursor.continue();
+			});
+		}
+	});
+});

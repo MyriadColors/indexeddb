@@ -1,55 +1,62 @@
-require('proof')(13, async okay => {
-    await require('./harness')(okay, 'idbcursor_continue_index6')
-    await harness(async () => {
+require("proof")(13, async (okay) => {
+	await require("./harness")(okay, "idbcursor_continue_index6");
+	await harness(async () => {
+		let db,
+			t = async_test(),
+			records = [
+				{ iKey: "indexKey_0", pKey: "primaryKey_0" },
+				{ iKey: "indexKey_1", pKey: "primaryKey_1" },
+				{ iKey: "indexKey_1", pKey: "primaryKey_1-2" },
+				{ iKey: "indexKey_2", pKey: "primaryKey_2" },
+			],
+			expected = [
+				{ iKey: "indexKey_0", pKey: "primaryKey_0" },
+				{ iKey: "indexKey_1", pKey: "primaryKey_1" },
+				{ iKey: "indexKey_2", pKey: "primaryKey_2" },
+			];
 
-        let db,
-          t = async_test(),
-          records = [ { iKey: "indexKey_0", pKey: "primaryKey_0" },
-                      { iKey: "indexKey_1", pKey: "primaryKey_1" },
-                      { iKey: "indexKey_1", pKey: "primaryKey_1-2" },
-                      { iKey: "indexKey_2", pKey: "primaryKey_2" } ],
+		const open_rq = createdb(t);
+		open_rq.onupgradeneeded = function onupgradeneeded(e) {
+			db = e.target.result;
+			const objStore = db.createObjectStore("test", { keyPath: "pKey" });
 
-          expected = [ { iKey: "indexKey_0", pKey: "primaryKey_0" },
-                     { iKey: "indexKey_1", pKey: "primaryKey_1" },
-                     { iKey: "indexKey_2", pKey: "primaryKey_2" } ];
+			objStore.createIndex("index", "iKey");
 
-        const open_rq = createdb(t);
-        open_rq.onupgradeneeded = function onupgradeneeded(e) {
-            db = e.target.result;
-            const objStore = db.createObjectStore("test", { keyPath: "pKey" });
+			for (let i = 0; i < records.length; i++) {
+				objStore.add(records[i]);
+			}
+		};
 
-            objStore.createIndex("index", "iKey");
+		open_rq.onsuccess = function onsuccess(_e) {
+			let count = 0,
+				cursor_rq = db
+					.transaction("test")
+					.objectStore("test")
+					.index("index")
+					.openCursor(undefined, "nextunique");
 
-            for (let i = 0; i < records.length; i++)
-                {objStore.add(records[i]);}
-        };
+			cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
+				if (!e.target.result) {
+					assert_equals(count, expected.length, "count");
+					t.done();
+					return;
+				}
+				var cursor = e.target.result,
+					record = cursor.value;
 
-        open_rq.onsuccess = function onsuccess(_e) {
-            let count = 0,
-              cursor_rq = db.transaction("test")
-                            .objectStore("test")
-                            .index("index")
-                            .openCursor(undefined, "nextunique");
+				assert_equals(record.pKey, expected[count].pKey, `pKey #${count}`);
+				assert_equals(record.iKey, expected[count].iKey, `iKey #${count}`);
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
-                if (!e.target.result) {
-                    assert_equals(count, expected.length, 'count');
-                    t.done();
-                    return;
-                }
-                var cursor = e.target.result,
-                  record = cursor.value;
+				assert_equals(cursor.key, expected[count].iKey, `cursor.key #${count}`);
+				assert_equals(
+					cursor.primaryKey,
+					expected[count].pKey,
+					`cursor.primaryKey #${count}`,
+				);
 
-                assert_equals(record.pKey, expected[count].pKey, `pKey #${count}`);
-                assert_equals(record.iKey, expected[count].iKey, `iKey #${count}`);
-
-                assert_equals(cursor.key,  expected[count].iKey, `cursor.key #${count}`);
-                assert_equals(cursor.primaryKey, expected[count].pKey, `cursor.primaryKey #${count}`);
-
-                count++;
-                cursor.continue(expected[count] ? expected[count].iKey : undefined);
-            });
-        };
-
-    })
-})
+				count++;
+				cursor.continue(expected[count] ? expected[count].iKey : undefined);
+			});
+		};
+	});
+});

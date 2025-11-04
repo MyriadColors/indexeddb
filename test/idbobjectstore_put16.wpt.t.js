@@ -1,19 +1,19 @@
-require('proof')(1, async okay => {
-    await require('./harness')(okay, 'idbobjectstore_put16')
-    await harness(async () => {
-        var db,
-            ostore,
-            t = async_test();
+require("proof")(1, async (okay) => {
+	await require("./harness")(okay, "idbobjectstore_put16");
+	await harness(async () => {
+		var db,
+			ostore,
+			t = async_test();
 
-        var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function  onupgradeneeded(event) {
-            db = event.target.result;
-            ostore = db.createObjectStore("store", {keyPath:"pKey"});
-            db.deleteObjectStore("store");
-            assert_throws_dom("InvalidStateError", function onupgradeneeded(){
-                ostore.put({pKey: "primaryKey_0"});
-            });
-            t.done();
-        }
-    })
-})
+		var open_rq = createdb(t);
+		open_rq.onupgradeneeded = function onupgradeneeded(event) {
+			db = event.target.result;
+			ostore = db.createObjectStore("store", { keyPath: "pKey" });
+			db.deleteObjectStore("store");
+			assert_throws_dom("InvalidStateError", function onupgradeneeded() {
+				ostore.put({ pKey: "primaryKey_0" });
+			});
+			t.done();
+		};
+	});
+});

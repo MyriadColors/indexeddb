@@ -1,39 +1,43 @@
-require('proof')(2, async okay => {
-    await require('./harness')(okay, 'idbcursor_update_index8')
-    await harness(async () => {
-        var db,
-            t = async_test(),
-            records = [ { iKey: "indexKey_0", pKey: "primaryKey_0" },
-                        { iKey: "indexKey_1", pKey: "primaryKey_1" } ];
+require("proof")(2, async (okay) => {
+	await require("./harness")(okay, "idbcursor_update_index8");
+	await harness(async () => {
+		var db,
+			t = async_test(),
+			records = [
+				{ iKey: "indexKey_0", pKey: "primaryKey_0" },
+				{ iKey: "indexKey_1", pKey: "primaryKey_1" },
+			];
 
-        var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function onupgradeneeded(e) {
-            db = e.target.result;
+		var open_rq = createdb(t);
+		open_rq.onupgradeneeded = function onupgradeneeded(e) {
+			db = e.target.result;
 
-            var objStore = db.createObjectStore("store", { keyPath: "pKey" });
-            objStore.createIndex("index", "iKey");
+			var objStore = db.createObjectStore("store", { keyPath: "pKey" });
+			objStore.createIndex("index", "iKey");
 
-            for (let i = 0; i < records.length; i++)
-                {objStore.add(records[i]);}
-        };
+			for (let i = 0; i < records.length; i++) {
+				objStore.add(records[i]);
+			}
+		};
 
-        open_rq.onsuccess = function onsuccess(_e) {
-            var cursor_rq = db.transaction("store", "readwrite")
-                              .objectStore("store")
-                              .index("index")
-                              .openCursor();
+		open_rq.onsuccess = function onsuccess(_e) {
+			var cursor_rq = db
+				.transaction("store", "readwrite")
+				.objectStore("store")
+				.index("index")
+				.openCursor();
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
-                var cursor = e.target.result;
-                assert_true(cursor instanceof IDBCursor, "cursor exists");
+			cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
+				var cursor = e.target.result;
+				assert_true(cursor instanceof IDBCursor, "cursor exists");
 
-                cursor.continue();
-                assert_throws_dom("InvalidStateError", function onsuccess() {
-                    cursor.update({ iKey: "indexKey_0_updated", pKey: "primaryKey_0" });
-                });
+				cursor.continue();
+				assert_throws_dom("InvalidStateError", function onsuccess() {
+					cursor.update({ iKey: "indexKey_0_updated", pKey: "primaryKey_0" });
+				});
 
-                t.done();
-            });
-        }
-    })
-})
+				t.done();
+			});
+		};
+	});
+});

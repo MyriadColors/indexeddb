@@ -1,30 +1,34 @@
-require('proof')(1, async okay => {
-    await require('./harness')(okay, 'idbfactory_open6')
-    await harness(async () => {
-        var open_rq = createdb(async_test(), undefined, 13);
-        var did_upgrade = false;
-        var open_rq2;
+require("proof")(1, async (okay) => {
+	await require("./harness")(okay, "idbfactory_open6");
+	await harness(async () => {
+		var open_rq = createdb(async_test(), undefined, 13);
+		var did_upgrade = false;
+		var open_rq2;
 
-        open_rq.onupgradeneeded = function onupgradeneeded() {};
-        open_rq.onsuccess = function onsuccess(_e) {
-            var db = e.target.result;
-            db.close();
+		open_rq.onupgradeneeded = function onupgradeneeded() {};
+		open_rq.onsuccess = function onsuccess(_e) {
+			var db = e.target.result;
+			db.close();
 
-            open_rq2 = window.indexedDB.open(db.name, 14);
-            open_rq2.onupgradeneeded = function onupgradeneeded() {};
-            open_rq2.onsuccess = this.step_func(open_previous_db);
-            open_rq2.onerror = fail(this, 'Unexpected error')
-        }
+			open_rq2 = window.indexedDB.open(db.name, 14);
+			open_rq2.onupgradeneeded = function onupgradeneeded() {};
+			open_rq2.onsuccess = this.step_func(open_previous_db);
+			open_rq2.onerror = fail(this, "Unexpected error");
+		};
 
-        function open_previous_db(e) {
-            var open_rq3 = window.indexedDB.open(e.target.result.name, 13);
-            open_rq3.onerror = this.step_func(function onerror(e) {
-                assert_equals(e.target.error.name, 'VersionError', 'e.target.error.name')
-                open_rq2.result.close();
-                this.done();
-            });
-            open_rq3.onupgradeneeded = fail(this, 'Unexpected upgradeneeded')
-            open_rq3.onsuccess = fail(this, 'Unexpected success')
-        }
-    })
-})
+		function open_previous_db(e) {
+			var open_rq3 = window.indexedDB.open(e.target.result.name, 13);
+			open_rq3.onerror = this.step_func(function onerror(e) {
+				assert_equals(
+					e.target.error.name,
+					"VersionError",
+					"e.target.error.name",
+				);
+				open_rq2.result.close();
+				this.done();
+			});
+			open_rq3.onupgradeneeded = fail(this, "Unexpected upgradeneeded");
+			open_rq3.onsuccess = fail(this, "Unexpected success");
+		}
+	});
+});

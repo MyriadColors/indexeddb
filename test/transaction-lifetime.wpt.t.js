@@ -1,98 +1,100 @@
-require('proof')(7, async okay => {
-    await require('./harness')(okay, 'transaction-lifetime')
-    await harness(async () => {
+require("proof")(7, async (okay) => {
+	await require("./harness")(okay, "transaction-lifetime");
+	await harness(async () => {
+		var db,
+			db_got_versionchange,
+			db2,
+			events = [],
+			t = async_test(),
+			dbname = location + "-" + t.name;
 
-        var db, db_got_versionchange, db2,
-            events = [],
-            t = async_test(),
-            dbname = location + '-' + t.name;
+		t.step(() => {
+			indexedDB.deleteDatabase(dbname);
 
-        t.step(() => {
-            indexedDB.deleteDatabase(dbname);
+			var openrq = indexedDB.open(dbname, 3);
 
-            var openrq = indexedDB.open(dbname, 3);
+			// 1
+			openrq.onupgradeneeded = t.step_func(function onupgradeneeded(e) {
+				events.push("open." + e.type);
+				e.target.result.createObjectStore("store");
+			});
 
-            // 1
-            openrq.onupgradeneeded = t.step_func(function onupgradeneeded(e) {
-                events.push("open." + e.type);
-                e.target.result.createObjectStore('store');
-            });
+			// 2
+			openrq.onsuccess = t.step_func(function onsuccess(_e) {
+				db = e.target.result;
 
-            // 2
-            openrq.onsuccess = t.step_func(function onsuccess(_e) {
-                db = e.target.result;
+				events.push("open." + e.type);
 
-                events.push("open." + e.type);
+				// 3
+				db.onversionchange = t.step_func(function onversionchange(e) {
+					events.push("db." + e.type);
 
-                // 3
-                db.onversionchange = t.step_func(function onversionchange(e) {
-                    events.push("db." + e.type);
+					assert_equals(e.oldVersion, 3, "old version");
+					assert_equals(e.newVersion, 4, "new version");
+					db.close();
+				});
 
-                    assert_equals(e.oldVersion, 3, "old version");
-                    assert_equals(e.newVersion, 4, "new version");
-                    db.close();
-                });
+				// Errors
+				db.onerror = fail(t, "db.error");
+				db.abort = fail(t, "db.abort");
 
-                // Errors
-                db.onerror = fail(t, "db.error");
-                db.abort = fail(t, "db.abort");
+				step_timeout(t.step_func(OpenSecond), 10);
+			});
 
-                step_timeout(t.step_func(OpenSecond), 10);
-            });
+			// Errors
+			openrq.onerror = fail(t, "open.error");
+			openrq.onblocked = fail(t, "open.blocked");
+		});
 
-            // Errors
-            openrq.onerror = fail(t, "open.error");
-            openrq.onblocked = fail(t, "open.blocked");
+		function OpenSecond(e) {
+			assert_equals(db2);
+			assert_equals(db + "", "[object IDBDatabase]");
+			assert_array_equals(db.objectStoreNames, ["store"]);
 
-        });
+			var openrq2 = indexedDB.open(dbname, 4);
 
-        function OpenSecond (e) {
-            assert_equals(db2);
-            assert_equals(db + "", "[object IDBDatabase]");
-            assert_array_equals(db.objectStoreNames, [ "store" ]);
+			// 4
+			openrq2.onupgradeneeded = t.step_func(function onupgradeneeded(e) {
+				db2 = e.target.result;
 
-            var openrq2 = indexedDB.open(dbname, 4);
+				events.push("open2." + e.type);
 
-            // 4
-            openrq2.onupgradeneeded = t.step_func(function onupgradeneeded(e) {
-                db2 = e.target.result;
+				assert_equals(db2 + "", "[object IDBDatabase]");
 
-                events.push("open2." + e.type);
+				// Errors
+				db2.onversionchange = fail(t, "db2.versionchange");
+				db2.onerror = fail(t, "db2.error");
+				db2.abort = fail(t, "db2.abort");
+			});
 
-                assert_equals(db2 + "", "[object IDBDatabase]");
+			// 5
+			openrq2.onsuccess = t.step_func(function onsuccess(_e) {
+				events.push("open2." + e.type);
 
-                // Errors
-                db2.onversionchange = fail(t, "db2.versionchange");
-                db2.onerror = fail(t, "db2.error");
-                db2.abort = fail(t, "db2.abort");
-            });
+				assert_array_equals(events, [
+					"open.upgradeneeded",
+					"open.success",
+					"db.versionchange",
+					"open2.upgradeneeded",
+					"open2.success",
+				]);
 
-            // 5
-            openrq2.onsuccess = t.step_func(function onsuccess(_e) {
-                events.push("open2." + e.type);
+				step_timeout(function onsuccess() {
+					t.done();
+				}, 10);
+			});
 
-                assert_array_equals(events,
-                    [ "open.upgradeneeded",
-                      "open.success",
-                      "db.versionchange",
-                      "open2.upgradeneeded",
-                      "open2.success",
-                    ]);
+			// Errors
+			openrq2.onerror = fail(t, "open2.error");
+			openrq2.onblocked = fail(t, "open2.blocked");
+		}
 
-                step_timeout(function onsuccess() { t.done(); }, 10);
-            });
-
-            // Errors
-            openrq2.onerror = fail(t, "open2.error");
-            openrq2.onblocked = fail(t, "open2.blocked");
-        }
-
-
-        // Cleanup
-        add_completion_callback((tests) => {
-            if (db2) {db2.close();}
-            indexedDB.deleteDatabase(dbname);
-        })
-
-    })
-})
+		// Cleanup
+		add_completion_callback((tests) => {
+			if (db2) {
+				db2.close();
+			}
+			indexedDB.deleteDatabase(dbname);
+		});
+	});
+});

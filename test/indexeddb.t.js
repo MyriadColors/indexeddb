@@ -1,25 +1,28 @@
-require('proof')(2, async okay => {
-    const { Future } = require('perhaps')
+require("proof")(2, async (okay) => {
+	const { Future } = require("perhaps");
 
-    okay.leak('DOMException')
-    okay.leak('core')
-    okay.leak('__core-js_shared__')
+	okay.leak("DOMException");
+	okay.leak("core");
+	okay.leak("__core-js_shared__");
 
-    const fs = require('node:fs').promises
-    const path = require('node:path')
-    const { coalesce } = require('extant')
+	const fs = require("node:fs").promises;
+	const path = require("node:path");
+	const { coalesce } = require("extant");
 
-    const directory = path.join(__dirname, 'tmp', 'indexeddb')
+	const directory = path.join(__dirname, "tmp", "indexeddb");
 
-    await coalesce(fs.rm, fs.rmdir).call(fs, directory, { force: true, recursive: true })
-    await fs.mkdir(directory, { recursive: true })
+	await coalesce(fs.rm, fs.rmdir).call(fs, directory, {
+		force: true,
+		recursive: true,
+	});
+	await fs.mkdir(directory, { recursive: true });
 
-    const Destructible = require('destructible')
-    const destructible = new Destructible('indexedb')
+	const Destructible = require("destructible");
+	const destructible = new Destructible("indexedb");
 
-    const indexedDB = require('..').create(destructible, directory)
+	const indexedDB = require("..").create(destructible, directory);
 
-    const chairs = `
+	const chairs = `
         Thomas Neal 11/19/1912 11/16/1915 ON
         Pierre S. du Pont 11/16/1915  2/7/1929 DE
         Lammot du Pont II 2/7/1929 5/3/1937 DE
@@ -39,26 +42,37 @@ require('proof')(2, async okay => {
         Dan Akerson 12/31/2010 1/15/2014 CA
         Tim Solso 1/15/2014 1/4/2016 WA
         Mary Barra 1/4/2016 Present MI
-    `.trim().split('\n').map((line, index) => {
-        let [ _, firstName, lastName, start, end, born ] = /(\S+)\s+(.*)\s+(\S+)\s+(\S+)\s+(\S+)/.exec(line)
-        let $ = /(\S)\.\s+(.*)/.exec(lastName)
-        let middleInitial = null
-        if ($ !== null) {
-            middleInitial = $[1]
-            lastName = $[2]
-        }
-        let suffix = null
-        $ = /(.*)\s+(II|Jr)/.exec(lastName)
-        if ($ !== null) {
-            lastName = $[1]
-            suffix = $[2]
-        }
-        return {
-            born, end: end === 'Present' ? null : new Date(end), firstName, lastName, middleInitial, order: index + 1, start: new Date(start), suffix
-        }
-    })
+    `
+		.trim()
+		.split("\n")
+		.map((line, index) => {
+			let [_, firstName, lastName, start, end, born] =
+				/(\S+)\s+(.*)\s+(\S+)\s+(\S+)\s+(\S+)/.exec(line);
+			let $ = /(\S)\.\s+(.*)/.exec(lastName);
+			let middleInitial = null;
+			if ($ !== null) {
+				middleInitial = $[1];
+				lastName = $[2];
+			}
+			let suffix = null;
+			$ = /(.*)\s+(II|Jr)/.exec(lastName);
+			if ($ !== null) {
+				lastName = $[1];
+				suffix = $[2];
+			}
+			return {
+				born,
+				end: end === "Present" ? null : new Date(end),
+				firstName,
+				lastName,
+				middleInitial,
+				order: index + 1,
+				start: new Date(start),
+				suffix,
+			};
+		});
 
-    const locations = `
+	const locations = `
         CA California
         CT Connecticut
         DE Deleware
@@ -72,41 +86,44 @@ require('proof')(2, async okay => {
         TX Texas
         UK United Kingdom
         WA Washington
-    `.trim().split('\n').map(location => {
-        const [ _, abbrev, name ] = /(\S{2})\s+(.*)/.exec(location)
-        return { abbrev, name }
-    })
+    `
+		.trim()
+		.split("\n")
+		.map((location) => {
+			const [_, abbrev, name] = /(\S{2})\s+(.*)/.exec(location);
+			return { abbrev, name };
+		});
 
-    okay(indexedDB, 'required')
+	okay(indexedDB, "required");
 
-    {
-        const request = indexedDB.open('test', 3)
-        const future = new Future
+	{
+		const request = indexedDB.open("test", 3);
+		const future = new Future();
 
-        request.onupgradeneeded = function  onupgradeneeded(event) {
-            okay(request.readyState, 'done', 'on upgrade done')
-            const db = request.result
-            const store = db.createObjectStore('chair', { keyPath: 'order' })
-            // store.createIndex('by_title', 'title', { unique: true })
-            store.put(chairs[0])
-            store.put(chairs[1])
-            store.put(chairs[2])
-        }
+		request.onupgradeneeded = function onupgradeneeded(event) {
+			okay(request.readyState, "done", "on upgrade done");
+			const db = request.result;
+			const store = db.createObjectStore("chair", { keyPath: "order" });
+			// store.createIndex('by_title', 'title', { unique: true })
+			store.put(chairs[0]);
+			store.put(chairs[1]);
+			store.put(chairs[2]);
+		};
 
-        request.onsuccess = function  onsuccess() {
-            console.log('called!!!')
-            const db = request.result
-            console.log('here')
-            console.log('here')
-            const transaction = db.transaction('chair')
-            const store = transaction.objectStore('chair')
-            const keyRequest = store.getKey(1)
-            keyRequest.onsuccess = function  onsuccess() {
-                okay(keyRequest.result, 1, 'key')
-                future.resolve()
-            }
-        }
+		request.onsuccess = function onsuccess() {
+			console.log("called!!!");
+			const db = request.result;
+			console.log("here");
+			console.log("here");
+			const transaction = db.transaction("chair");
+			const store = transaction.objectStore("chair");
+			const keyRequest = store.getKey(1);
+			keyRequest.onsuccess = function onsuccess() {
+				okay(keyRequest.result, 1, "key");
+				future.resolve();
+			};
+		};
 
-        await future.promise
-    }
-})
+		await future.promise;
+	}
+});

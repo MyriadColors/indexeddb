@@ -24,96 +24,116 @@
 // Proof `okay` function to assert out statements in the readme. A Proof unit test
 // generally looks like this.
 
-require('proof')(1, async okay => {
-    // ## Status
-    //
-    // Most Web Platform Tests pass. Working on this `README.md` which will have an
-    // accurate accounting of WPT and more verbiage around the example. I'm going to
-    // defer any description as to how to use the IndexedDB API to the many other
-    // resources on the Internet.
-    //
-    // ## Overview
-    //
-    // IndexedDB is a pure-JavaScript implementation of the IndxedDB API for Node.js.
-    //
-    // IndexedDB exports a single `IndexedDB` object.
+require("proof")(1, async (okay) => {
+	// ## Status
+	//
+	// Most Web Platform Tests pass. Working on this `README.md` which will have an
+	// accurate accounting of WPT and more verbiage around the example. I'm going to
+	// defer any description as to how to use the IndexedDB API to the many other
+	// resources on the Internet.
+	//
+	// ## Overview
+	//
+	// IndexedDB is a pure-JavaScript implementation of the IndxedDB API for Node.js.
+	//
+	// IndexedDB exports a single `IndexedDB` object.
 
-    const IndexedDB = require('..')
+	const IndexedDB = require("..");
 
-    // Additional requires.
+	// Additional requires.
 
-    const Destructible = require('destructible')
+	const Destructible = require("destructible");
 
-    // For the sake of our unit test.
+	// For the sake of our unit test.
 
-    const path = require('node:path')
+	const path = require("node:path");
 
-    // This will not appear in `README.md`.
+	// This will not appear in `README.md`.
 
-    // As noted, this `README.md` is also a unit test. We need a temporary directory
-    // to store our write-ahead log for the unit test. We delete it and recreate it
-    // on every run of the test.
+	// As noted, this `README.md` is also a unit test. We need a temporary directory
+	// to store our write-ahead log for the unit test. We delete it and recreate it
+	// on every run of the test.
 
-    // Node.js file system and file path APIs.
-    const fs = require('node:fs').promises
+	// Node.js file system and file path APIs.
+	const fs = require("node:fs").promises;
 
-    // Our directory will live under our test directory.
-    const directory = path.join(__dirname, 'tmp', 'readme')
+	// Our directory will live under our test directory.
+	const directory = path.join(__dirname, "tmp", "readme");
 
-    // Remove the existing directory recursively with a hack to accommodate Node.js
-    // file system API deprecations.
-    await (fs.rm || fs.rmdir).call(fs, directory, { force: true, recursive: true })
+	// Remove the existing directory recursively with a hack to accommodate Node.js
+	// file system API deprecations.
+	await (fs.rm || fs.rmdir).call(fs, directory, {
+		force: true,
+		recursive: true,
+	});
 
-    // Create the temporary directory.
-    await fs.mkdir(directory, { recursive: true })
+	// Create the temporary directory.
+	await fs.mkdir(directory, { recursive: true });
 
-    // Construction.
+	// Construction.
 
-    const destructible = new Destructible('indexeddb.readme.t')
+	const destructible = new Destructible("indexeddb.readme.t");
 
-    const indexedDB = IndexedDB.create(destructible, path.join(__dirname, 'tmp', 'readme'))
+	const indexedDB = IndexedDB.create(
+		destructible,
+		path.join(__dirname, "tmp", "readme"),
+	);
 
-    // For the sake of the test.
+	// For the sake of the test.
 
-    const request = indexedDB.open('test', 1)
+	const request = indexedDB.open("test", 1);
 
-    request.onupgradeneeded = function  onupgradeneeded(event) {
-        const db = request.result
-        const store = db.createObjectStore('president', { keyPath: [ 'lastName', 'firstName' ] })
-        store.put({ firstName: 'George', lastName: 'Washington' })
-        store.put({ firstName: 'John', lastName: 'Adams' })
-        store.put({ firstName: 'Thomas', lastName: 'Jefferson' })
-    }
+	request.onupgradeneeded = function onupgradeneeded(event) {
+		const db = request.result;
+		const store = db.createObjectStore("president", {
+			keyPath: ["lastName", "firstName"],
+		});
+		store.put({ firstName: "George", lastName: "Washington" });
+		store.put({ firstName: "John", lastName: "Adams" });
+		store.put({ firstName: "Thomas", lastName: "Jefferson" });
+	};
 
-    request.onsuccess = function  onsuccess(event) {
-        const db = request.result
-        const cursor = db.transaction('president')
-                         .objectStore('president')
-                         .openCursor()
-        const gathered = []
-        cursor.onsuccess = function  onsuccess(event) {
-            const cursor = event.target.result
-            if (cursor !== null) {
-                gathered.push(cursor.value)
-                cursor.continue()
-            } else {
-                okay(gathered, [{
-                    firstName: 'John', lastName: 'Adams'
-                }, {
-                    firstName: 'Thomas', lastName: 'Jefferson'
-                }, {
-                    firstName: 'George', lastName: 'Washington'
-                }], 'gathered')
-                db.close()
-                destructible.destroy()
-            }
-        }
-    }
+	request.onsuccess = function onsuccess(event) {
+		const db = request.result;
+		const cursor = db
+			.transaction("president")
+			.objectStore("president")
+			.openCursor();
+		const gathered = [];
+		cursor.onsuccess = function onsuccess(event) {
+			const cursor = event.target.result;
+			if (cursor !== null) {
+				gathered.push(cursor.value);
+				cursor.continue();
+			} else {
+				okay(
+					gathered,
+					[
+						{
+							firstName: "John",
+							lastName: "Adams",
+						},
+						{
+							firstName: "Thomas",
+							lastName: "Jefferson",
+						},
+						{
+							firstName: "George",
+							lastName: "Washington",
+						},
+					],
+					"gathered",
+				);
+				db.close();
+				destructible.destroy();
+			}
+		};
+	};
 
-    // Shutdown.
+	// Shutdown.
 
-    await destructible.promise
-})
+	await destructible.promise;
+});
 
 // You can run this unit test yourself to see the output from the various
 // code sections of the readme.
