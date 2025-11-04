@@ -1,65 +1,65 @@
 {
-    "name": "indexeddb",
-    "version": "0.0.1",
-    "description": "A pure-JavaScript implementation of IndexedDB that is durable and scalable.",
-    "keywords": [
-        "btree",
-        "leveldb",
-        "levelup",
-        "binary",
-        "mvcc",
-        "database",
-        "json",
-        "b-tree",
-        "concurrent",
-        "persistence",
-        "durable"
-    ],
-    "author": "Alan Gutierrez <alan@prettyrobots.com>",
-    "contributors": [],
-    "homepage": "https://github.com/bigeasy/indexeddb",
-    "bugs": "https://github.com/bigeasy/indexeddb/issues",
-    "repository": {
-        "type": "git",
-        "url": "bigeasy/indexeddb"
-    },
-    "dependencies": {
-        "@types/node": "^24.10.0",
-        "avenue": "0.6.17",
-        "biome": "^0.3.3",
-        "cadence": "4.0.0-alpha.5",
-        "comeuppance": "0.0.3",
-        "domexception": "4.0.0",
-        "jsdom": "18.0.1",
-        "lodash": "^4.17.21",
-        "lodash.isplainobject": "4.0.6",
-        "memento": "^0.1.51",
-        "nop": "1.0.0",
-        "perhaps": "0.0.12",
-        "rescue": "7.0.0-alpha.18",
-        "turnstile": "6.0.0-alpha.82",
-        "typescript": "^5.9.3",
-        "verbatim": "0.1.8"
-    },
-    "devDependencies": {
-        "@types/domexception": "^4.0.3",
-        "arguable": "13.0.0-alpha.6",
-        "cheerio": "1.0.0-rc.10",
-        "oxlint-tsgolint": "^0.4.0",
-        "programmatic": "2.0.0-alpha.11",
-        "proof": "^9.0.4",
-        "rimraf": "3.0.2",
-        "webidl2js": "17.0.0"
-    },
-    "main": "indexeddb",
-    "scripts": {
-        "proof": "proof test/*.t.js"
-    },
-    "nyc": {
-        "exclude": [
-            "test/**",
-            "living/**",
-            "utils.js"
-        ]
-    }
+	"name": "indexeddb",
+	"version": "0.0.1",
+	"description": "A pure-JavaScript implementation of IndexedDB that is durable and scalable.",
+	"keywords": [
+		"btree",
+		"leveldb",
+		"levelup",
+		"binary",
+		"mvcc",
+		"database",
+		"json",
+		"b-tree",
+		"concurrent",
+		"persistence",
+		"durable"
+	],
+	"author": "Alan Gutierrez <alan@prettyrobots.com>",
+	"contributors": [],
+	"homepage": "https://github.com/bigeasy/indexeddb",
+	"bugs": "https://github.com/bigeasy/indexeddb/issues",
+	"repository": {
+		"type": "git",
+		"url": "bigeasy/indexeddb"
+	},
+	"dependencies": {
+		"@types/node": "^24.10.0",
+		"avenue": "0.6.17",
+		"biome": "^0.3.3",
+		"cadence": "4.0.0-alpha.5",
+		"comeuppance": "0.0.3",
+		"domexception": "4.0.0",
+		"jsdom": "18.0.1",
+		"lodash": "^4.17.21",
+		"lodash.isplainobject": "4.0.6",
+		"memento": "^0.1.51",
+		"nop": "1.0.0",
+		"perhaps": "0.0.12",
+		"rescue": "7.0.0-alpha.18",
+		"turnstile": "6.0.0-alpha.82",
+		"typescript": "^5.9.3",
+		"verbatim": "0.1.8"
+	},
+	"devDependencies": {
+		"@types/domexception": "^4.0.3",
+		"arguable": "13.0.0-alpha.6",
+		"cheerio": "1.0.0-rc.10",
+		"oxlint-tsgolint": "^0.4.0",
+		"programmatic": "2.0.0-alpha.11",
+		"proof": "^9.0.4",
+		"rimraf": "3.0.2",
+		"webidl2js": "17.0.0"
+	},
+	"main": "indexeddb",
+	"scripts": {
+		"proof": "proof test/*.t.js"
+	},
+	"nyc": {
+		"exclude": [
+			"test/**",
+			"living/**",
+			"utils.js"
+		]
+	}
 }
