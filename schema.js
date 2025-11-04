@@ -1,14 +1,11 @@
-const assert = require('assert')
+const assert = require('node:assert')
 
 const extractor = require('./extractor')
 
 class Schema {
     static root (max) {
         return {
-            store: {},
-            name: {},
-            max: max,
-            extractor: {}
+            extractor: {}, max: max, name: {}, store: {}
         }
     }
 
@@ -20,14 +17,16 @@ class Schema {
     }
 
     rename (from, to) {
-        const id = this._pending.name[to] = this._pending.name[from]
+        const id = this._pending.name[from]
+        this._pending.name[to] = id
         delete this._pending.name[from]
         this._pending.store[id].name = to
     }
 
     renameIndex (storeId, from, to) {
         const store = this._pending.store[storeId]
-        const indexId = store.index[to] = store.index[from]
+        const indexId = store.index[from]
+        store.index[to] = indexId
         delete store.index[from]
         this._pending.store[indexId].name = to
     }
@@ -35,15 +34,10 @@ class Schema {
     createObjectStore (name, keyPath, autoIncrement) {
         const id = ++this._root.max
         this._added.add(id)
-        const store = this._pending.store[id] = {
-            type: 'store',
-            id: id,
-            name: name,
-            qualified: `store.${id}`,
-            keyPath: keyPath,
-            autoIncrement: autoIncrement ? 1 : null,
-            index: {}
+        const store = {
+            autoIncrement: autoIncrement ? 1 : null, id: id, index: {}, keyPath: keyPath, name: name, qualified: `store.${id}`, type: 'store'
         }
+        this._pending.store[id] = store
         this._pending.name[name] = id
         this._pending.extractor[id] = keyPath != null ? extractor.create(keyPath) : null
         return store
@@ -56,14 +50,14 @@ class Schema {
     }
 
     isDeleted (store) {
-        assert(typeof store == 'object')
+        assert(typeof store === 'object')
         if (store.rolledback) {
             return true
         }
         if (! this._pending.store[store.id]) {
             return true
         }
-        if (store.type == 'index') {
+        if (store.type === 'index') {
             return this._deleted.index.has(store.id) ||
                 this._deleted.store.has(store.storeId)
         }
@@ -86,16 +80,10 @@ class Schema {
         const store = this.getObjectStore(storeName)
         const indexId = ++this._root.max
         this._added.add(indexId)
-        const index = this._pending.store[indexId] = {
-            type: 'index',
-            id: indexId,
-            storeId: store.id,
-            name: indexName,
-            qualified: `index.${indexId}`,
-            keyPath: keyPath,
-            multiEntry: multiEntry,
-            unique: unique
+        const index = {
+            id: indexId, keyPath: keyPath, multiEntry: multiEntry, name: indexName, qualified: `index.${indexId}`, storeId: store.id, type: 'index', unique: unique
         }
+        this._pending.store[indexId] = index
         store.index[indexName] = indexId
         this._pending.extractor[indexId] = extractor.create(keyPath)
         return index
@@ -121,7 +109,7 @@ class Schema {
 
     getIndexNames (storeName) {
         const store = this.getObjectStore(storeName)
-        return store ? Object.keys(store.index).sort() : []
+        return store ? Object.keys(store.index).toSorted() : []
     }
 
     getExtractor (id) {
@@ -139,9 +127,7 @@ class Schema {
             delete this._root.store[id]
             delete this._pending.store[id]
         }
-        for (const name in this._pending.name) {
-            this._root.name = JSON.parse(JSON.stringify(this._pending.name))
-        }
+        this._root.name = JSON.parse(JSON.stringify(this._pending.name))
         for (const id in this._pending.store) {
             this._root.store[id] = this._pending.store[id]
         }
@@ -163,9 +149,7 @@ class Schema {
 
     reset () {
         this._pending = {
-            name: JSON.parse(JSON.stringify(this._root.name)),
-            store: JSON.parse(JSON.stringify(this._root.store)),
-            extractor: {}
+            extractor: {}, name: JSON.parse(JSON.stringify(this._root.name)), store: JSON.parse(JSON.stringify(this._root.store))
         }
         this._added = new Set
         this._deleted = { index: new Set, store: new Set }
