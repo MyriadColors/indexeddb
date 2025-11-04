@@ -214,7 +214,7 @@ import { DOMException } from 'domexception';
 
 // Helper to detect if an object is likely a platform object
 function isPlatformObject(input) {
-    if (input == null || typeof input !== 'object') {return false;}
+    if (input === null || typeof input !== 'object') {return false;}
     
     const inputConstructor = input.constructor;
     if (!inputConstructor) {return false;}

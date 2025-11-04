@@ -9,7 +9,7 @@ export function create (path) {
         const parts = path.split('.')
         return (object) => {
             let i = 0
-            while (object != null && parts.length !== i) {
+            while (object !== null && parts.length !== i) {
                 if (!Object.hasOwn(object, parts[i])) {
                     return null
                 }

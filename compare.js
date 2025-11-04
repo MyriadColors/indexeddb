@@ -45,16 +45,18 @@ module.exports = function compare (...args) {
             switch (type.right) {
             case 'string':
             case 'date':
-            case 'number':
+            case 'number': {
                 return 1
+            }
             }
             break
         }
         case 'string': {
             switch (type.right) {
             case 'date':
-            case 'number':
+            case 'number': {
                 return 1
+            }
             }
             break
         }

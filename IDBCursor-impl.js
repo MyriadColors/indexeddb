@@ -76,8 +76,8 @@ class IDBCursorImpl {
         if (! this._gotValue) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
-        key = key == null ? null : convert.key(this._globalObject, key)
-        if (key != null) {
+        key = key === null ? null : convert.key(this._globalObject, key)
+        if (key !== null) {
             switch (this._direction) {
             case 'next':
             case 'nextunique': {
@@ -117,8 +117,8 @@ class IDBCursorImpl {
         if (! this._gotValue) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
-        key = key == null ? null : convert.key(this._globalObject, key)
-        primaryKey = primaryKey == null ? null : convert.key(this._globalObject, primaryKey)
+        key = key === null ? null : convert.key(this._globalObject, key)
+        primaryKey = primaryKey === null ? null : convert.key(this._globalObject, primaryKey)
         switch (this._direction) {
         case 'next': {
                 const test = compare(this._globalObject, key, this._key)
@@ -172,7 +172,7 @@ class IDBCursorImpl {
         } finally {
             this._transaction._state = 'active'
         }
-        if (this._store.keyPath != null) {
+        if (this._store.keyPath !== null) {
             const key = valuify(this._globalObject, (this.source.objectStore || this.source)._schema.getExtractor(this._store.id)(value))
             if (compare(this._globalObject, key, this._value.key) !== 0) {
                 throw DOMException.create(this._globalObject, [ 'TODO: message', 'DataError' ], {})

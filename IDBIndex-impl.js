@@ -63,7 +63,7 @@ class IDBIndexImpl {
         if (this.objectStore._transaction._state !== 'active') {
             throw create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
-        if (query == null) {
+        if (query === null) {
             query = _createImpl(this._globalObject, [ null, null ], {})
         } else if (! (query instanceof this._globalObject.IDBKeyRange)) {
             query = this._globalObject.IDBKeyRange.only(_key(this._globalObject, query))
@@ -90,7 +90,7 @@ class IDBIndexImpl {
         if (this.objectStore._transaction._state !== 'active') {
             throw create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
-        if (query == null) {
+        if (query === null) {
             query = _createImpl(this._globalObject, [ null, null ], {})
         } else if (! (query instanceof this._globalObject.IDBKeyRange)) {
             query = this._globalObject.IDBKeyRange.only(_key(this._globalObject, query))
@@ -117,7 +117,7 @@ class IDBIndexImpl {
         if (this.objectStore._transaction._state !== 'active') {
             throw create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
-        if (query == null) {
+        if (query === null) {
             query = _createImpl(this._globalObject, [ null, null ], {})
         } else if (! (query instanceof this._globalObject.IDBKeyRange)) {
             query = this._globalObject.IDBKeyRange.only(_key(this._globalObject, query))
@@ -136,7 +136,7 @@ class IDBIndexImpl {
         if (this.objectStore._transaction._state !== 'active') {
             throw create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
-        if (query == null) {
+        if (query === null) {
             query = _createImpl(this._globalObject, [ null, null ], {})
         } else if (! (query instanceof this._globalObject.IDBKeyRange)) {
             query = this._globalObject.IDBKeyRange.only(_key(this._globalObject, query))

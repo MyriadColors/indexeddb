@@ -141,7 +141,7 @@ request.onsuccess = function (event) {
     const gathered = []
     cursor.onsuccess = function (event) {
         const cursor = event.target.result
-        if (cursor != null) {
+        if (cursor !== null) {
             gathered.push(cursor.value)
             cursor.continue()
         } else {

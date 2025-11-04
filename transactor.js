@@ -19,17 +19,17 @@ class Transactor {
             const queue = this._queues[name]
             for (;;) {
                 const node = queue.waiting[0]
-                if (node == null) {
+                if (node === null) {
                     continue WAITS
                 }
                 let iterator = node.wait.head
                 const wait = iterator.wait
-                while (iterator != null) {
+                while (iterator !== null) {
                     const queue = this._queues[iterator.name]
                     if (
                         queue.waiting[0] !== iterator ||
                         (
-                            queue.running != null &&
+                            queue.running !== null &&
                             ! (queue.running.readOnly && wait.readOnly)
                         )
                     ) {
@@ -38,10 +38,10 @@ class Transactor {
                     iterator = iterator.next
                 }
                 iterator = node.wait.head
-                while (iterator != null) {
+                while (iterator !== null) {
                     const queue = this._queues[iterator.name]
                     queue.waiting.shift()
-                    if (queue.running == null) {
+                    if (queue.running === null) {
                         queue.running = { count: 1, readOnly: wait.readOnly }
                     } else {
                         queue.running.count++

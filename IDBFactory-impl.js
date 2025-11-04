@@ -243,7 +243,7 @@ class Opener {
                 // **TODO** Really need to do a join.
                 for await (const items of upgrade.cursor('schema')) {
                     for (const item of items) {
-                        if (item.autoIncrement != null) {
+                        if (item.autoIncrement !== null) {
                             const array = await upgrade.cursor(item.qualified).toReversed().limit(1).array()
                             item.autoIncrement = array.length === 0 ? 1 : array.shift().key + 1
                         }
@@ -256,7 +256,7 @@ class Opener {
                         case 'index':
                             // **TODO** What? Why not?
                         }
-                        if (item.keyPath != null) {
+                        if (item.keyPath !== null) {
                             schema._root.extractor[item.id] = extractor.create(item.keyPath)
                         }
                     }
@@ -287,7 +287,7 @@ class Opener {
                 await opener.memento.snapshot(async snapshot => {
                     for await (const items of snapshot.cursor('schema')) {
                         for (const item of items) {
-                            if (item.autoIncrement != null) {
+                            if (item.autoIncrement !== null) {
                                 const array = await snapshot.cursor(item.qualified).toReversed().limit(1).array()
                                 item.autoIncrement = array.length === 0 ? 1 : array.shift().key + 1
                             }
@@ -295,7 +295,7 @@ class Opener {
                             if (item.type === 'store') {
                                 schema._root.name[item.name] = item.id
                             }
-                            if (item.keyPath != null) {
+                            if (item.keyPath !== null) {
                                 schema._root.extractor[item.id] = extractor.create(item.keyPath)
                             }
                         }
@@ -371,7 +371,7 @@ class Connector {
     //
     async _checkVersion ({ request, version }) {
         request.readyState = 'done'
-        if (version == null || this._opener.memento.version === version) {
+        if (version === null || this._opener.memento.version === version) {
             await dispatchEvent(null, request, Event.createImpl(this._factory._globalObject, [ 'success' ], {}))
         } else {
             const db = webidl.implForWrapper(request._result)
@@ -410,12 +410,14 @@ class Connector {
             }
             const event = this._events.shift()
             switch (event.method) {
-            case 'open':
+            case 'open': {
                 await this._handleOpen(event, schema)
                 break
-            case 'delete':
+            }
+            case 'delete': {
                 await this._handleDelete(event, schema)
                 break
+            }
             }
         }
         delete this._factory._connectors[this._name]
@@ -436,7 +438,7 @@ class Connector {
     //
     _needsNewOpener (event) {
         return this._opener.destructible.destroyed ||
-               (event.version != null && this._opener.memento != null && this._opener.memento.version < event.version)
+               (event.version !== null && this._opener.memento !== null && this._opener.memento.version < event.version)
     }
 
     // Open a new opener, closing the previous one if necessary.
@@ -450,7 +452,7 @@ class Connector {
         this._opener = await Opener.open(this.destructible.ephemeral('opener'), this, new Schema(schema), event)
         this._opener.destructible.promise.then(() => this._sleep.resolve())
         // Only check version if opener successfully created with memento.
-        if (this._opener.memento != null) {
+        if (this._opener.memento !== null) {
             await this._checkVersion(event)
         }
     }
@@ -475,7 +477,7 @@ class Connector {
         delete request._result
         request.readyState = 'done'
         await dispatchEvent(null, event.request, IDBVersionChangeEvent.createImpl(this._factory._globalObject, ['success', {
-            oldVersion: this._version, newVersion: null
+            newVersion: null, oldVersion: this._version
         }], {}))
     }
 
@@ -489,7 +491,7 @@ class Connector {
     //
     _removeFromSchema (schema) {
         const id = schema.name[this._name]
-        if (id != null) {
+        if (id !== null) {
             delete schema.store[id]
             delete schema.extractor[id]
             delete schema.name[this._name]

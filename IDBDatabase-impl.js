@@ -32,7 +32,7 @@ class IDBDatabaseImpl extends EventTargetImpl  {
     }
 
     transaction (names, mode, options) {
-        if (this._transaction != null) {
+        if (this._transaction !== null) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
         if (this._closing) {
@@ -64,14 +64,14 @@ class IDBDatabaseImpl extends EventTargetImpl  {
         if (name === undefined) {
             throw new TypeError
         }
-        if (this._transaction == null) {
+        if (this._transaction === null) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
         if (this._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
-        const canAutoIncrement = keyPath == null || extractor.verify(this._globalObject, keyPath)
-        if (this._schema.getObjectStore(name) != null) {
+        const canAutoIncrement = keyPath === null || extractor.verify(this._globalObject, keyPath)
+        if (this._schema.getObjectStore(name) !== null) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'ConstraintError' ], {})
         }
         if (autoIncrement && ! canAutoIncrement) {
@@ -86,14 +86,14 @@ class IDBDatabaseImpl extends EventTargetImpl  {
         if (name === undefined) {
             throw new TypeError
         }
-        if (this._transaction == null) {
+        if (this._transaction === null) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
         if (this._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         const store = this._schema.getObjectStore(name)
-        if (store == null) {
+        if (store === null) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'NotFoundError' ], {})
         }
         this._schema.deleteObjectStore(name)

@@ -26,13 +26,13 @@ async function dispatchEvent (transaction, eventTargetImpl, eventImpl) {
         }
     }
     
-    if (transaction != null) {
+    if (transaction !== null) {
         transaction._state = 'active'
     }
     
     try {
         await callback(callback => eventTargetImpl._dispatch(eventImpl, false, true, true, callback))
-        if (transaction != null && transaction._state === 'active') {
+        if (transaction !== null && transaction._state === 'active') {
             transaction._state = 'inactive'
         }
         if (eventImpl._legacyOutputDidListenersThrowFlag) {

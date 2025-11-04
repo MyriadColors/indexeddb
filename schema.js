@@ -39,7 +39,7 @@ class Schema {
         }
         this._pending.store[id] = store
         this._pending.name[name] = id
-        this._pending.extractor[id] = keyPath != null ? extractor.create(keyPath) : null
+        this._pending.extractor[id] = keyPath !== null ? extractor.create(keyPath) : null
         return store
     }
 
@@ -66,7 +66,7 @@ class Schema {
 
     getObjectStore (name) {
         const storeId = this._pending.name[name]
-        if (storeId == null) {
+        if (storeId === null) {
             return null
         }
         return this._pending.store[storeId]
@@ -97,11 +97,11 @@ class Schema {
 
     getIndex (storeName, indexName) {
         const store = this.getObjectStore(storeName)
-        if (store == null) {
+        if (store === null) {
             return null
         }
         const id = store.index[indexName]
-        if (id == null) {
+        if (id === null) {
             return null
         }
         return this._pending.store[id]
