@@ -1,4 +1,4 @@
-"use strict";
+
 
 const NodeList = require("../generated/NodeList");
 

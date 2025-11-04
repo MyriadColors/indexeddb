@@ -288,7 +288,7 @@ class EventTargetImpl {
                 }
             }
 
-            if (trace != null) {
+            if (trace !== null) {
                 trace.hook.disable()
             }
 
@@ -367,7 +367,7 @@ const _innerInvokeEventListeners = cadence((step, eventImpl, listeners, phase, _
 
         eventImpl._inPassiveListenerFlag = false;
 
-        if (trace != null) {
+        if (trace !== null) {
             step.loop([], () => {
                 return new Promise(resolve => resolve(1))
             }, () => {

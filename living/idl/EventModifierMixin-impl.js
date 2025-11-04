@@ -1,4 +1,4 @@
-"use strict";
+
 
 // This mixin doesn't have an IDL equivalent, but since MouseEvent and KeyboardEvent implement getModifierState() the
 // same way, its implementation is shared here.

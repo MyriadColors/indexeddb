@@ -1,9 +1,9 @@
-"use strict";
+
 
 const idlUtils = require("../generated/utils.js");
 
 exports.implementation = class NodeListImpl {
-  constructor(globalObject, args, privateData) {
+  constructor(_globalObject, _args, privateData) {
     if (privateData.nodes) {
       this._list = [...privateData.nodes];
       this._isLive = false;
