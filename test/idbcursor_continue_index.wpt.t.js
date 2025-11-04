@@ -19,7 +19,7 @@ require('proof')(7, async okay => {
                 {objStore.add(records[i]);}
         };
 
-        open_rq.onsuccess = function onsuccess(e) {
+        open_rq.onsuccess = function onsuccess(_e) {
             const cursor_rq = db.transaction("test")
                               .objectStore("test")
                               .index("index")
