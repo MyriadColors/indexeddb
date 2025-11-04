@@ -1,5 +1,3 @@
-
-
 const idlUtils = require("../generated/utils");
 const ErrorEvent = require("../generated/ErrorEvent");
 const EventHandlerNonNull = require("../generated/EventHandlerNonNull.js");
@@ -8,181 +6,186 @@ const OnErrorEventHandlerNonNull = require("../generated/OnErrorEventHandlerNonN
 const reportException = require("./runtime-script-errors");
 
 exports.appendHandler = (el, eventName) => {
-  // tryImplForWrapper() is currently required due to use in Window.js
-  idlUtils.tryImplForWrapper(el).addEventListener(eventName, event => {
-    // https://html.spec.whatwg.org/#the-event-handler-processing-algorithm
-    const callback = exports.getCurrentEventHandlerValue(el, eventName);
-    if (callback === null) {
-      return;
-    }
+	// tryImplForWrapper() is currently required due to use in Window.js
+	idlUtils.tryImplForWrapper(el).addEventListener(eventName, (event) => {
+		// https://html.spec.whatwg.org/#the-event-handler-processing-algorithm
+		const callback = exports.getCurrentEventHandlerValue(el, eventName);
+		if (callback === null) {
+			return;
+		}
 
-    const specialError = ErrorEvent.isImpl(event) && event.type === "error" &&
-      event.currentTarget.constructor.name === "Window";
+		const specialError =
+			ErrorEvent.isImpl(event) &&
+			event.type === "error" &&
+			event.currentTarget.constructor.name === "Window";
 
-    let returnValue = null;
-    // https://heycam.github.io/webidl/#es-invoking-callback-functions
-    if (typeof callback === "function") {
-      if (specialError) {
-        returnValue = callback.call(
-          event.currentTarget,
-          event.message,
-          event.filename,
-          event.lineno,
-          event.colno,
-          event.error
-        );
-      } else {
-        returnValue = callback.call(event.currentTarget, event);
-      }
-    }
+		let returnValue = null;
+		// https://heycam.github.io/webidl/#es-invoking-callback-functions
+		if (typeof callback === "function") {
+			if (specialError) {
+				returnValue = callback.call(
+					event.currentTarget,
+					event.message,
+					event.filename,
+					event.lineno,
+					event.colno,
+					event.error,
+				);
+			} else {
+				returnValue = callback.call(event.currentTarget, event);
+			}
+		}
 
-    // TODO: we don't implement BeforeUnloadEvent so we can't brand-check here
-    if (event.type === "beforeunload") {
-      if (returnValue !== null) {
-        event._canceledFlag = true;
-        if (event.returnValue === "") {
-          event.returnValue = returnValue;
-        }
-      }
-    } else if (specialError) {
-      if (returnValue === true) {
-        event._canceledFlag = true;
-      }
-    } else if (returnValue === false) {
-      event._canceledFlag = true;
-    }
-  });
+		// TODO: we don't implement BeforeUnloadEvent so we can't brand-check here
+		if (event.type === "beforeunload") {
+			if (returnValue !== null) {
+				event._canceledFlag = true;
+				if (event.returnValue === "") {
+					event.returnValue = returnValue;
+				}
+			}
+		} else if (specialError) {
+			if (returnValue === true) {
+				event._canceledFlag = true;
+			}
+		} else if (returnValue === false) {
+			event._canceledFlag = true;
+		}
+	});
 };
 
 // "Simple" in this case means "no content attributes involved"
 exports.setupForSimpleEventAccessors = (prototype, events) => {
-  prototype._getEventHandlerFor = function  _getEventHandlerFor(event) {
-    return this._eventHandlers ? this._eventHandlers[event] : undefined;
-  };
+	prototype._getEventHandlerFor = function _getEventHandlerFor(event) {
+		return this._eventHandlers ? this._eventHandlers[event] : undefined;
+	};
 
-  prototype._setEventHandlerFor = function  _setEventHandlerFor(event, handler) {
-    if (!this._registeredHandlers) {
-      this._registeredHandlers = new Set();
-      this._eventHandlers = Object.create(null);
-    }
+	prototype._setEventHandlerFor = function _setEventHandlerFor(event, handler) {
+		if (!this._registeredHandlers) {
+			this._registeredHandlers = new Set();
+			this._eventHandlers = Object.create(null);
+		}
 
-    if (!this._registeredHandlers.has(event) && handler !== null) {
-      this._registeredHandlers.add(event);
-      exports.appendHandler(this, event);
-    }
-    this._eventHandlers[event] = handler;
-  };
+		if (!this._registeredHandlers.has(event) && handler !== null) {
+			this._registeredHandlers.add(event);
+			exports.appendHandler(this, event);
+		}
+		this._eventHandlers[event] = handler;
+	};
 
-  for (const event of events) {
-    exports.createEventAccessor(prototype, event);
-  }
+	for (const event of events) {
+		exports.createEventAccessor(prototype, event);
+	}
 };
 
 // https://html.spec.whatwg.org/multipage/webappapis.html#getting-the-current-value-of-the-event-handler
 exports.getCurrentEventHandlerValue = (target, event) => {
-  const value = target._getEventHandlerFor(event);
-  if (!value) {
-    return null;
-  }
+	const value = target._getEventHandlerFor(event);
+	if (!value) {
+		return null;
+	}
 
-  if (value.body !== undefined) {
-    let element, document, fn;
-    if (target.constructor.name === "Window") {
-      element = null;
-      document = idlUtils.implForWrapper(target.document);
-    } else {
-      element = target;
-      document = element.ownerDocument;
-    }
-    const { body } = value;
+	if (value.body !== undefined) {
+		let element, document, fn;
+		if (target.constructor.name === "Window") {
+			element = null;
+			document = idlUtils.implForWrapper(target.document);
+		} else {
+			element = target;
+			document = element.ownerDocument;
+		}
+		const { body } = value;
 
-    const formOwner = element?.form ? element.form : null;
-    const window = target.constructor.name === "Window" && target._document ? target : document.defaultView;
+		const formOwner = element?.form ? element.form : null;
+		const window =
+			target.constructor.name === "Window" && target._document
+				? target
+				: document.defaultView;
 
-    try {
-      // eslint-disable-next-line no-new-func
-      Function(body); // properly error out on syntax errors
-      // Note: this won't execute body; that would require `Function(body)()`.
-    } catch (error) {
-      if (window) {
-        reportException(window, error);
-      }
-      target._setEventHandlerFor(event, null);
-      return null;
-    }
+		try {
+			// eslint-disable-next-line no-new-func
+			Function(body); // properly error out on syntax errors
+			// Note: this won't execute body; that would require `Function(body)()`.
+		} catch (error) {
+			if (window) {
+				reportException(window, error);
+			}
+			target._setEventHandlerFor(event, null);
+			return null;
+		}
 
-    // Note: the with (window) { } is not necessary in Node, but is necessary in a browserified environment.
+		// Note: the with (window) { } is not necessary in Node, but is necessary in a browserified environment.
 
-    const createFunction = document.defaultView.Function;
-    if (event === "error" && element === null) {
-      const sourceURL = document ? `\n//# sourceURL=${document.URL}` : "";
+		const createFunction = document.defaultView.Function;
+		if (event === "error" && element === null) {
+			const sourceURL = document ? `\n//# sourceURL=${document.URL}` : "";
 
-      fn = createFunction(`\
+			fn = createFunction(`\
 with (arguments[0]) { return function onerror(event, source, lineno, colno, error) {
 ${body}
 }; }${sourceURL}`)(window);
 
-      fn = OnErrorEventHandlerNonNull.convert(fn);
-    } else {
-      const calls = [];
-      if (element !== null) {
-        calls.push(idlUtils.wrapperForImpl(document));
-      }
+			fn = OnErrorEventHandlerNonNull.convert(fn);
+		} else {
+			const calls = [];
+			if (element !== null) {
+				calls.push(idlUtils.wrapperForImpl(document));
+			}
 
-      if (formOwner !== null) {
-        calls.push(idlUtils.wrapperForImpl(formOwner));
-      }
+			if (formOwner !== null) {
+				calls.push(idlUtils.wrapperForImpl(formOwner));
+			}
 
-      if (element !== null) {
-        calls.push(idlUtils.wrapperForImpl(element));
-      }
+			if (element !== null) {
+				calls.push(idlUtils.wrapperForImpl(element));
+			}
 
-      let wrapperBody = `\
+			let wrapperBody = `\
 with (arguments[0]) { return function on${event}(event) {
 ${body}
 }; }`;
 
-      // eslint-disable-next-line no-unused-vars
-      for (const _call of calls) {
-        wrapperBody = `\
+			// eslint-disable-next-line no-unused-vars
+			for (const _call of calls) {
+				wrapperBody = `\
 with (arguments[0]) { return function () {
 ${wrapperBody}
 }; }`;
-      }
+			}
 
-      if (document) {
-        wrapperBody += `\n//# sourceURL=${document.URL}`;
-      }
+			if (document) {
+				wrapperBody += `\n//# sourceURL=${document.URL}`;
+			}
 
-      fn = createFunction(wrapperBody)(window);
-      for (const call of calls) {
-        fn = fn(call);
-      }
+			fn = createFunction(wrapperBody)(window);
+			for (const call of calls) {
+				fn = fn(call);
+			}
 
-      if (event === "beforeunload") {
-        fn = OnBeforeUnloadEventHandlerNonNull.convert(fn);
-      } else {
-        fn = EventHandlerNonNull.convert(fn);
-      }
-    }
+			if (event === "beforeunload") {
+				fn = OnBeforeUnloadEventHandlerNonNull.convert(fn);
+			} else {
+				fn = EventHandlerNonNull.convert(fn);
+			}
+		}
 
-    target._setEventHandlerFor(event, fn);
-  }
+		target._setEventHandlerFor(event, fn);
+	}
 
-  return target._getEventHandlerFor(event);
+	return target._getEventHandlerFor(event);
 };
 
 // https://html.spec.whatwg.org/multipage/webappapis.html#event-handler-idl-attributes
 // TODO: Consider replacing this with `[ReflectEvent]`
 exports.createEventAccessor = (obj, event) => {
-  Object.defineProperty(obj, "on" + event, {
-    configurable: true,
-    enumerable: true,
-    get() {
-      return exports.getCurrentEventHandlerValue(this, event);
-    },
-    set(val) {
-      this._setEventHandlerFor(event, val);
-    }
-  });
+	Object.defineProperty(obj, "on" + event, {
+		configurable: true,
+		enumerable: true,
+		get() {
+			return exports.getCurrentEventHandlerValue(this, event);
+		},
+		set(val) {
+			this._setEventHandlerFor(event, val);
+		},
+	});
 };
