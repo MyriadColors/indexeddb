@@ -1,8 +1,6 @@
-'use strict';
-
 // Returns an IndexedDB database name that is unique to the test case.
 function databaseName(testCase) {
-  return 'db' + self.location.pathname + '-' + testCase.name;
+  return `db${self.location.pathname}-${testCase.name}`;
 }
 
 // EventWatcher covering all the events defined on IndexedDB requests.
@@ -67,12 +65,12 @@ function migrateDatabase(testCase, newVersion, migrationCallback) {
 // Returns a promise. If the versionchange transaction goes through, the promise
 // resolves to an IndexedDB database that should be closed by the caller. If the
 // versionchange transaction is aborted, the promise resolves to an error.
-function migrateNamedDatabase(
+async function migrateNamedDatabase(
     testCase, databaseName, newVersion, migrationCallback) {
   // We cannot use eventWatcher.wait_for('upgradeneeded') here, because
   // the versionchange transaction auto-commits before the Promise's then
   // callback gets called.
-  return new Promise((resolve, reject) => {
+  const databaseOrError = await new Promise((resolve, reject) => {
     const request = indexedDB.open(databaseName, newVersion);
     request.onupgradeneeded = testCase.step_func(event => {
       const database = event.target.result;
@@ -87,19 +85,19 @@ function migrateNamedDatabase(
       transaction.abort = () => {
         transaction._willBeAborted();
         transactionAbort();
-      }
+      };
       transaction._willBeAborted = () => {
-        requestEventPromise = new Promise((resolve, reject) => {
-          request.onerror = event => {
-            event.preventDefault();
-            resolve(event.target.error);
+        requestEventPromise = new Promise((resolve_1, reject_1) => {
+          request.onerror = event_1 => {
+            event_1.preventDefault();
+            resolve_1(event_1.target.error);
           };
-          request.onsuccess = () => reject(new Error(
-              'indexedDB.open should not succeed for an aborted ' +
-              'versionchange transaction'));
+          request.onsuccess = () => reject_1(new Error(
+            'indexedDB.open should not succeed for an aborted ' +
+            'versionchange transaction'));
         });
         shouldBeAborted = true;
-      }
+      };
 
       // If migration callback returns a promise, we'll wait for it to resolve.
       // This simplifies some tests.
@@ -114,19 +112,17 @@ function migrateNamedDatabase(
       // we want the event that it resolves to.
       resolve(Promise.resolve(callbackResult).then(() => requestEventPromise));
     });
-    request.onerror = event => reject(event.target.error);
+    request.onerror = event_2 => reject(event_2.target.error);
     request.onsuccess = () => {
-      const database = request.result;
-      testCase.add_cleanup(() => { database.close(); });
+      const database_1 = request.result;
+      testCase.add_cleanup(() => { database_1.close(); });
       reject(new Error(
-          'indexedDB.open should not succeed without creating a ' +
-          'versionchange transaction'));
+        'indexedDB.open should not succeed without creating a ' +
+        'versionchange transaction'));
     };
-  }).then(databaseOrError => {
-    if (databaseOrError instanceof IDBDatabase)
-      testCase.add_cleanup(() => { databaseOrError.close(); });
-    return databaseOrError;
   });
+  if (databaseOrError instanceof IDBDatabase) { testCase.add_cleanup(() => { databaseOrError.close(); }); }
+  return databaseOrError;
 }
 
 // Creates an IndexedDB database whose name is unique for the test case.
@@ -184,20 +180,20 @@ function openNamedDatabase(testCase, databaseName, version) {
 // The data in the 'books' object store records in the first example of the
 // IndexedDB specification.
 const BOOKS_RECORD_DATA = [
-  { title: 'Quarry Memories', author: 'Fred', isbn: 123456 },
-  { title: 'Water Buffaloes', author: 'Fred', isbn: 234567 },
-  { title: 'Bedrock Nights', author: 'Barney', isbn: 345678 },
+  { author: 'Fred', isbn: 123456, title: 'Quarry Memories' },
+  { author: 'Fred', isbn: 234567, title: 'Water Buffaloes' },
+  { author: 'Barney', isbn: 345678, title: 'Bedrock Nights' },
 ];
 
 // Creates a 'books' object store whose contents closely resembles the first
 // example in the IndexedDB specification.
 const createBooksStore = (testCase, database) => {
   const store = database.createObjectStore('books',
-      { keyPath: 'isbn', autoIncrement: true });
+      { autoIncrement: true, keyPath: 'isbn' });
   store.createIndex('by_author', 'author');
   store.createIndex('by_title', 'title', { unique: true });
   for (const record of BOOKS_RECORD_DATA)
-      store.put(record);
+      {store.put(record);}
   return store;
 }
 
@@ -209,7 +205,7 @@ const createBooksStoreWithoutAutoIncrement = (testCase, database) => {
   store.createIndex('by_author', 'author');
   store.createIndex('by_title', 'title', { unique: true });
   for (const record of BOOKS_RECORD_DATA)
-      store.put(record);
+      {store.put(record);}
   return store;
 }
 
@@ -247,7 +243,7 @@ function checkStoreIndexes (testCase, store, errorMessage) {
 // is using it incorrectly.
 function checkStoreGenerator(testCase, store, expectedKey, errorMessage) {
   const request = store.put(
-      { title: 'Bedrock Nights ' + expectedKey, author: 'Barney' });
+      { author: 'Barney', title: `Bedrock Nights ${expectedKey}` });
   return promiseForRequest(testCase, request).then(result => {
     assert_equals(result, expectedKey, errorMessage);
   });
@@ -260,7 +256,7 @@ function checkStoreGenerator(testCase, store, expectedKey, errorMessage) {
 // IndexedDB implementation being tested is incorrect, or that the testing code
 // is using it incorrectly.
 function checkStoreContents(testCase, store, errorMessage) {
-  const request = store.get(123456);
+  const request = store.get(123_456);
   return promiseForRequest(testCase, request).then(result => {
     assert_equals(result.isbn, BOOKS_RECORD_DATA[0].isbn, errorMessage);
     assert_equals(result.author, BOOKS_RECORD_DATA[0].author, errorMessage);
@@ -310,7 +306,7 @@ function largeValue(size, seed) {
     state ^= state << 13;
     state ^= state >> 17;
     state ^= state << 5;
-    buffer[i] = state & 0xff;
+    buffer[i] = state & 0xFF;
   }
 
   return buffer;
@@ -337,7 +333,7 @@ function keepAlive(testCase, transaction, storeName) {
 
   function spin() {
     if (!keepSpinning)
-      return;
+      {return;}
     transaction.objectStore(storeName).get(0).onsuccess = spin;
   }
   spin();
