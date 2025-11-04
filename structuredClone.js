@@ -209,12 +209,37 @@
 // Modified to use `defineProperty` to satisfy requirement that property
 // assignments do not use setters.
 
-'use strict';
+import { isPlainObject } from 'lodash-es';
+import { DOMException } from 'domexception';
 
-var util = require('util');
-var isPlainObject = require('lodash.isplainobject');
-
-const DOMException = require('domexception/lib/DOMException')
+// Helper to detect if an object is likely a platform object
+function isPlatformObject(input) {
+    if (input == null || typeof input !== 'object') {return false;}
+    
+    const inputConstructor = input.constructor;
+    if (!inputConstructor) {return false;}
+    
+    // Plain objects and arrays are not platform objects
+    if (inputConstructor === Object || inputConstructor === Array) {return false;}
+    
+    // Known platform object constructors
+    const platformConstructors = [
+        'HTMLCollection', 'NodeList', 'DOMTokenList', 'StyleSheetList',
+        'MediaList', 'TouchList', 'GeolocationCoordinates', 'FileList'
+    ];
+    
+    if (platformConstructors.includes(inputConstructor.name)) {
+        return true;
+    }
+    
+    // Detect collection-like platform objects by pattern
+    if ('item' in input && typeof input.length === 'number' && 
+        !Array.isArray(input) && typeof input.item === 'function') {
+        return true;
+    }
+    
+    return false;
+}
 
 // https://html.spec.whatwg.org/multipage/infrastructure.html#structuredclone
 function structuredClone(globalObject, input, memory) {
@@ -232,7 +257,7 @@ function structuredClone(globalObject, input, memory) {
     }
 
     if (type === 'symbol') {
-        throw DOMException.create(globalObject, [ 'TODO: message', 'DataCloneError' ], {})
+        throw DOMException.create(globalObject, [ 'Symbols cannot be cloned.', 'DataCloneError' ], {})
     }
 
     var deepClone = 'none';
@@ -244,7 +269,7 @@ function structuredClone(globalObject, input, memory) {
     } else if (input instanceof RegExp) {
         output = new RegExp(input.source, input.flags);
     } else if (input instanceof ArrayBuffer) {
-        output = input.slice();
+        output = [...input];
     } else if (typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView && ArrayBuffer.isView(input)) {
         const outputBuffer = structuredClone(globalObject, input.buffer, memory);
         if (input instanceof DataView) {
@@ -260,6 +285,32 @@ function structuredClone(globalObject, input, memory) {
         deepClone = 'set';
     } else if (typeof Blob !== 'undefined' && input instanceof Blob) {
         output = input.slice(0, input.size, input.type);
+    } else if (typeof FileList !== 'undefined' && input instanceof FileList) {
+        // Clone FileList by creating array-like structure with cloned File objects
+        const files = [...input].map(file => structuredClone(globalObject, file, memory));
+        output = Object.assign(Object.create(FileList.prototype), { length: files.length });
+        files.forEach((file, index) => {
+            Object.defineProperty(output, index, { 
+                configurable: true, enumerable: true, value: file, writable: true 
+            });
+        });
+        Object.defineProperty(output, 'length', { 
+            configurable: false, enumerable: false, value: files.length, writable: false 
+        });
+        deepClone = 'none'; // Already cloned files above
+    } else if (typeof ImageData !== 'undefined' && input instanceof ImageData) {
+        // Clone ImageData by cloning the underlying data array
+        const clonedData = structuredClone(globalObject, input.data, memory);
+        output = new ImageData(clonedData, input.width, input.height, { 
+            colorSpace: input.colorSpace 
+        });
+        deepClone = 'none';
+    } else if (typeof ImageBitmap !== 'undefined' && input instanceof ImageBitmap) {
+        // ImageBitmap is a transferable object and cannot be cloned
+        throw DOMException.create(globalObject, [
+            'ImageBitmap cannot be cloned. Use the transferable objects API instead.',
+            'DataCloneError'
+        ], {})
     } else if (Array.isArray(input)) {
         output = new Array(input.length);
         deepClone = 'own';
@@ -267,18 +318,29 @@ function structuredClone(globalObject, input, memory) {
     // See:
     // https://github.com/dfahlander/typeson-registry/blob/master/presets/structured-cloning-throwing.js
     } else if (input && typeof input === 'object' && typeof input.nodeType === 'number' && typeof input.insertBefore === 'function') {
-        throw DOMException.create(globalObject, [ 'TODO: message', 'DataCloneError' ], {})
+        throw DOMException.create(globalObject, [ 'DOM nodes cannot be cloned.', 'DataCloneError' ], {})
     } else if (typeof input === 'function') {
-        throw DOMException.create(globalObject, [ 'TODO: message', 'DataCloneError' ], {})
+        throw DOMException.create(globalObject, [ 'Functions cannot be cloned.', 'DataCloneError' ], {})
     } else if (!isPlainObject(input)) {
-        // This is way too restrictive. Should be able to clone any object that isn't
-        // a platform object with an internal slot other than [[Prototype]] or [[Extensible]].
-        // But need to reject all platform objects, except those whitelisted for cloning
-        // (ie, those with a [[Clone]] internal method), and this errs on the side of caution
-        // for now.
-
-        // Supposed to also handle FileList, ImageData, ImageBitmap, but fuck it
-        throw DOMException.create(globalObject, [ 'The object cannot be cloned. Only plain objects and supported types can be cloned.', 'DataCloneError' ], {})
+        // First check if it's a known platform object (excluding FileList which is handled above)
+        if (isPlatformObject(input)) {
+            throw DOMException.create(globalObject, [
+                `The platform object "${input.constructor?.name || 'unknown'}" cannot be cloned unless it has a [[Clone]] internal method.`,
+                'DataCloneError'
+            ], {})
+        }
+        
+        // Allow user-created objects (class instances, etc.) to be cloned
+        // Attempt to clone by creating new instance with same prototype
+        try {
+            output = Object.create(Object.getPrototypeOf(input));
+            deepClone = 'own'; // Will clone own properties in the deep clone section
+        } catch (error) {
+            throw DOMException.create(globalObject, [
+                `The object of type "${input.constructor?.name || 'unknown'}" cannot be cloned. Failed to create clone: ${error.message}`,
+                'DataCloneError'
+            ], {})
+        }
     } else {
         output = {};
         deepClone = 'own';
@@ -300,7 +362,7 @@ function structuredClone(globalObject, input, memory) {
                 const sourceValue = input[name];
                 const clonedValue = structuredClone(globalObject, sourceValue, memory);
                 Object.defineProperty(output, name, {
-                    value: clonedValue, configurable: true, writable: true, enumerable: true
+                    configurable: true, enumerable: true, value: clonedValue, writable: true
                 });
             }
         }
