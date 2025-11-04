@@ -1,32 +1,32 @@
 require('proof')(3, async okay => {
     await require('./harness')(okay, 'keygenerator')
-    await harness(async function () {
-        function keygenerator(objects, expected_keys, desc, func) {
-            var db,
-              t = async_test(document.title + " - " + desc);
+    await harness(async () => {
+        function keygenerator(objects, expected_keys, desc) {
+            let db,
+              t = async_test(`${document.title} - ${desc}`);
 
-            var open_rq = createdb(t);
-            open_rq.onupgradeneeded = function(e) {
+            const open_rq = createdb(t);
+            open_rq.onupgradeneeded = function onupgradeneeded(e) {
                 db = e.target.result;
-                var objStore = db.createObjectStore("store", { keyPath: "id", autoIncrement: true });
+                const objStore = db.createObjectStore("store", { autoIncrement: true, keyPath: "id" });
 
-                for (var i = 0; i < objects.length; i++)
+                for (let i = 0; i < objects.length; i++)
                 {
                     if (objects[i] === null)
-                        objStore.add({});
+                        {objStore.add({});}
                     else
-                        objStore.add({ id: objects[i] });
+                        {objStore.add({ id: objects[i] });}
                 }
             };
 
-            open_rq.onsuccess = function(e) {
-                var actual_keys = [],
+            open_rq.onsuccess = function onsuccess(_e) {
+                const actual_keys = [],
                   rq = db.transaction("store")
                          .objectStore("store")
                          .openCursor();
 
-                rq.onsuccess = t.step_func(function(e) {
-                    var cursor = e.target.result;
+                rq.onsuccess = t.step_func(function onsuccess(e) {
+                    const cursor = e.target.result;
 
                     if (cursor) {
                         actual_keys.push(cursor.key.valueOf());

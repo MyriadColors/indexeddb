@@ -1,7 +1,7 @@
 require('proof')(35, async okay => {
     await require('./harness')(okay, 'key_invalid')
-    await harness(async function () {
-        var db        = createdb_for_multiple_tests(),
+    await harness(async () => {
+        let db = createdb_for_multiple_tests(),
             // cache for ObjectStores
             objStore  = null,
             objStore2 = null;
@@ -10,37 +10,36 @@ require('proof')(35, async okay => {
             try {
                 self.postMessage(o, '*');
                 return true;
-            } catch (ex) {
+            } catch {
                 return false;
             }
         }
 
         function invalid_key(desc, key) {
-            var t = async_test(document.title + " - " + desc);
+            const t = async_test(`${document.title} - ${desc}`);
 
             // set the current test, and run it
-            db.setTest(t).onupgradeneeded = function(e) {
+            db.setTest(t).onupgradeneeded = function onupgradeneeded(e) {
                 objStore = objStore || e.target.result.createObjectStore("store");
-                assert_throws_dom('DataError', function() {
+                assert_throws_dom('DataError', function onupgradeneeded() {
                     objStore.add("value", key);
                 });
 
                 if (is_cloneable(key)) {
                     objStore2 = objStore2 || e.target.result.createObjectStore("store2", { keyPath: ["x", "keypath"] });
-                    assert_throws_dom('DataError', function() {
-                        objStore2.add({ x: "value", keypath: key });
+                    assert_throws_dom('DataError', function onupgradeneeded() {
+                        objStore2.add({ keypath: key, x: "value" });
                     });
                 }
                 this.done();
             };
         }
 
-        var fake_array = {
-            length      : 0,
-            constructor : Array
+        const fake_array = {
+            constructor : Array, length      : 0
         };
 
-        var ArrayClone = function(){};
+        class ArrayClone {}
         ArrayClone.prototype = Array;
         var ArrayClone_instance = new ArrayClone();
 
@@ -51,11 +50,11 @@ require('proof')(35, async okay => {
         // null/NaN/undefined
         invalid_key( 'null'      , null );
         invalid_key( 'NaN'       , NaN );
-        invalid_key( 'undefined' , undefined );
+        invalid_key( 'undefined' );
         invalid_key( 'undefined2');
 
         // functions
-        invalid_key( 'function() {}', function(){} );
+        invalid_key( 'function() {}', ()=> {} );
 
         // objects
         invalid_key( '{}'                           , {} );
@@ -66,18 +65,18 @@ require('proof')(35, async okay => {
         invalid_key( 'Array clone’s instance'       , ArrayClone_instance );
         invalid_key( 'Array (object)'               , Array );
         invalid_key( 'String (object)'              , String );
-        invalid_key( 'new String()'                 , new String() );
-        invalid_key( 'new Number()'                 , new Number() );
-        invalid_key( 'new Boolean()'                , new Boolean() );
+        invalid_key( 'new String()'                 , String() );
+        invalid_key( 'new Number()'                 , Number() );
+        invalid_key( 'new Boolean()'                , Boolean() );
 
         // arrays
         invalid_key( '[{}]'                     , [{}] );
         invalid_key( '[[], [], [], [[ Date ]]]' , [ [], [], [], [[ Date ]] ] );
         invalid_key( '[undefined]'              , [undefined] );
-        invalid_key( '[,1]'                     , [,1] );
+        invalid_key( '[,1]'                     , [undefined,1] );
 
         invalid_key( 'document.getElements'
-                    +'ByTagName("script")'      , document.getElementsByTagName("script") );
+                    +'ByTagName("script")'      , document.querySelectorAll("script") );
 
         //  dates
         invalid_key( 'new Date(NaN)'      , new Date(NaN) );
@@ -100,7 +99,7 @@ require('proof')(35, async okay => {
         invalid_key('[[1], [3], [7], [[ sparse array ]]]', [ [1], [3], [7], [[ sparse2 ]] ]);
 
         // sparse3
-        invalid_key( '[1,2,3,,]', [1,2,3,,] );
+        invalid_key( '[1,2,3,,]', [1,2,3, undefined,] );
 
         var recursive = [];
         recursive.push(recursive);

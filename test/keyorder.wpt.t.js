@@ -1,31 +1,31 @@
 require('proof')(36, async okay => {
     await require('./harness')(okay, 'keyorder')
-    await harness(async function () {
-        var global_db = createdb_for_multiple_tests();
+    await harness(async () => {
+        const global_db = createdb_for_multiple_tests();
 
         function keysort(desc, unsorted, expected) {
-            var db,
-                t = async_test("Database readback sort - " + desc),
-                store_name = 'store-' + Date.now() + Math.random();
+            let db,
+                t = async_test(`Database readback sort - ${desc}`),
+                store_name = `store-${Date.now()}${Math.random()}`;
 
             // The database test
-            var open_rq = global_db.setTest(t);
-            open_rq.onupgradeneeded = function(e) {
+            const open_rq = global_db.setTest(t);
+            open_rq.onupgradeneeded = function onupgradeneeded(e) {
                 db = e.target.result;
-                var objStore = db.createObjectStore(store_name);
+                const objStore = db.createObjectStore(store_name);
 
-                for (var i = 0; i < unsorted.length; i++)
-                    objStore.add("value", unsorted[i]);
+                for (let i = 0; i < unsorted.length; i++)
+                    {objStore.add("value", unsorted[i]);}
             };
 
-            open_rq.onsuccess = function(e) {
-                var actual_keys = [],
+            open_rq.onsuccess = function onsuccess(_e) {
+                const actual_keys = [],
                   rq = db.transaction(store_name)
                          .objectStore(store_name)
                          .openCursor();
 
-                rq.onsuccess = t.step_func(function(e) {
-                    var cursor = e.target.result;
+                rq.onsuccess = t.step_func(function onsuccess(e) {
+                    const cursor = e.target.result;
 
                     if (cursor) {
                         actual_keys.push(cursor.key);
@@ -41,11 +41,11 @@ require('proof')(36, async okay => {
             };
 
             // The IDBKey.cmp test
-            test(function () {
-                var sorted = unsorted.slice(0).sort(function(a, b) { return indexedDB.cmp(a, b)});
+            test(() => {
+                var sorted = [...unsorted].toSorted(function sorted(a, b) { return indexedDB.cmp(a, b)});
                 assert_key_equals(sorted, expected, "sorted array");
 
-            }, "IDBKey.cmp sorted - " + desc);
+            }, `IDBKey.cmp sorted - ${desc}`);
         }
 
         var now = new Date(),
@@ -61,12 +61,12 @@ require('proof')(36, async okay => {
             [ 0, 100, Infinity, "", "yo" ]);
 
         keysort('float < Date',
-            [ now, 0, 9999999999999, -0.22 ],
-            [ -0.22, 0, 9999999999999, now ]);
+            [ now, 0, 9_999_999_999_999, -0.22 ],
+            [ -0.22, 0, 9_999_999_999_999, now ]);
 
         keysort('float < Date < String < Array',
-            [ [], "", now, [0], "-1", 0, 9999999999999, ],
-            [ 0, 9999999999999, now, "", "-1", [], [0] ]);
+            [ [], "", now, [0], "-1", 0, 9_999_999_999_999, ],
+            [ 0, 9_999_999_999_999, now, "", "-1", [], [0] ]);
 
 
         keysort('Date(1 sec ago) < Date(now) < Date(1 minute in future)',
@@ -74,8 +74,8 @@ require('proof')(36, async okay => {
             [ one_sec_ago, now, one_min_future ]);
 
         keysort('-1.1 < 1 < 1.01337 < 1.013373 < 2',
-            [ 1.013373, 2, 1.01337, -1.1, 1 ],
-            [ -1.1, 1, 1.01337, 1.013373, 2 ]);
+            [ 1.013_373, 2, 1.013_37, -1.1, 1 ],
+            [ -1.1, 1, 1.013_37, 1.013_373, 2 ]);
 
         keysort('-Infinity < -0.01 < 0 < Infinity',
             [ 0, -0.01, -Infinity, Infinity ],
@@ -90,7 +90,7 @@ require('proof')(36, async okay => {
             [ [], [0], [0, 0], [0, [0]], [[0]] ]);
 
         var big_array = [], bigger_array = [];
-        for (var i=0; i < 10000; i++) {
+        for (let i = 0; i < 10_000; i++) {
             big_array.push(i);
             bigger_array.push(i);
         }

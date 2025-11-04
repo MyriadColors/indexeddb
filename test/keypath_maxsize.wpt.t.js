@@ -1,31 +1,31 @@
 require('proof')(3, async okay => {
     await require('./harness')(okay, 'keypath_maxsize')
-    await harness(async function () {
+    await harness(async () => {
         function keypath(keypath, objects, expected_keys, desc) {
-            var db,
-                t = async_test(document.title + " - " + (desc ? desc : keypath)),
+            let db,
+                t = async_test(`${document.title} - ${desc ? desc : keypath}`),
                 open_rq = createdb(t);
 
-            open_rq.onupgradeneeded = function(e) {
+            open_rq.onupgradeneeded = function onupgradeneeded(e) {
                 db = e.target.result;
-                var objStore = db.createObjectStore("store", { keyPath: keypath });
+                const objStore = db.createObjectStore("store", { keyPath: keypath });
 
-                for (var i = 0; i < objects.length; i++)
-                    objStore.add(objects[i]);
+                for (let i = 0; i < objects.length; i++)
+                    {objStore.add(objects[i]);}
             };
 
-            open_rq.onerror = function(e) {
+            open_rq.onerror = function onerror(e) {
                 assert_unreached(e.target.error.name);
             };
 
-            open_rq.onsuccess = function(e) {
-                var actual_keys = [],
+            open_rq.onsuccess = function onsuccess(_e) {
+                const actual_keys = [],
                     rq = db.transaction("store")
                            .objectStore("store")
                            .openCursor();
 
-                rq.onsuccess = t.step_func(function(e) {
-                    var cursor = e.target.result;
+                rq.onsuccess = t.step_func(function onsuccess(e) {
+                    const cursor = e.target.result;
 
                     if (cursor) {
                         actual_keys.push(cursor.key.valueOf());

@@ -13,9 +13,9 @@ require('proof')(63, async okay => {
             throws.length = 1;
             const err = new Error('throwing from getter');
             err.name = name;
-            Object.defineProperty(throws, '0', {get: () => {
+            Object.defineProperty(throws, '0', {enumerable: true, get: () => {
                 throw err;
-            }, enumerable: true});
+            }});
             return [throws, err];
         }
 

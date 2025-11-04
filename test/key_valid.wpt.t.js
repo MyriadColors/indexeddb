@@ -1,30 +1,30 @@
 require('proof')(90, async okay => {
     await require('./harness')(okay, 'key_valid')
-    await harness(async function () {
+    await harness(async () => {
         function valid_key(desc, key) {
-            var db;
-            var t = async_test(document.title + " - " + desc);
-            var open_rq = createdb(t);
+            let db;
+            const t = async_test(`${document.title} - ${desc}`);
+            const open_rq = createdb(t);
 
-            open_rq.onupgradeneeded = function(e) {
+            open_rq.onupgradeneeded = function onupgradeneeded(e) {
                 db = e.target.result;
 
                 const store = db.createObjectStore("store");
                 assert_true(store.add('value', key) instanceof IDBRequest);
 
                 const store2 = db.createObjectStore("store2", { keyPath: ["x", "keypath"] });
-                assert_true(store2.add({ x: 'v', keypath: key }) instanceof IDBRequest);
+                assert_true(store2.add({ keypath: key, x: 'v' }) instanceof IDBRequest);
             };
-            open_rq.onsuccess = function(e) {
+            open_rq.onsuccess = function onsuccess(_e) {
                 var rq = db.transaction("store")
                            .objectStore("store")
                            .get(key)
-                rq.onsuccess = t.step_func(function(e) {
+                rq.onsuccess = t.step_func(function onsuccess(e) {
                     assert_equals(e.target.result, 'value')
                     var rq = db.transaction("store2")
                                .objectStore("store2")
                                .get(['v', key])
-                    rq.onsuccess = t.step_func(function(e) {
+                    rq.onsuccess = t.step_func(function onsuccess(e) {
                         assert_equals(e.target.result.x, 'v');
                         assert_key_equals(e.target.result.keypath, key);
                         t.done()
@@ -39,7 +39,7 @@ require('proof')(90, async okay => {
 
         // Array
         valid_key( '[]'            , [] );
-        valid_key( 'new Array()'   , new Array() );
+        valid_key( 'new Array()'   , [] );
 
         valid_key( '["undefined"]' , ['undefined'] );
 
@@ -53,11 +53,11 @@ require('proof')(90, async okay => {
 
         // String
         valid_key( '"foo"'         , "foo" );
-        valid_key( '"\\n"'         , "\n" );
+        valid_key( String.raw`"\n"`         , "\n" );
         valid_key( '""'            , "" );
-        valid_key( '"\\""'         , "\"" );
-        valid_key( '"\\u1234"'     , "\u1234" );
-        valid_key( '"\\u0000"'     , "\u0000" );
+        valid_key( String.raw`"\""`         , "\"" );
+        valid_key( String.raw`"\u1234"`     , "\u1234" );
+        valid_key( String.raw`"\u0000"`     , "\u0000" );
         valid_key( '"NaN"'         , "NaN" );
 
     })
