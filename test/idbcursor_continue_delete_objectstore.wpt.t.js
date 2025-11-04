@@ -1,6 +1,6 @@
 require('proof')(8, async okay => {
     await require('./harness')(okay, 'idbcursor_continue_delete_objectstore')
-    await harness(async function () {
+    await harness(async () => {
         /* The goal here is to test that any prefetching of cursor values performs
          * correct invalidation of prefetched data.  This test is motivated by the
          * particularities of the Firefox implementation of preloading, and is
@@ -27,56 +27,58 @@ require('proof')(8, async okay => {
          *   because 2 was deleted.
          */
         var db,
-          count = 0,
-          t = async_test(),
-          records = [ { pKey: "primaryKey_0" },
-                      { pKey: "primaryKey_1" },
-                      { pKey: "primaryKey_2" } ];
+            count = 0,
+            t = async_test(),
+            records = [{ pKey: "primaryKey_0" },
+            { pKey: "primaryKey_1" },
+            { pKey: "primaryKey_2" }];
 
         // This is a key that is not present in the database, but that is known to
         // be relevant to a forward iteration of the above keys by comparing to be
         // greater than all of them.
-        var plausibleFutureKey = "primaryKey_9";
+        const plausibleFutureKey = "primaryKey_9";
 
-        var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function(e) {
+        const open_rq = createdb(t);
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             db = e.target.result;
 
-            var objStore = db.createObjectStore("test", { keyPath: "pKey" });
+            const objStore = db.createObjectStore("test", { keyPath: "pKey" });
 
-            for (var i = 0; i < records.length; i++)
-                objStore.add(records[i]);
+            for (let i = 0; i < records.length; i++) { objStore.add(records[i]); }
         };
 
         open_rq.onsuccess = t.step_func(CursorDeleteRecord);
 
 
-        function CursorDeleteRecord(e) {
-            var txn = db.transaction("test", "readwrite"),
-              object_store = txn.objectStore("test"),
-              cursor_rq = object_store.openCursor();
+        function CursorDeleteRecord(_e) {
+            const txn = db.transaction("test", "readwrite"),
+                object_store = txn.objectStore("test"),
+                cursor_rq = object_store.openCursor();
 
-            var iteration = 0;
+            let iteration = 0;
 
-            cursor_rq.onsuccess = t.step_func(function(e) {
-                var cursor = e.target.result;
+            cursor_rq.onsuccess = t.step_func(function onsuccess(e) {
+                const cursor = e.target.result;
 
                 switch (iteration) {
-                case 0:
-                    object_store.delete(plausibleFutureKey);
-                    assert_true(cursor != null, "cursor valid");
-                    assert_equals(cursor.value.pKey, records[iteration].pKey);
-                    cursor.continue();
-                    object_store.delete(records[2].pKey);
-                    break;
-                case 1:
-                    assert_true(cursor != null, "cursor valid");
-                    assert_equals(cursor.value.pKey, records[iteration].pKey);
-                    cursor.continue();
-                    break;
-                case 2:
-                    assert_equals(cursor, null, "cursor no longer valid");
-                    break;
+                    case 0: {
+                        object_store.delete(plausibleFutureKey);
+                        assert_true(cursor != null, "cursor valid");
+                        assert_equals(cursor.value.pKey, records[iteration].pKey);
+                        cursor.continue();
+                        object_store.delete(records[2].pKey);
+                        break;
+                    }
+                    case 1: {
+                        assert_true(cursor != null, "cursor valid");
+                        assert_equals(cursor.value.pKey, records[iteration].pKey);
+                        cursor.continue();
+                        break;
+                    }
+                    case 2: {
+                        assert_equals(cursor, null, "cursor no longer valid");
+                        break;
+                    }
                 };
                 iteration++;
             });
@@ -85,12 +87,12 @@ require('proof')(8, async okay => {
         }
 
 
-        function VerifyRecordWasDeleted(e) {
+        function VerifyRecordWasDeleted(_e) {
             var cursor_rq = db.transaction("test")
-                              .objectStore("test")
-                              .openCursor();
+                .objectStore("test")
+                .openCursor();
 
-            cursor_rq.onsuccess = t.step_func(function(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(e) {
                 var cursor = e.target.result;
 
                 if (!cursor) {

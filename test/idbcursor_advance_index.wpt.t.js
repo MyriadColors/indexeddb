@@ -20,7 +20,7 @@ require('proof')(4, async okay => {
             }
         };
 
-        open_rq.onsuccess = function  onsuccess(e) {
+        open_rq.onsuccess = function  onsuccess(_e) {
             var cursor_rq = db.transaction("test")
                               .objectStore("test")
                               .index("idx")
