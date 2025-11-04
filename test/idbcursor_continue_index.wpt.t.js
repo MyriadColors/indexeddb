@@ -25,7 +25,7 @@ require('proof')(7, async okay => {
                               .index("index")
                               .openCursor();
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 const cursor = e.target.result;
                 if (!cursor) {
                     assert_equals(count, records.length, "cursor run count");

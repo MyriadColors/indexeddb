@@ -1,11 +1,11 @@
 require('proof')(10, async okay => {
     await require('./harness')(okay, 'idbcursor-iterating-update')
-    await harness(async function () {
+    await harness(async () => {
         const objStoreValues = [
-          {name: 'foo', id: 1},
-          {name: 'bar', id: 2},
-          {name: 'foo', id: 3},
-          {name: 'bar', id: 4},
+          {id: 1, name: 'foo'},
+          {id: 2, name: 'bar'},
+          {id: 3, name: 'foo'},
+          {id: 4, name: 'bar'},
         ];
 
         const objStoreValuesByIndex = [

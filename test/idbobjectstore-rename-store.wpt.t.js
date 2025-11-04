@@ -1,7 +1,7 @@
 require('proof')(182, async okay => {
     await require('./harness')(okay, 'idbobjectstore-rename-store')
-    await harness(async function () {
-        'use strict';
+    await harness(async () => {
+        
 
         // Renames the 'books' store to 'renamed_books'.
         //
@@ -162,7 +162,7 @@ require('proof')(182, async okay => {
                 const transaction = database.transaction('books', 'readwrite');
                 const store = transaction.objectStore('books');
                 return checkStoreGenerator(
-                    testCase, store, 345679,
+                    testCase, store, 345_679,
                     'The object store key generator should have the expected state ' +
                     'before any renaming').then(() => database.close());
             }).then(() => renameBooksStore(testCase)
@@ -170,7 +170,7 @@ require('proof')(182, async okay => {
                 const transaction = database.transaction('renamed_books', 'readwrite');
                 const store = transaction.objectStore('renamed_books');
                 return checkStoreGenerator(
-                    testCase, store, 345680,
+                    testCase, store, 345_680,
                     'Renaming an object store should not change the state of its key ' +
                     'generator').then(() => database.close());
             });
@@ -325,7 +325,7 @@ require('proof')(182, async okay => {
             });
         }, 'IndexedDB object store rename stringifies non-string names');
 
-        for (let escapedName of ['', '\\u0000', '\\uDC00\\uD800']) ((escapedName) => {
+        for (const escapedName of ['', String.raw`\u0000`, String.raw`\uDC00\uD800`]) {((escapedName) => {
           const name = JSON.parse('"' + escapedName + '"');
           promise_test(testCase => {
               return createDatabase(testCase, (database, transaction) => {
@@ -356,7 +356,7 @@ require('proof')(182, async okay => {
                       () => database.close());
               });
           }, 'IndexedDB object store can be renamed to "' + escapedName + '"');
-        })(escapedName);
+        })(escapedName);}
 
     })
 })

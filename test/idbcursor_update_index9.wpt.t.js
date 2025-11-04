@@ -1,6 +1,6 @@
 require('proof')(9, async okay => {
     await require('./harness')(okay, 'idbcursor_update_index9')
-    await harness(async function () {
+    await harness(async () => {
         // META: script=support-promises.js
 
         promise_test(async t => {
@@ -23,7 +23,7 @@ require('proof')(9, async okay => {
             request.onsuccess = t.step_func(e => {
               const cursor = e.target.result;
               if (!cursor)
-                return;
+                {return;}
 
               const record = cursor.value;
               record.value += 1;

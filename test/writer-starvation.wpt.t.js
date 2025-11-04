@@ -12,8 +12,8 @@ require('proof')(29, async okay => {
                   .add("1", 1);
             }
 
-            open_rq.onsuccess = function onsuccess(e) {
-                var i = 0, continue_reading = true;
+            open_rq.onsuccess = function onsuccess(_e) {
+                let i = 0;
 
                 /* Pre-fill some read requests */
                 for (i = 0; i < RQ_COUNT; i++)
@@ -23,7 +23,7 @@ require('proof')(29, async okay => {
                     db.transaction("s")
                       .objectStore("s")
                       .get(1)
-                      .onsuccess = this.step_func(function onsuccess(e) {
+                      .onsuccess = this.step_func(function onsuccess(_e) {
                             read_success_count++;
                             assert_equals(e.target.transaction.mode, "readonly", 'is readonly');
                         });
@@ -37,7 +37,7 @@ require('proof')(29, async okay => {
                     db.transaction("s")
                       .objectStore("s")
                       .get(1)
-                      .onsuccess = this.step_func(function onsuccess(e)
+                      .onsuccess = this.step_func(function onsuccess(_e)
                     {
                         read_success_count++;
                         // Replaced because because we invoke this function multiple times
@@ -54,7 +54,7 @@ require('proof')(29, async okay => {
                             db.transaction("s", "readwrite")
                               .objectStore("s")
                               .add("written", read_request_count)
-                              .onsuccess = this.step_func(function onsuccess(e)
+                              .onsuccess = this.step_func(function onsuccess(_e)
                             {
                                 write_success_count++;
                                 assert_equals(e.target.transaction.mode, "readwrite", 'is readwrite');

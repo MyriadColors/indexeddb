@@ -54,7 +54,7 @@ require('proof')(35, async okay => {
         invalid_key( 'undefined2');
 
         // functions
-        invalid_key( 'function() {}', ()=> {} );
+        invalid_key( '() => {}', ()=> {} );
 
         // objects
         invalid_key( '{}'                           , {} );

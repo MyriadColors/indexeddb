@@ -1,6 +1,6 @@
 require('proof')(2, async okay => {
     await require('./harness')(okay, 'transaction-lifetime-empty')
-    await harness(async function () {
+    await harness(async () => {
 
         // Call with a test object and array of expected values. Returns a
         // function to call with each actual value. Once the expected number

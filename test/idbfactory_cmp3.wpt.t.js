@@ -1,19 +1,19 @@
 require('proof')(4, async okay => {
     await require('./harness')(okay, 'idbfactory_cmp3')
-    await harness(async function () {
-        test(function() {
+    await harness(async () => {
+        test(() => {
           assert_equals(indexedDB.cmp([0], new Uint8Array([0])), 1, "Array > Binary");
         }, "Array v.s. Binary");
 
-        test(function() {
+        test(() => {
           assert_equals(indexedDB.cmp(new Uint8Array([0]), "0"), 1, "Binary > String");
         }, "Binary v.s. String");
 
-        test(function() {
+        test(() => {
           assert_equals(indexedDB.cmp("", new Date(0)), 1, "String > Date");
         }, "String v.s. Date");
 
-        test(function() {
+        test(() => {
           assert_equals(indexedDB.cmp(new Date(0), 0), 1, "Date > Number");
         }, "Date v.s. Number");
     })

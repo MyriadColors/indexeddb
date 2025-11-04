@@ -33,13 +33,13 @@ require('arguable')(module, async arguable => {
     const source = await fs.readFile(test, 'utf8')
     const $_ = require('programmatic')
     const includes = [], blocks = []
-    if (/\.any\.js$/.test(test)) {
+    if (test.endsWith('.any.js')) {
         blocks.push(source)
     } else {
         const $ = cheerio.load(source)
         $('script').each(function () {
             const src = this.attribs.src
-            if (src == null) {
+            if (src === null) {
                 blocks.push($_($(this).html()))
             } else {
                 includes.push(src)
@@ -57,7 +57,7 @@ require('arguable')(module, async arguable => {
     await fs.writeFile(path.resolve(__dirname, `${name}.wpt.t.js`), $_(`
         require('proof')(${count}, async okay => {
             await require('./harness')(okay, ${util.inspect(name)})
-            await harness(async function () {
+            await harness(async () => {
                 `, sources.join('\n'), `
             })
         })

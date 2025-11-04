@@ -1,6 +1,6 @@
 require('proof')(1, async okay => {
     await require('./harness')(okay, 'idbtransaction-objectStore-exception-order')
-    await harness(async function () {
+    await harness(async () => {
 
         indexeddb_test(
           (t, db) => {

@@ -24,10 +24,10 @@ require('proof')(2, async okay => {
                               .index("index")
                               .openCursor(undefined, "next");
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor = e.target.result;
 
-                assert_true(cursor != null, "cursor exist");
+                assert_true(cursor !== null, "cursor exist");
                 assert_throws_js(TypeError,
                     function onsuccess() { cursor.advance(-1); });
 

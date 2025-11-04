@@ -1,12 +1,12 @@
 require('proof')(3, async okay => {
     await require('./harness')(okay, 'idbobjectstore_add4')
-    await harness(async function () {
+    await harness(async () => {
         var db,
           t = async_test(),
           record = { key: 1, property: "data" };
 
         var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             db = e.target.result;
             var objStore = db.createObjectStore("store", { autoIncrement: true });
             objStore.createIndex("i1", "property", { unique: true });
@@ -15,7 +15,7 @@ require('proof')(3, async okay => {
             var rq = objStore.add(record);
             rq.onsuccess = fail(t, "success on adding duplicate indexed record")
 
-            rq.onerror = t.step_func(function(e) {
+            rq.onerror = t.step_func(function onerror(e) {
                 assert_equals(rq.error.name, "ConstraintError");
                 assert_equals(e.target.error.name, "ConstraintError");
                 assert_equals(e.type, "error");
@@ -26,7 +26,7 @@ require('proof')(3, async okay => {
         };
 
         // Defer done, giving a spurious rq.onsuccess a chance to run
-        open_rq.onsuccess = function(e) {
+        open_rq.onsuccess = function onsuccess(_e) {
             t.done();
         }
     })

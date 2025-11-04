@@ -1,12 +1,12 @@
 require('proof')(34, async okay => {
     await require('./harness')(okay, 'idbcursor-continue')
-    await harness(async function () {
+    await harness(async () => {
 
-        var store = [ { value: "cupcake", key: 5 },
-                      { value: "pancake", key: 3 },
-                      { value: "pie",     key: 1 },
-                      { value: "pie",     key: 4 },
-                      { value: "taco",    key: 2 } ];
+        var store = [ { key: 5, value: "cupcake" },
+                      { key: 3, value: "pancake" },
+                      { key: 1, value: "pie" },
+                      { key: 4, value: "pie" },
+                      { key: 2, value: "taco" } ];
 
         function upgrade_func(t, db, tx) {
           var db, open;
@@ -16,16 +16,16 @@ require('proof')(34, async okay => {
           os.createIndex("index", "");
 
           for (i = 0; i < store.length; i++)
-            os.add(store[i].value, store[i].key);
+            {os.add(store[i].value, store[i].key);}
         }
 
         indexeddb_test(
           upgrade_func,
-          function(t, db) {
+          (t, db) => {
             var count = 0;
             var rq = db.transaction("test").objectStore("test").index("index").openCursor();
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
               if (!e.target.result) {
                 assert_equals(count, 5, 'count');
                 t.done();
@@ -48,11 +48,11 @@ require('proof')(34, async okay => {
 
         indexeddb_test(
           upgrade_func,
-          function(t, db) {
+          (t, db) => {
             var count = 0;
             var rq = db.transaction("test").objectStore("test").index("index").openCursor();
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
               if (!e.target.result) {
                 assert_equals(count, 3, 'count');
                 t.done();
@@ -61,26 +61,30 @@ require('proof')(34, async okay => {
               var cursor = e.target.result;
 
               switch(count) {
-                case 0:
+                case 0: {
                   assert_equals(cursor.value, "cupcake");
                   assert_equals(cursor.primaryKey, 5);
                   cursor.continue("pie");
                   break;
+                }
 
-                case 1:
+                case 1: {
                   assert_equals(cursor.value, "pie");
                   assert_equals(cursor.primaryKey, 1);
                   cursor.continue("taco");
                   break;
+                }
 
-                case 2:
+                case 2: {
                   assert_equals(cursor.value, "taco");
                   assert_equals(cursor.primaryKey, 2);
                   cursor.continue();
                   break;
+                }
 
-                default:
+                default: {
                   assert_unreached("Unexpected count: " + count);
+                }
               }
 
               count++;
@@ -93,12 +97,12 @@ require('proof')(34, async okay => {
 
         indexeddb_test(
           upgrade_func,
-          function(t, db) {
+          (t, db) => {
             var count = 0;
             var rq = db.transaction("test").objectStore("test").index("index")
                        .openCursor();
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
               if (!e.target.result) {
                 assert_equals(count, 1, 'count');
                 t.done();
@@ -107,13 +111,15 @@ require('proof')(34, async okay => {
               var cursor = e.target.result;
 
               switch(count) {
-                case 0:
+                case 0: {
                   assert_equals(cursor.value, "cupcake");
                   assert_equals(cursor.primaryKey, 5);
                   break;
+                }
 
-                default:
+                default: {
                   assert_unreached("Unexpected count: " + count);
+                }
               }
 
               count++;
@@ -128,12 +134,12 @@ require('proof')(34, async okay => {
 
         indexeddb_test(
           upgrade_func,
-          function(t, db) {
+          (t, db) => {
             var count = 0;
             var rq = db.transaction("test").objectStore("test").index("index")
                        .openCursor(IDBKeyRange.lowerBound("cupcake", true));
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
               if (!e.target.result) {
                 assert_equals(count, 2, 'count');
                 t.done();
@@ -142,20 +148,23 @@ require('proof')(34, async okay => {
               var cursor = e.target.result;
 
               switch(count) {
-                case 0:
+                case 0: {
                   assert_equals(cursor.value, "pancake");
                   assert_equals(cursor.primaryKey, 3);
                   cursor.continue("pie");
                   break;
+                }
 
-                case 1:
+                case 1: {
                   assert_equals(cursor.value, "pie");
                   assert_equals(cursor.primaryKey, 1);
                   cursor.continue("zzz");
                   break;
+                }
 
-                default:
+                default: {
                   assert_unreached("Unexpected count: " + count);
+                }
               }
 
               count++;
@@ -168,12 +177,12 @@ require('proof')(34, async okay => {
 
         indexeddb_test(
           upgrade_func,
-          function(t, db) {
+          (t, db) => {
             var count = 0;
             var rq = db.transaction("test").objectStore("test").index("index")
                        .openCursor("pancake");
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
               if (!e.target.result) {
                 assert_equals(count, 1, 'count');
                 t.done();
@@ -182,14 +191,16 @@ require('proof')(34, async okay => {
               var cursor = e.target.result;
 
               switch(count) {
-                case 0:
+                case 0: {
                   assert_equals(cursor.value, "pancake");
                   assert_equals(cursor.primaryKey, 3);
                   cursor.continue("pie");
                   break;
+                }
 
-                default:
+                default: {
                   assert_unreached("Unexpected count: " + count);
+                }
               }
 
               count++;
@@ -201,12 +212,12 @@ require('proof')(34, async okay => {
 
         indexeddb_test(
           upgrade_func,
-          function(t, db) {
+          (t, db) => {
             var count = 0;
             var rq = db.transaction("test").objectStore("test").index("index")
                        .openCursor("pie");
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
               if (!e.target.result) {
                 assert_equals(count, 2, 'count');
                 t.done();
@@ -215,20 +226,23 @@ require('proof')(34, async okay => {
               var cursor = e.target.result;
 
               switch(count) {
-                case 0:
+                case 0: {
                   assert_equals(cursor.value, "pie");
                   assert_equals(cursor.primaryKey, 1);
                   cursor.continue();
                   break;
+                }
 
-                case 1:
+                case 1: {
                   assert_equals(cursor.value, "pie");
                   assert_equals(cursor.primaryKey, 4);
                   cursor.continue();
                   break;
+                }
 
-                default:
+                default: {
                   assert_unreached("Unexpected count: " + count);
+                }
               }
 
               count++;

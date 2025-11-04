@@ -1,7 +1,7 @@
 require('proof')(135, async okay => {
     await require('./harness')(okay, 'idbindex-rename')
-    await harness(async function () {
-        'use strict';
+    await harness(async () => {
+        
 
         promise_test(testCase => {
             let authorIndex = null, authorIndex2 = null;
@@ -257,7 +257,7 @@ require('proof')(135, async okay => {
             });
         }, 'IndexedDB index rename stringifies non-string names');
 
-        for (let escapedName of ['', '\\u0000', '\\uDC00\\uD800']) ((escapedName) => {
+        for (const escapedName of ['', String.raw`\u0000`, String.raw`\uDC00\uD800`]) {((escapedName) => {
           const name = JSON.parse('"' + escapedName + '"');
           promise_test(testCase => {
             return createDatabase(testCase, (database, transaction) => {
@@ -272,13 +272,13 @@ require('proof')(135, async okay => {
                 assert_equals(index.name, name,
                     'IDBIndex name should change immediately after the rename');
                 assert_array_equals(
-                    store.indexNames, [name, 'by_title'].sort(),
+                    store.indexNames, [name, 'by_title'].toSorted(),
                     'IDBObjectStore.indexNames should immediately reflect the rename');
             })).then(database => {
                 const transaction = database.transaction('books', 'readonly');
                 const store = transaction.objectStore('books');
                 assert_array_equals(
-                    store.indexNames, [name, 'by_title'].sort(),
+                    store.indexNames, [name, 'by_title'].toSorted(),
                     'IDBObjectStore.indexNames should reflect the rename ' +
                     'after the versionchange transaction commits');
                 const index = store.index(name);
@@ -288,7 +288,7 @@ require('proof')(135, async okay => {
                     () => database.close());
             });
           }, 'IndexedDB index can be renamed to "' + escapedName + '"');
-        })(escapedName);
+        })(escapedName);}
 
     })
 })

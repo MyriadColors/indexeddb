@@ -1,21 +1,21 @@
 require('proof')(1, async okay => {
     await require('./harness')(okay, 'idbfactory_deleteDatabase4')
     okay('dummy')
-    await harness(async function () {
+    await harness(async () => {
 
         var t = async_test("Delete an existing database"),
             dbname = location + '-' + t.name;
 
-        t.step(function() {
+        t.step(() => {
             indexedDB.deleteDatabase(dbname);
 
             var db;
             var openrq = indexedDB.open(dbname, 3);
 
-            openrq.onupgradeneeded = function(e) {
+            openrq.onupgradeneeded = function onupgradeneeded(e) {
                 e.target.result.createObjectStore('store');
             };
-            openrq.onsuccess = t.step_func(function(e) {
+            openrq.onsuccess = t.step_func(function onsuccess(_e) {
                 db = e.target.result;
 
                 // Errors
@@ -35,7 +35,7 @@ require('proof')(1, async okay => {
         function Second(e) {
             var deleterq = indexedDB.deleteDatabase(dbname);
 
-            deleterq.onsuccess = function(e) { t.done(); }
+            deleterq.onsuccess = function onsuccess(_e) { t.done(); }
 
             deleterq.onerror = fail(t, "delete.error");
             deleterq.onblocked = fail(t, "delete.blocked");
@@ -45,7 +45,7 @@ require('proof')(1, async okay => {
         async_test("Delete a nonexistent database").step(function(e) {
             var deleterq = indexedDB.deleteDatabase('nonexistent');
 
-            deleterq.onsuccess = this.step_func(function(e) { this.done(); });
+            deleterq.onsuccess = this.step_func(function onsuccess(_e) { this.done(); });
 
             deleterq.onerror = fail(this, "delete.error");
             deleterq.onblocked = fail(this, "delete.blocked");

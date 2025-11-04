@@ -1,6 +1,6 @@
 require('proof')(4, async okay => {
     await require('./harness')(okay, 'idbcursor-update-exception-order')
-    await harness(async function () {
+    await harness(async () => {
 
         indexeddb_test(
           (t, db) => {
@@ -71,7 +71,7 @@ require('proof')(4, async okay => {
         indexeddb_test(
           (t, db) => {
             const s = db.createObjectStore('s', {keyPath: 'id'});
-            s.put({id: 123, data: 'value'});
+            s.put({data: 'value', id: 123});
           },
           (t, db) => {
             const s = db.transaction('s', 'readwrite').objectStore('s');
@@ -81,7 +81,7 @@ require('proof')(4, async okay => {
               const cursor = r.result;
               cursor.continue();
               assert_throws_dom('InvalidStateError', () => {
-                cursor.update({id: 123, data: 'value2'});
+                cursor.update({data: 'value2', id: 123});
               }, '"Got value flag" check (InvalidStateError) should precede ' +
                  '"modified key" check (DataError)');
               t.done();

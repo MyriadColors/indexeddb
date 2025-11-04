@@ -1,6 +1,6 @@
 require('proof')(5, async okay => {
     await require('./harness')(okay, 'idbindex-getAll-enforcerange')
-    await harness(async function () {
+    await harness(async () => {
 
         indexeddb_test(
           (t, db) => {

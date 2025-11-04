@@ -57,20 +57,20 @@ require('proof')(8, async okay => {
 
             let iteration = 0;
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 const cursor = e.target.result;
 
                 switch (iteration) {
                     case 0: {
                         object_store.delete(plausibleFutureKey);
-                        assert_true(cursor != null, "cursor valid");
+                        assert_true(cursor !== null, "cursor valid");
                         assert_equals(cursor.value.pKey, records[iteration].pKey);
                         cursor.continue();
                         object_store.delete(records[2].pKey);
                         break;
                     }
                     case 1: {
-                        assert_true(cursor != null, "cursor valid");
+                        assert_true(cursor !== null, "cursor valid");
                         assert_equals(cursor.value.pKey, records[iteration].pKey);
                         cursor.continue();
                         break;
@@ -92,7 +92,7 @@ require('proof')(8, async okay => {
                 .objectStore("test")
                 .openCursor();
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor = e.target.result;
 
                 if (!cursor) {

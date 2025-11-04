@@ -1,6 +1,6 @@
 require('proof')(2, async okay => {
     await require('./harness')(okay, 'transaction-scheduling-across-databases')
-    await harness(async function () {
+    await harness(async () => {
         // META: script=support.js
 
         indexeddb_test(
@@ -54,7 +54,7 @@ require('proof')(2, async okay => {
                 request.onsuccess = t.step_func(() => {
                   transaction1PutSuccess = true;
                   if (!transaction2PutSuccess)
-                    doTransaction1Put();
+                    {doTransaction1Put();}
                 });
               }
 
@@ -64,7 +64,7 @@ require('proof')(2, async okay => {
                 request.onsuccess = t.step_func(() => {
                   transaction2PutSuccess = true;
                   if (!transaction1PutSuccess)
-                    doTransaction2Put();
+                    {doTransaction2Put();}
                 });
               }
 

@@ -1,6 +1,6 @@
 require('proof')(3, async okay => {
     await require('./harness')(okay, 'idbcursor_delete_objectstore')
-    await harness(async function () {
+    await harness(async () => {
 
         var db,
           count = 0,
@@ -9,13 +9,13 @@ require('proof')(3, async okay => {
                       { pKey: "primaryKey_1" } ];
 
         var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             db = e.target.result;
 
             var objStore = db.createObjectStore("test", { keyPath: "pKey" });
 
-            for (var i = 0; i < records.length; i++)
-                objStore.add(records[i]);
+            for (let i = 0; i < records.length; i++)
+                {objStore.add(records[i]);}
         };
 
         open_rq.onsuccess = t.step_func(CursorDeleteRecord);
@@ -25,10 +25,10 @@ require('proof')(3, async okay => {
             var txn = db.transaction("test", "readwrite"),
               cursor_rq = txn.objectStore("test").openCursor();
 
-            cursor_rq.onsuccess = t.step_func(function(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor = e.target.result;
 
-                assert_true(cursor != null, "cursor exist");
+                assert_true(cursor !== null, "cursor exist");
                 cursor.delete();
             });
 
@@ -41,7 +41,7 @@ require('proof')(3, async okay => {
                               .objectStore("test")
                               .openCursor();
 
-            cursor_rq.onsuccess = t.step_func(function(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor = e.target.result;
 
                 if (!cursor) {

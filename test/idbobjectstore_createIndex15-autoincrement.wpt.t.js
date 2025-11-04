@@ -1,8 +1,8 @@
 require('proof')(6, async okay => {
     await require('./harness')(okay, 'idbobjectstore_createIndex15-autoincrement')
-    await harness(async function () {
+    await harness(async () => {
         indexeddb_test(
-          function(t, db, txn) {
+          (t, db, txn) => {
             // No auto-increment
             var store = db.createObjectStore("Store1", {keyPath: "id"});
             store.createIndex("CompoundKey", ["num", "id"]);
@@ -10,12 +10,12 @@ require('proof')(6, async okay => {
             // Add data
             store.put({id: 1, num: 100});
           },
-          function(t, db) {
+          (t, db) => {
             var store = db.transaction("Store1", "readwrite").objectStore("Store1");
 
-            store.openCursor().onsuccess = t.step_func(function(e) {
+            store.openCursor().onsuccess = t.step_func(function onsuccess(_e) {
               var item = e.target.result.value;
-              store.index("CompoundKey").get([item.num, item.id]).onsuccess = t.step_func(function(e) {
+              store.index("CompoundKey").get([item.num, item.id]).onsuccess = t.step_func(function onsuccess(_e) {
                 assert_equals(e.target.result ? e.target.result.num : null, 100, 'Expected 100.');
                 t.done();
               });
@@ -25,19 +25,19 @@ require('proof')(6, async okay => {
         );
 
         indexeddb_test(
-          function(t, db, txn) {
+          (t, db, txn) => {
             // Auto-increment
-            var store = db.createObjectStore("Store2", {keyPath: "id", autoIncrement: true});
+            var store = db.createObjectStore("Store2", {autoIncrement: true, keyPath: "id"});
             store.createIndex("CompoundKey", ["num", "id"]);
 
             // Add data
             store.put({num: 100});
           },
-          function(t, db) {
+          (t, db) => {
             var store = db.transaction("Store2", "readwrite").objectStore("Store2");
-            store.openCursor().onsuccess = t.step_func(function(e) {
+            store.openCursor().onsuccess = t.step_func(function onsuccess(_e) {
               var item = e.target.result.value;
-              store.index("CompoundKey").get([item.num, item.id]).onsuccess = t.step_func(function(e) {
+              store.index("CompoundKey").get([item.num, item.id]).onsuccess = t.step_func(function onsuccess(_e) {
                 assert_equals(e.target.result ? e.target.result.num : null, 100, 'Expected 100.');
                 t.done();
               });
@@ -47,9 +47,9 @@ require('proof')(6, async okay => {
         );
 
         indexeddb_test(
-          function(t, db, txn) {
+          (t, db, txn) => {
             // Auto-increment
-            var store = db.createObjectStore("Store3", {keyPath: "id", autoIncrement: true});
+            var store = db.createObjectStore("Store3", {autoIncrement: true, keyPath: "id"});
             store.createIndex("CompoundKey", ["num", "id", "other"]);
 
             var num = 100;
@@ -75,12 +75,12 @@ require('proof')(6, async okay => {
             store.put({num: num++, other: [null]});
             store.put({num: num++, other: [{}]});
           },
-          function(t, db) {
+          (t, db) => {
             var store = db.transaction("Store3", "readwrite").objectStore("Store3");
             const keys = [];
             let count;
             store.count().onsuccess = t.step_func(e => { count = e.target.result; });
-            store.index("CompoundKey").openCursor().onsuccess = t.step_func(function(e) {
+            store.index("CompoundKey").openCursor().onsuccess = t.step_func(function onsuccess(_e) {
               const cursor = e.target.result;
               if (cursor !== null) {
                 keys.push(cursor.key);

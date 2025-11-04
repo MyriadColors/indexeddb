@@ -1,11 +1,11 @@
 require('proof')(2, async okay => {
     await require('./harness')(okay, 'idbdatabase_createObjectStore5')
-    await harness(async function () {
+    await harness(async () => {
 
         var t = async_test(),
             open_rq = createdb(t)
 
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             var db = e.target.result
 
             db.createObjectStore("My cool object store name")
@@ -14,7 +14,7 @@ require('proof')(2, async okay => {
                 'objectStoreNames.contains')
         }
 
-        open_rq.onsuccess = function(e) {
+        open_rq.onsuccess = function onsuccess(_e) {
             var db = e.target.result
 
             assert_true(

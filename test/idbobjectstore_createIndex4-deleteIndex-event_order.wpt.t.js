@@ -1,12 +1,12 @@
 require('proof')(1, async okay => {
     await require('./harness')(okay, 'idbobjectstore_createIndex4-deleteIndex-event_order')
-    await harness(async function () {
+    await harness(async () => {
         var db,
           events = [],
           t = async_test()
 
         var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             db = e.target.result;
             e.target.transaction.oncomplete = log("transaction.complete");
 
@@ -21,7 +21,7 @@ require('proof')(1, async okay => {
 
             var rq_add2 = objStore.add({ animal: "Unicorn" }, 2);
             rq_add2.onsuccess = log("rq_add2.success");
-            rq_add2.onerror   = function(e) {
+            rq_add2.onerror   = function onerror(e) {
                 log("rq_add2.error")(e);
                 e.preventDefault();
                 e.stopPropagation();
@@ -34,7 +34,7 @@ require('proof')(1, async okay => {
             rq_add3.onerror   = log("rq_add3.error");
         }
 
-        open_rq.onsuccess = function(e) {
+        open_rq.onsuccess = function onsuccess(_e) {
             log("open_rq.success")(e);
             assert_array_equals(events, [ "rq_add1.success",
                                           "rq_add2.error: ConstraintError",
@@ -48,11 +48,11 @@ require('proof')(1, async okay => {
         }
 
         function log(msg) {
-            return function(e) {
+            return (e) => {
                 if(e && e.target && e.target.error)
-                    events.push(msg + ": " + e.target.error.name);
+                    {events.push(msg + ": " + e.target.error.name);}
                 else
-                    events.push(msg);
+                    {events.push(msg);}
             };
         }
     })

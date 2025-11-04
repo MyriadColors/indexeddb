@@ -1,6 +1,6 @@
 require('proof')(2, async okay => {
     await require('./harness')(okay, 'idbcursor-request-source')
-    await harness(async function () {
+    await harness(async () => {
 
         [
           cursor => cursor.update(0),

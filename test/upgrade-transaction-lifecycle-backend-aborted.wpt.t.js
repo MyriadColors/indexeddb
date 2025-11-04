@@ -1,7 +1,7 @@
 require('proof')(14, async okay => {
     await require('./harness')(okay, 'upgrade-transaction-lifecycle-backend-aborted')
-    await harness(async function () {
-        'use strict';
+    await harness(async () => {
+        
 
         promise_test(t => {
           return createDatabase(t, database => {

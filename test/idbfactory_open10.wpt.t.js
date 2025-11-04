@@ -1,10 +1,10 @@
 require('proof')(22, async okay => {
     await require('./harness')(okay, 'idbfactory_open10')
-    await harness(async function () {
+    await harness(async () => {
         var db, db2;
         var open_rq = createdb(async_test(), undefined, 9);
 
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             db = e.target.result;
 
             var st = db.createObjectStore("store");
@@ -17,10 +17,10 @@ require('proof')(22, async okay => {
             st.add({i: "Joshua"}, 1);
             st.add({i: "Jonas"}, 2);
         };
-        open_rq.onsuccess = function(e) {
+        open_rq.onsuccess = function onsuccess(_e) {
             db.close();
             var open_rq2 = window.indexedDB.open(db.name, 10);
-            open_rq2.onupgradeneeded = this.step_func(function(e) {
+            open_rq2.onupgradeneeded = this.step_func(function onupgradeneeded(e) {
                 db2 = e.target.result;
 
                 db2.createObjectStore("store2");
@@ -40,13 +40,13 @@ require('proof')(22, async okay => {
 
                 open_rq2.transaction.abort();
             });
-            open_rq2.onerror = this.step_func(function(e) {
+            open_rq2.onerror = this.step_func(function onerror(e) {
                 assert_equals(db2.version, 9, "db2.version after error");
                 assert_true(db2.objectStoreNames.contains("store"), "objectStoreNames contains store after error");
                 assert_false(db2.objectStoreNames.contains("store2"), "objectStoreNames not contains store2 after error");
 
                 var open_rq3 = window.indexedDB.open(db.name);
-                open_rq3.onsuccess = this.step_func(function(e) {
+                open_rq3.onsuccess = this.step_func(function onsuccess(_e) {
                     var db3 = e.target.result;
 
                     assert_true(db3.objectStoreNames.contains("store"), "third objectStoreNames contains store");
@@ -59,22 +59,22 @@ require('proof')(22, async okay => {
                     assert_true(st.indexNames.contains("index"), "third indexNames contains index");
                     assert_false(st.indexNames.contains("index2"), "third indexNames contains index2");
 
-                    st.openCursor(null, "prev").onsuccess = this.step_func(function(e) {
+                    st.openCursor(null, "prev").onsuccess = this.step_func(function onsuccess(_e) {
                         assert_equals(e.target.result.key, 2, "opencursor(prev) key");
                         assert_equals(e.target.result.value.i, "Jonas", "opencursor(prev) value");
                     });
-                    st.get(3).onsuccess = this.step_func(function(e) {
+                    st.get(3).onsuccess = this.step_func(function onsuccess(_e) {
                         assert_equals(e.target.result, undefined, "get(3)");
                     });
 
                     var idx = st.index("index");
-                    idx.getKey("Jonas").onsuccess = this.step_func(function(e) {
+                    idx.getKey("Jonas").onsuccess = this.step_func(function onsuccess(_e) {
                         assert_equals(e.target.result, 2, "getKey(Jonas)");
                     });
-                    idx.getKey("Odin").onsuccess = this.step_func(function(e) {
+                    idx.getKey("Odin").onsuccess = this.step_func(function onsuccess(_e) {
                         assert_equals(e.target.result, undefined, "getKey(Odin)");
                     });
-                    idx.getKey("Sicking").onsuccess = this.step_func(function(e) {
+                    idx.getKey("Sicking").onsuccess = this.step_func(function onsuccess(_e) {
                         assert_equals(e.target.result, undefined, "getKey(Sicking)");
 
                         db3.close();

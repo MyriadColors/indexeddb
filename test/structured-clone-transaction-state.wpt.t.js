@@ -1,10 +1,10 @@
 require('proof')(24, async okay => {
     await require('./harness')(okay, 'structured-clone-transaction-state')
-    await harness(async function () {
+    await harness(async () => {
         // META: script=support-promises.js
         // META: title=Indexed DB transaction state during Structured Serializing
         // META: timeout=long
-        'use strict';
+        
 
         promise_test(async testCase => {
           const db = await createDatabase(testCase, database => {

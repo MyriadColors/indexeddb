@@ -1,12 +1,12 @@
 require('proof')(1, async okay => {
     await require('./harness')(okay, 'idbobjectstore_put14')
-    await harness(async function () {
+    await harness(async () => {
         var db,
           t = async_test(),
-          record = { key: 1, indexedProperty: { property: "data" } };
+          record = { indexedProperty: { property: "data" }, key: 1 };
 
         var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             db = e.target.result;
 
             var rq,
@@ -17,7 +17,7 @@ require('proof')(1, async okay => {
             rq = objStore.put(record);
 
             assert_true(rq instanceof IDBRequest);
-            rq.onsuccess = function() {
+            rq.onsuccess = function onsuccess() {
                 t.done();
             }
         };

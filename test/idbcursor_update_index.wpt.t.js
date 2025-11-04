@@ -1,22 +1,22 @@
 require('proof')(1, async okay => {
     await require('./harness')(okay, 'idbcursor_update_index')
-    await harness(async function () {
+    await harness(async () => {
 
         var db,
           count = 0,
           t = async_test(),
-          records = [ { pKey: "primaryKey_0", iKey: "indexKey_0" },
-                      { pKey: "primaryKey_1", iKey: "indexKey_1" } ];
+          records = [ { iKey: "indexKey_0", pKey: "primaryKey_0" },
+                      { iKey: "indexKey_1", pKey: "primaryKey_1" } ];
 
         var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             db = e.target.result;
 
             var objStore = db.createObjectStore("test", { keyPath: "pKey" });
             objStore.createIndex("index", "iKey");
 
-            for (var i = 0; i < records.length; i++)
-                objStore.add(records[i]);
+            for (let i = 0; i < records.length; i++)
+                {objStore.add(records[i]);}
 
             // XXX: Gecko doesn't like this
             //e.target.transaction.oncomplete = t.step_func(CursorUpdateRecord);
@@ -30,7 +30,7 @@ require('proof')(1, async okay => {
               cursor_rq = txn.objectStore("test")
                              .index("index")
                              .openCursor();
-            cursor_rq.onsuccess = t.step_func(function(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor = e.target.result;
 
                 cursor.value.iKey += "_updated";
@@ -46,7 +46,7 @@ require('proof')(1, async okay => {
                               .objectStore("test")
                               .openCursor();
 
-            cursor_rq.onsuccess = t.step_func(function(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor = e.target.result;
 
                 assert_equals(cursor.value.iKey, records[0].iKey + "_updated");

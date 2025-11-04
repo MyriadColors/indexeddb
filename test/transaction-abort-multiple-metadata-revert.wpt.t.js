@@ -1,7 +1,7 @@
 require('proof')(60, async okay => {
     await require('./harness')(okay, 'transaction-abort-multiple-metadata-revert')
-    await harness(async function () {
-        'use strict';
+    await harness(async () => {
+        
 
         promise_test(testCase => {
             let store = null, index = null;

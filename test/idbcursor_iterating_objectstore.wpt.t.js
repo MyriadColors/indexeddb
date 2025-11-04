@@ -1,6 +1,6 @@
 require('proof')(3, async okay => {
     await require('./harness')(okay, 'idbcursor_iterating_objectstore')
-    await harness(async function () {
+    await harness(async () => {
         var db,
           count = 0,
           t = async_test(),
@@ -11,21 +11,21 @@ require('proof')(3, async okay => {
                                { pKey: "primaryKey_2" }];
 
         var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             db = e.target.result;
-            t.add_cleanup(function() { db.close(); indexedDB.deleteDatabase(db.name); });
+            t.add_cleanup(function onupgradeneeded() { db.close(); indexedDB.deleteDatabase(db.name); });
             var objStore = db.createObjectStore("test", {keyPath:"pKey"});
 
-            for (var i = 0; i < records.length; i++)
-                objStore.add(records[i]);
+            for (let i = 0; i < records.length; i++)
+                {objStore.add(records[i]);}
         };
 
-        open_rq.onsuccess = function(e) {
+        open_rq.onsuccess = function onsuccess(_e) {
             var cursor_rq = db.transaction("test", "readwrite")
                               .objectStore("test")
                               .openCursor();
 
-            cursor_rq.onsuccess = t.step_func(function(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor = e.target.result;
                 if (!cursor) {
                     assert_equals(count, 2, "cursor run count");
@@ -34,7 +34,7 @@ require('proof')(3, async okay => {
                 }
 
                 var record = cursor.value;
-                if (record.pKey == "primaryKey_0") {
+                if (record.pKey === "primaryKey_0") {
                    e.target.source.delete("primaryKey_1");
                 }
                 assert_equals(record.pKey, expected_records[count].pKey, "primary key");

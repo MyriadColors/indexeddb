@@ -1,17 +1,17 @@
 require('proof')(24, async okay => {
     await require('./harness')(okay, 'idbtransaction_objectStoreNames')
-    await harness(async function () {
+    await harness(async () => {
         const exclude = true
 
         function with_stores_test(store_names, open_func, description) {
-            indexeddb_test(function(t, db, tx) {
-                store_names.forEach(function(name) {
+            indexeddb_test((t, db, tx) => {
+                store_names.forEach((name) => {
                     db.createObjectStore(name);
                 });
             }, open_func, description);
         }
 
-        if (exclude) indexeddb_test(function(t, db, tx) {
+        if (exclude) {indexeddb_test((t, db, tx) => {
             assert_array_equals(tx.objectStoreNames, [],
                 'transaction objectStoreNames should be empty');
             assert_array_equals(db.objectStoreNames, tx.objectStoreNames,
@@ -40,21 +40,21 @@ require('proof')(24, async okay => {
                 'transaction objectStoreNames should be updated after delete');
             assert_array_equals(db.objectStoreNames, tx.objectStoreNames,
                 'connection and transacton objectStoreNames should match');
-        }, function(t, db) {
+        }, (t, db) => {
             t.done();
-        }, 'IDBTransaction.objectStoreNames - during upgrade transaction');
+        }, 'IDBTransaction.objectStoreNames - during upgrade transaction');}
 
-        if (exclude) (function() {
+        if (exclude) {(() => {
             var saved_tx;
-            indexeddb_test(function(t, db, tx) {
+            indexeddb_test((t, db, tx) => {
                 saved_tx = tx;
                 db.createObjectStore('s2');
                 db.createObjectStore('s3');
-            }, function(t, db) {
+            }, (t, db) => {
                 db.close();
                 var open2 = indexedDB.open(db.name, db.version + 1);
                 open2.onerror = t.unreached_func('open should succeed');
-                open2.onupgradeneeded = t.step_func(function() {
+                open2.onupgradeneeded = t.step_func(function onupgradeneeded() {
                     var db2 = open2.result;
                     var tx2 = open2.transaction;
                     assert_array_equals(tx2.objectStoreNames, ['s2', 's3'],
@@ -76,60 +76,60 @@ require('proof')(24, async okay => {
                     t.done();
                 });
             }, 'IDBTransaction.objectStoreNames - value after close');
-        }());
+        }());}
 
-        if (exclude) with_stores_test(['s1', 's2'], function(t, db) {
+        if (exclude) {with_stores_test(['s1', 's2'], (t, db) => {
             assert_array_equals(db.transaction('s1').objectStoreNames, ['s1'],
                 'transaction should have one store in scope');
             assert_array_equals(db.transaction(['s1', 's2']).objectStoreNames,
                 ['s1', 's2'],
                 'transaction should have two stores in scope');
             t.done();
-        }, 'IDBTransaction.objectStoreNames - transaction scope');
+        }, 'IDBTransaction.objectStoreNames - transaction scope');}
 
-        if (exclude) with_stores_test(['s1', 's2'], function(t, db) {
+        if (exclude) {with_stores_test(['s1', 's2'], (t, db) => {
             var tx = db.transaction(['s1', 's2'], 'readwrite');
             tx.objectStore('s1').put(0, 0);
             tx.onabort = t.unreached_func('transaction should complete');
-            tx.oncomplete = t.step_func(function() {
+            tx.oncomplete = t.step_func(function oncomplete() {
                 assert_array_equals(tx.objectStoreNames, ['s1', 's2'],
                     'objectStoreNames should return scope after transaction commits');
                 t.done();
             });
-        }, 'IDBTransaction.objectStoreNames - value after commit');
+        }, 'IDBTransaction.objectStoreNames - value after commit');}
 
-        if (exclude) with_stores_test(['s1', 's2'], function(t, db) {
+        if (exclude) {with_stores_test(['s1', 's2'], (t, db) => {
             var tx = db.transaction(['s1', 's2'], 'readwrite');
             tx.objectStore('s1').put(0, 0);
             tx.objectStore('s1').add(0, 0);
             tx.oncomplete = t.unreached_func('transaction should abort');
-            tx.onabort = t.step_func(function() {
+            tx.onabort = t.step_func(function onabort() {
                 assert_array_equals(tx.objectStoreNames, ['s1', 's2'],
                     'objectStoreNames should return scope after transaction aborts');
                 t.done();
             });
-        }, 'IDBTransaction.objectStoreNames - value after abort');
+        }, 'IDBTransaction.objectStoreNames - value after abort');}
 
-        if (exclude) with_stores_test(['s1', 's2', 's3'], function(t, db) {
+        if (exclude) {with_stores_test(['s1', 's2', 's3'], (t, db) => {
             assert_array_equals(db.transaction(['s3', 's2', 's1']).objectStoreNames,
                 ['s1', 's2', 's3'],
                 'transaction objectStoreNames should be sorted');
             t.done();
-        }, 'IDBTransaction.objectStoreNames - sorting');
+        }, 'IDBTransaction.objectStoreNames - sorting');}
 
-        if (exclude) with_stores_test(['s1', 's2'], function(t, db) {
+        if (exclude) {with_stores_test(['s1', 's2'], (t, db) => {
             assert_array_equals(
                 db.transaction(['s2', 's1', 's2']).objectStoreNames,
                     ['s1', 's2'],
                 'transaction objectStoreNames should not have duplicates');
             t.done();
-        }, 'IDBTransaction.objectStoreNames - no duplicates');
+        }, 'IDBTransaction.objectStoreNames - no duplicates');}
 
         var unusual_names = [
             '', // empty string
 
-            '\x00', // U+0000 NULL
-            '\xFF', // U+00FF LATIN SMALL LETTER Y WITH DIAERESIS
+            '\u0000', // U+0000 NULL
+            '\u00FF', // U+00FF LATIN SMALL LETTER Y WITH DIAERESIS
 
             '1', // basic ASCII
             '12', // basic ASCII
@@ -137,7 +137,7 @@ require('proof')(24, async okay => {
             'abc', // basic ASCII
             'ABC', // basic ASCII
 
-            '\xA2', // U+00A2 CENT SIGN
+            '\u00A2', // U+00A2 CENT SIGN
             '\u6C34', // U+6C34 CJK UNIFIED IDEOGRAPH (water)
             '\uD834\uDD1E', // U+1D11E MUSICAL SYMBOL G-CLEF (UTF-16 surrogate pair)
             '\uFFFD', // U+FFFD REPLACEMENT CHARACTER
@@ -147,14 +147,14 @@ require('proof')(24, async okay => {
         ];
         unusual_names.sort();
 
-        indexeddb_test(function(t, db, tx) {
-            unusual_names.slice().reverse().forEach(function(name) {
+        indexeddb_test((t, db, tx) => {
+            [...unusual_names].toReversed().forEach((name) => {
                 db.createObjectStore(name);
             });
             assert_array_equals(tx.objectStoreNames, unusual_names,
                 'transaction should have names sorted');
-        }, function(t, db) {
-            var tx = db.transaction(unusual_names.slice().reverse().concat(unusual_names));
+        }, (t, db) => {
+            var tx = db.transaction([...unusual_names].toReversed().concat(unusual_names));
             assert_array_equals(tx.objectStoreNames, unusual_names,
                 'transaction should have names sorted with no duplicates');
             t.done();

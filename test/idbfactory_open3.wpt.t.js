@@ -1,16 +1,16 @@
 require('proof')(1, async okay => {
     await require('./harness')(okay, 'idbfactory_open3')
-    await harness(async function () {
+    await harness(async () => {
         var open_rq = createdb(async_test(), undefined, 13);
         var did_upgrade = false;
 
-        open_rq.onupgradeneeded = function() {};
-        open_rq.onsuccess = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded() {};
+        open_rq.onsuccess = function onsuccess(_e) {
             var db = e.target.result;
             db.close();
 
             var open_rq2 = window.indexedDB.open(db.name);
-            open_rq2.onsuccess = this.step_func(function(e) {
+            open_rq2.onsuccess = this.step_func(function onsuccess(_e) {
                 assert_equals(e.target.result.version, 13, "db.version")
                 e.target.result.close();
                 this.done();

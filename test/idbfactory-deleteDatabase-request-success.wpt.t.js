@@ -1,6 +1,6 @@
 require('proof')(3, async okay => {
     await require('./harness')(okay, 'idbfactory-deleteDatabase-request-success')
-    await harness(async function () {
+    await harness(async () => {
 
         async_test(t => {
           const dbname = document.location + '-' + t.name;

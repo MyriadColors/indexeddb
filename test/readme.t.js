@@ -93,7 +93,7 @@ require('proof')(1, async okay => {
         const gathered = []
         cursor.onsuccess = function  onsuccess(event) {
             const cursor = event.target.result
-            if (cursor != null) {
+            if (cursor !== null) {
                 gathered.push(cursor.value)
                 cursor.continue()
             } else {

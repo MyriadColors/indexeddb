@@ -1,6 +1,6 @@
 require('proof')(55, async okay => {
     await require('./harness')(okay, 'transaction-relaxed-durability.tentative')
-    await harness(async function () {
+    await harness(async () => {
         // META: script=support-promises.js
         // META: timeout=long
 
@@ -12,12 +12,12 @@ require('proof')(55, async okay => {
          */
 
         // Smoke test optional parameter on IndexedDB.transaction.
-        let cases = [
-          { options: undefined, expected: 'default' },
-          { options: {}, expected: 'default' },
-          { options: { durability: 'default'}, expected: 'default' },
-          { options: { durability: 'relaxed'}, expected: 'relaxed' },
-          { options: { durability: 'strict'}, expected: 'strict' },
+        const cases = [
+          { expected: 'default', options: undefined },
+          { expected: 'default', options: {} },
+          { expected: 'default', options: { durability: 'default'} },
+          { expected: 'relaxed', options: { durability: 'relaxed'} },
+          { expected: 'strict', options: { durability: 'strict'} },
         ];
 
         for (let i = 0; i < cases.length; ++i) {
@@ -49,7 +49,7 @@ require('proof')(55, async okay => {
             createBooksStore(testCase, db);
           });
 
-          assert_throws_js(TypeError, function() {
+          assert_throws_js(TypeError, () => {
               db.transaction(['books'], 'readwrite', { durability: 'invalid' });
           });
           db.close();

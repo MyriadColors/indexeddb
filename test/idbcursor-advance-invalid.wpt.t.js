@@ -1,6 +1,6 @@
 require('proof')(24, async okay => {
     await require('./harness')(okay, 'idbcursor-advance-invalid')
-    await harness(async function () {
+    await harness(async () => {
 
         function upgrade_func(t, db, tx) {
           var objStore = db.createObjectStore("test");
@@ -12,11 +12,11 @@ require('proof')(24, async okay => {
 
         indexeddb_test(
           upgrade_func,
-          function(t, db) {
+          (t, db) => {
             var count = 0;
             var rq = db.transaction("test").objectStore("test").index("index").openCursor();
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
               if (!e.target.result) {
                 assert_equals(count, 2, 'count');
                 t.done();
@@ -28,10 +28,10 @@ require('proof')(24, async okay => {
 
               // Second try
               assert_throws_dom('InvalidStateError',
-                                function() { cursor.advance(1); }, 'second advance');
+                                function onsuccess() { cursor.advance(1); }, 'second advance');
 
               assert_throws_dom('InvalidStateError',
-                                function() { cursor.advance(3); }, 'third advance');
+                                function onsuccess() { cursor.advance(3); }, 'third advance');
 
               count++;
             });
@@ -42,26 +42,26 @@ require('proof')(24, async okay => {
 
         indexeddb_test(
           upgrade_func,
-          function(t, db) {
+          (t, db) => {
             var rq = db.transaction("test").objectStore("test").index("index").openCursor();
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
               var cursor = e.target.result;
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance(document); });
+                               function onsuccess() { cursor.advance(document); });
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance({}); });
+                               function onsuccess() { cursor.advance({}); });
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance([]); });
+                               function onsuccess() { cursor.advance([]); });
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance(""); });
+                               function onsuccess() { cursor.advance(""); });
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance("1 2"); });
+                               function onsuccess() { cursor.advance("1 2"); });
 
               t.done();
             });
@@ -73,21 +73,21 @@ require('proof')(24, async okay => {
 
         indexeddb_test(
           upgrade_func,
-          function(t, db) {
+          (t, db) => {
             var rq = db.transaction("test").objectStore("test").index("index").openCursor();
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
               var cursor = e.target.result;
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance(null); });
+                               function onsuccess() { cursor.advance(null); });
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance(undefined); });
+                               function onsuccess() { cursor.advance(); });
 
               var myvar = null;
               assert_throws_js(TypeError,
-                               function() { cursor.advance(myvar); });
+                               function onsuccess() { cursor.advance(myvar); });
 
               t.done();
             });
@@ -99,14 +99,14 @@ require('proof')(24, async okay => {
 
         indexeddb_test(
           upgrade_func,
-          function(t, db) {
+          (t, db) => {
             var rq = db.transaction("test").objectStore("test").index("index").openCursor();
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
               var cursor = e.target.result;
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance(); });
+                               function onsuccess() { cursor.advance(); });
 
               t.done();
             });
@@ -117,33 +117,33 @@ require('proof')(24, async okay => {
 
         indexeddb_test(
           upgrade_func,
-          function(t, db) {
+          (t, db) => {
             var rq = db.transaction("test").objectStore("test").index("index").openCursor();
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
               var cursor = e.target.result;
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance(-1); });
+                               function onsuccess() { cursor.advance(-1); });
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance(NaN); });
+                               function onsuccess() { cursor.advance(NaN); });
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance(0); });
+                               function onsuccess() { cursor.advance(0); });
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance(-0); });
+                               function onsuccess() { cursor.advance(-0); });
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance(Infinity); });
+                               function onsuccess() { cursor.advance(Infinity); });
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance(-Infinity); });
+                               function onsuccess() { cursor.advance(-Infinity); });
 
-              var myvar = -999999;
+              var myvar = -999_999;
               assert_throws_js(TypeError,
-                               function() { cursor.advance(myvar); });
+                               function onsuccess() { cursor.advance(myvar); });
 
               t.done();
             });
@@ -154,11 +154,11 @@ require('proof')(24, async okay => {
 
         indexeddb_test(
           upgrade_func,
-          function(t, db) {
+          (t, db) => {
             var count = 0;
             var rq = db.transaction("test").objectStore("test").index("index").openCursor();
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
               var cursor = e.target.result;
               if (!cursor)
                 {
@@ -168,7 +168,7 @@ require('proof')(24, async okay => {
                 }
 
               assert_throws_js(TypeError,
-                               function() { cursor.advance(0); });
+                               function onsuccess() { cursor.advance(0); });
 
               cursor.advance(1);
               count++;

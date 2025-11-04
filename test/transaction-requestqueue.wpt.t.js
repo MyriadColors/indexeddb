@@ -1,12 +1,12 @@
 require('proof')(2, async okay => {
     await require('./harness')(okay, 'transaction-requestqueue')
-    await harness(async function () {
+    await harness(async () => {
 
         var db, t = async_test(),
             keys = { txn: [], txn2: [] },
             open_rq = createdb(t)
 
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             var i, os;
             db = e.target.result;
 
@@ -14,12 +14,12 @@ require('proof')(2, async okay => {
             {
                 os = db.createObjectStore("os" + i, { autoIncrement: true, keyPath: "k" });
                 os.add({ os: "os" + i });
-                os.put({ os: "os" + i, k: i});
+                os.put({ k: i, os: "os" + i});
                 os.add({ os: "os" + i });
             }
         }
 
-        open_rq.onsuccess = function(e) {
+        open_rq.onsuccess = function onsuccess(_e) {
             var txn = db.transaction(["os2", "os1", "os3", "os5"])
             txn.objectStore("os1").openCursor().onsuccess = reg("txn")
             txn.objectStore("os3").openCursor().onsuccess = reg("txn")
@@ -47,9 +47,9 @@ require('proof')(2, async okay => {
 
 
         function reg(n) {
-            return t.step_func(function (e) {
+            return t.step_func((e) => {
                 var v = e.target.result;
-                if (v.value) v = v.value;
+                if (v.value) {v = v.value;}
                 keys[n].push(v.os + ": " + v.k);
             });
         }
@@ -57,7 +57,7 @@ require('proof')(2, async okay => {
         var finish_to_go = 2;
         function finish() {
             if (--finish_to_go)
-                return;
+                {return;}
 
             assert_array_equals(keys['txn'], [
                 "os1: 1",

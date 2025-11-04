@@ -9,11 +9,11 @@ require('proof')(3, async okay => {
                 db.createObjectStore("store")
                   .add(value, 1);
 
-                e.target.onsuccess = t.step_func(function onsuccess(e) {
+                e.target.onsuccess = t.step_func(function onsuccess(_e) {
                     db.transaction('store')
                       .objectStore('store')
                       .get(1)
-                      .onsuccess = t.step_func(function onsuccess(e)
+                      .onsuccess = t.step_func(function onsuccess(_e)
                     {
 
                         try
@@ -30,15 +30,14 @@ require('proof')(3, async okay => {
                                     JSON.stringify(error.target.result);
                                     assert_unreached("Expected a non-JSON-serializable value back, didn't get that.");
                                 }
-                                catch (_error)
-                                {
+                                catch {
                                     okay(true)
                                     t.done();
                                     return;
                                 }
                             }
                             else
-                                throw error;
+                                {throw error;}
                         }
                     });
                 });

@@ -1,6 +1,6 @@
 require('proof')(31, async okay => {
     await require('./harness')(okay, 'idbcursor-continuePrimaryKey-exception-order')
-    await harness(async function () {
+    await harness(async () => {
         function setup_test_store(db) {
           var records = [ { iKey: "A", pKey: 1 },
                           { iKey: "A", pKey: 2 },
@@ -16,7 +16,7 @@ require('proof')(31, async okay => {
             var store = db.createObjectStore("test", { keyPath: "pKey" });
             var index = store.createIndex("idx", "iKey");
 
-            for(var i = 0; i < records.length; i++) {
+            for(let i = 0; i < records.length; i++) {
                 store.add(records[i]);
             }
 
@@ -24,21 +24,21 @@ require('proof')(31, async okay => {
         }
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = setup_test_store(db);
                 var index = store.index("idx");
                 var cursor_rq = index.openCursor();
                 var cursor;
 
                 cursor_rq.onerror = t.unreached_func('openCursor should succeed');
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     cursor = e.target.result;
                     assert_true(!!cursor, "acquire cursor");
 
                     store.deleteIndex("idx");
                 });
-                txn.oncomplete = t.step_func(function() {
-                    assert_throws_dom("TransactionInactiveError", function() {
+                txn.oncomplete = t.step_func(function oncomplete() {
+                    assert_throws_dom("TransactionInactiveError", function oncomplete() {
                         cursor.continuePrimaryKey("A", 4);
                     }, "transaction-state check should precede deletion check");
                     t.done();
@@ -49,19 +49,19 @@ require('proof')(31, async okay => {
         );
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = setup_test_store(db);
                 var cursor_rq = store.openCursor();
                 var cursor;
 
                 cursor_rq.onerror = t.unreached_func('openCursor should succeed');
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     cursor = e.target.result;
                     assert_true(!!cursor, "acquire cursor");
 
                     db.deleteObjectStore("test");
 
-                    assert_throws_dom("InvalidStateError", function() {
+                    assert_throws_dom("InvalidStateError", function onsuccess() {
                         cursor.continuePrimaryKey("A", 4);
                     }, "deletion check should precede index source check");
                     t.done();
@@ -72,20 +72,20 @@ require('proof')(31, async okay => {
         );
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = setup_test_store(db);
                 var index = store.index("idx");
                 var cursor_rq = index.openCursor(null, "nextunique");
                 var cursor;
 
                 cursor_rq.onerror = t.unreached_func('openCursor should succeed');
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     cursor = e.target.result;
                     assert_true(!!cursor, "acquire cursor");
 
                     store.deleteIndex("idx");
 
-                    assert_throws_dom("InvalidStateError", function() {
+                    assert_throws_dom("InvalidStateError", function onsuccess() {
                       cursor.continuePrimaryKey("A", 4);
                     }, "deletion check should precede cursor direction check");
                     t.done();
@@ -96,7 +96,7 @@ require('proof')(31, async okay => {
         );
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = db.createObjectStore("test", {keyPath:"pKey"});
                 var index = store.createIndex("idx", "iKey");
 
@@ -106,14 +106,14 @@ require('proof')(31, async okay => {
                 var cursor;
 
                 cursor_rq.onerror = t.unreached_func('openCursor should succeed');
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     if (e.target.result) {
                         cursor = e.target.result;
                         cursor.continue();
                         return;
                     }
 
-                    assert_throws_dom("InvalidAccessError", function() {
+                    assert_throws_dom("InvalidAccessError", function onsuccess() {
                         cursor.continuePrimaryKey("A", 4);
                     }, "direction check should precede got_value_flag check");
                     t.done();
@@ -124,7 +124,7 @@ require('proof')(31, async okay => {
         );
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = db.createObjectStore("test", {keyPath:"pKey"});
                 var index = store.createIndex("idx", "iKey");
 
@@ -134,14 +134,14 @@ require('proof')(31, async okay => {
                 var cursor;
 
                 cursor_rq.onerror = t.unreached_func('openCursor should succeed');
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     if (!cursor) {
                         cursor = e.target.result;
                         assert_true(!!cursor, "acquire cursor");
 
                         cursor.continue();
 
-                        assert_throws_dom("InvalidAccessError", function() {
+                        assert_throws_dom("InvalidAccessError", function onsuccess() {
                             cursor.continuePrimaryKey("A", 4);
                         }, "direction check should precede iteration ongoing check");
                         t.done();
@@ -153,20 +153,20 @@ require('proof')(31, async okay => {
         );
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = setup_test_store(db);
                 var cursor_rq = store.openCursor();
                 var cursor;
 
                 cursor_rq.onerror = t.unreached_func('openCursor should succeed');
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     if (!cursor) {
                         cursor = e.target.result;
                         assert_true(!!cursor, "acquire cursor");
 
                         cursor.continue();
 
-                        assert_throws_dom("InvalidAccessError", function() {
+                        assert_throws_dom("InvalidAccessError", function onsuccess() {
                             cursor.continuePrimaryKey("A", 4);
                         }, "index source check should precede iteration ongoing check");
                         t.done();
@@ -178,7 +178,7 @@ require('proof')(31, async okay => {
         );
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = db.createObjectStore("test", {keyPath:"pKey"});
 
                 store.add({ iKey: "A", pKey: 1 });
@@ -187,14 +187,14 @@ require('proof')(31, async okay => {
                 var cursor;
 
                 cursor_rq.onerror = t.unreached_func('openCursor should succeed');
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     if (e.target.result) {
                         cursor = e.target.result;
                         cursor.continue();
                         return;
                     }
 
-                    assert_throws_dom("InvalidAccessError", function() {
+                    assert_throws_dom("InvalidAccessError", function onsuccess() {
                         cursor.continuePrimaryKey("A", 4);
                     }, "index source check should precede got_value_flag check");
                     t.done();
@@ -205,21 +205,21 @@ require('proof')(31, async okay => {
         );
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = setup_test_store(db);
                 var index = store.index("idx");
                 var cursor_rq = index.openCursor();
                 var cursor;
 
                 cursor_rq.onerror = t.unreached_func('openCursor should succeed');
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     if (!cursor) {
                         cursor = e.target.result;
                         assert_true(!!cursor, "acquire cursor");
 
                         cursor.continue();
 
-                        assert_throws_dom("InvalidStateError", function() {
+                        assert_throws_dom("InvalidStateError", function onsuccess() {
                             cursor.continuePrimaryKey(null, 4);
                         }, "iteration ongoing check should precede unset key check");
                         t.done();
@@ -231,7 +231,7 @@ require('proof')(31, async okay => {
         );
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = db.createObjectStore("test", {keyPath:"pKey"});
                 var index = store.createIndex("idx", "iKey");
 
@@ -241,14 +241,14 @@ require('proof')(31, async okay => {
                 var cursor;
 
                 cursor_rq.onerror = t.unreached_func('openCursor should succeed');
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     if (e.target.result) {
                         cursor = e.target.result;
                         cursor.continue();
                         return;
                     }
 
-                    assert_throws_dom("InvalidStateError", function() {
+                    assert_throws_dom("InvalidStateError", function onsuccess() {
                         cursor.continuePrimaryKey(null, 4);
                     }, "got_value_flag check should precede unset key check");
                     t.done();
@@ -259,18 +259,18 @@ require('proof')(31, async okay => {
         );
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = setup_test_store(db);
                 var index = store.index("idx");
                 var cursor_rq = index.openCursor();
                 var cursor;
 
                 cursor_rq.onerror = t.unreached_func('openCursor should succeed');
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     cursor = e.target.result;
                     assert_true(!!cursor, "acquire cursor");
 
-                    assert_throws_dom("DataError", function() {
+                    assert_throws_dom("DataError", function onsuccess() {
                         cursor.continuePrimaryKey(null, 4);
                     }, "DataError is expected if key is unset.");
                     t.done();
@@ -281,18 +281,18 @@ require('proof')(31, async okay => {
         );
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = setup_test_store(db);
                 var index = store.index("idx");
                 var cursor_rq = index.openCursor();
                 var cursor;
 
                 cursor_rq.onerror = t.unreached_func('openCursor should succeed');
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     cursor = e.target.result;
                     assert_true(!!cursor, "acquire cursor");
 
-                    assert_throws_dom("DataError", function() {
+                    assert_throws_dom("DataError", function onsuccess() {
                         cursor.continuePrimaryKey("A", null);
                     }, "DataError is expected if primary key is unset.");
                     t.done();
@@ -303,29 +303,29 @@ require('proof')(31, async okay => {
         );
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = setup_test_store(db);
                 var index = store.index("idx");
                 var cursor_rq = index.openCursor(IDBKeyRange.lowerBound("B"));
                 var cursor;
 
                 cursor_rq.onerror = t.unreached_func('openCursor should succeed');
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     cursor = e.target.result;
                     assert_true(!!cursor, "acquire cursor");
 
                     assert_equals(cursor.key, "B", "expected key");
                     assert_equals(cursor.primaryKey, 5, "expected primary key");
 
-                    assert_throws_dom("DataError", function() {
+                    assert_throws_dom("DataError", function onsuccess() {
                         cursor.continuePrimaryKey("A", 6);
                     }, "DataError is expected if key is lower then current one.");
 
-                    assert_throws_dom("DataError", function() {
+                    assert_throws_dom("DataError", function onsuccess() {
                         cursor.continuePrimaryKey("B", 5);
                     }, "DataError is expected if primary key is equal to current one.");
 
-                    assert_throws_dom("DataError", function() {
+                    assert_throws_dom("DataError", function onsuccess() {
                         cursor.continuePrimaryKey("B", 4);
                     }, "DataError is expected if primary key is lower than current one.");
 
@@ -337,29 +337,29 @@ require('proof')(31, async okay => {
         );
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = setup_test_store(db);
                 var index = store.index("idx");
                 var cursor_rq = index.openCursor(IDBKeyRange.upperBound("B"), "prev");
                 var cursor;
 
                 cursor_rq.onerror = t.unreached_func('openCursor should succeed');
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     cursor = e.target.result;
                     assert_true(!!cursor, "acquire cursor");
 
                     assert_equals(cursor.key, "B", "expected key");
                     assert_equals(cursor.primaryKey, 7, "expected primary key");
 
-                    assert_throws_dom("DataError", function() {
+                    assert_throws_dom("DataError", function onsuccess() {
                         cursor.continuePrimaryKey("C", 6);
                     }, "DataError is expected if key is larger then current one.");
 
-                    assert_throws_dom("DataError", function() {
+                    assert_throws_dom("DataError", function onsuccess() {
                         cursor.continuePrimaryKey("B", 7);
                     }, "DataError is expected if primary key is equal to current one.");
 
-                    assert_throws_dom("DataError", function() {
+                    assert_throws_dom("DataError", function onsuccess() {
                         cursor.continuePrimaryKey("B", 8);
                     }, "DataError is expected if primary key is larger than current one.");
 

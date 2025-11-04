@@ -31,7 +31,7 @@ require('proof')(13, async okay => {
                             .index("index")
                             .openCursor(undefined, 'prevunique');
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 if (!e.target.result) {
                     assert_equals(count, expected.length, 'count');
                     t.done();

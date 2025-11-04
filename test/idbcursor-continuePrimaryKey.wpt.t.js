@@ -1,7 +1,7 @@
 require('proof')(27, async okay => {
     await require('./harness')(okay, 'idbcursor-continuePrimaryKey')
-    await harness(async function () {
-        'use strict';
+    await harness(async () => {
+        
 
         indexeddb_test(
             (t, db, txn) => {
@@ -85,7 +85,7 @@ require('proof')(27, async okay => {
               ];
 
               const verifyContinueCalls = () => {
-                if (!testCases.length) {
+                if (testCases.length === 0) {
                   t.done();
                   return;
                 }

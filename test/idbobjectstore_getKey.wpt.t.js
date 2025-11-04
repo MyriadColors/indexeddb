@@ -1,10 +1,10 @@
 require('proof')(19, async okay => {
     await require('./harness')(okay, 'idbobjectstore_getKey')
-    await harness(async function () {
+    await harness(async () => {
 
         function getkey_test(func, name) {
             indexeddb_test(
-                function(t, db, tx) {
+                (t, db, tx) => {
                     var basic = db.createObjectStore('basic');
                     var key_path_store = db.createObjectStore('key path',
                         {keyPath: 'id'});
@@ -26,12 +26,12 @@ require('proof')(19, async okay => {
             );
         }
 
-        getkey_test(function(t, db) {
+        getkey_test((t, db) => {
             var tx = db.transaction('basic');
             var store = tx.objectStore('basic');
-            assert_throws_js(TypeError, function() { store.getKey(); });
-            assert_throws_dom('DataError', function() { store.getKey(null); });
-            assert_throws_dom('DataError', function() { store.getKey({}); });
+            assert_throws_js(TypeError, () => { store.getKey(); });
+            assert_throws_dom('DataError', () => { store.getKey(null); });
+            assert_throws_dom('DataError', () => { store.getKey({}); });
             t.done();
         }, 'IDBObjectStore.getKey() - invalid parameters');
 
@@ -40,54 +40,54 @@ require('proof')(19, async okay => {
             'key path',
             'key generator',
             'key generator and key path'
-        ].forEach(function(store_name) {
+        ].forEach((store_name) => {
 
-            getkey_test(function(t, db) {
+            getkey_test((t, db) => {
                 var tx = db.transaction(store_name);
                 var store = tx.objectStore(store_name);
                 var request = store.getKey(5);
                 request.onerror = t.unreached_func('request failed');
-                request.onsuccess = t.step_func(function() {
+                request.onsuccess = t.step_func(function onsuccess() {
                     assert_equals(request.result, 5);
                 });
                 tx.onabort = t.unreached_func('transaction aborted');
-                tx.oncomplete = t.step_func(function() { t.done(); });
+                tx.oncomplete = t.step_func(function oncomplete() { t.done(); });
             }, 'IDBObjectStore.getKey() - ' + store_name + ' - key');
 
-            getkey_test(function(t, db) {
+            getkey_test((t, db) => {
                 var tx = db.transaction(store_name);
                 var store = tx.objectStore(store_name);
                 var request = store.getKey(IDBKeyRange.lowerBound(4.5));
                 request.onerror = t.unreached_func('request failed');
-                request.onsuccess = t.step_func(function() {
+                request.onsuccess = t.step_func(function onsuccess() {
                     assert_equals(request.result, 5);
                 });
                 tx.onabort = t.unreached_func('transaction aborted');
-                tx.oncomplete = t.step_func(function() { t.done(); });
+                tx.oncomplete = t.step_func(function oncomplete() { t.done(); });
             }, 'IDBObjectStore.getKey() - ' + store_name + ' - range');
 
-            getkey_test(function(t, db) {
+            getkey_test((t, db) => {
                 var tx = db.transaction(store_name);
                 var store = tx.objectStore(store_name);
                 var request = store.getKey(11);
                 request.onerror = t.unreached_func('request failed');
-                request.onsuccess = t.step_func(function() {
-                    assert_equals(request.result, undefined);
+                request.onsuccess = t.step_func(function onsuccess() {
+                    assert_equals(request.result);
                 });
                 tx.onabort = t.unreached_func('transaction aborted');
-                tx.oncomplete = t.step_func(function() { t.done(); });
+                tx.oncomplete = t.step_func(function oncomplete() { t.done(); });
             }, 'IDBObjectStore.getKey() - ' + store_name + ' - key - no match');
 
-            getkey_test(function(t, db) {
+            getkey_test((t, db) => {
                 var tx = db.transaction(store_name);
                 var store = tx.objectStore(store_name);
                 var request = store.getKey(IDBKeyRange.lowerBound(11));
                 request.onerror = t.unreached_func('request failed');
-                request.onsuccess = t.step_func(function() {
-                    assert_equals(request.result, undefined);
+                request.onsuccess = t.step_func(function onsuccess() {
+                    assert_equals(request.result);
                 });
                 tx.onabort = t.unreached_func('transaction aborted');
-                tx.oncomplete = t.step_func(function() { t.done(); });
+                tx.oncomplete = t.step_func(function oncomplete() { t.done(); });
             }, 'IDBObjectStore.getKey() - ' + store_name + ' - range - no match');
         });
 

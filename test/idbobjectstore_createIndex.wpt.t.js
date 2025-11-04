@@ -1,11 +1,11 @@
 require('proof')(6, async okay => {
     await require('./harness')(okay, 'idbobjectstore_createIndex')
-    await harness(async function () {
+    await harness(async () => {
         var db,
           t = async_test();
 
         var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             db = e.target.result;
             var objStore = db.createObjectStore("store");
             var index = objStore.createIndex("index", "indexedProperty", { unique: true });

@@ -1,6 +1,6 @@
 require('proof')(10, async okay => {
     await require('./harness')(okay, 'idbfactory-open-request-error')
-    await harness(async function () {
+    await harness(async () => {
 
         let saw_abort = false;
 

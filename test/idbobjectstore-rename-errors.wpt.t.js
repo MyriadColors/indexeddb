@@ -1,7 +1,7 @@
 require('proof')(50, async okay => {
     await require('./harness')(okay, 'idbobjectstore-rename-errors')
-    await harness(async function () {
-        'use strict';
+    await harness(async () => {
+        
 
         promise_test(testCase => {
             return createDatabase(testCase, (database, transaction) => {

@@ -1,6 +1,6 @@
 require('proof')(1, async okay => {
     await require('./harness')(okay, 'idbobjectstore-index-finished')
-    await harness(async function () {
+    await harness(async () => {
 
         indexeddb_test(
           (t, db) => {

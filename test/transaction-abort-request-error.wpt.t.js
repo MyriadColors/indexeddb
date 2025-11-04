@@ -1,6 +1,6 @@
 require('proof')(18, async okay => {
     await require('./harness')(okay, 'transaction-abort-request-error')
-    await harness(async function () {
+    await harness(async () => {
 
         indexeddb_test(
           (t, db) => {

@@ -19,12 +19,12 @@ require('proof')(90, async okay => {
                 var rq = db.transaction("store")
                            .objectStore("store")
                            .get(key)
-                rq.onsuccess = t.step_func(function onsuccess(e) {
+                rq.onsuccess = t.step_func(function onsuccess(_e) {
                     assert_equals(e.target.result, 'value')
                     var rq = db.transaction("store2")
                                .objectStore("store2")
                                .get(['v', key])
-                    rq.onsuccess = t.step_func(function onsuccess(e) {
+                    rq.onsuccess = t.step_func(function onsuccess(_e) {
                         assert_equals(e.target.result.x, 'v');
                         assert_key_equals(e.target.result.keypath, key);
                         t.done()

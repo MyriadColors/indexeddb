@@ -1,6 +1,6 @@
 require('proof')(10, async okay => {
     await require('./harness')(okay, 'idbfactory-open-request-success')
-    await harness(async function () {
+    await harness(async () => {
 
         let saw_complete = false;
 

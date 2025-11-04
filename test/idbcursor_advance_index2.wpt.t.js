@@ -18,16 +18,16 @@ require('proof')(2, async okay => {
                 {objStore.add(records[i]);}
         };
 
-        open_rq.onsuccess = function onsuccess(e) {
+        open_rq.onsuccess = function onsuccess(_e) {
             var cursor_rq = db.transaction("test")
                               .objectStore("test")
                               .index("index")
                               .openCursor();
 
-            cursor_rq.onsuccess = test.step_func(function onsuccess(e) {
+            cursor_rq.onsuccess = test.step_func(function onsuccess(_e) {
                 var cursor = e.target.result;
 
-                assert_true(cursor != null, "cursor exist");
+                assert_true(cursor !== null, "cursor exist");
                 assert_throws_js(TypeError,
                     function onsuccess() { cursor.advance(document); });
 

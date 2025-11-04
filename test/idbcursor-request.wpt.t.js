@@ -1,6 +1,6 @@
 require('proof')(16, async okay => {
     await require('./harness')(okay, 'idbcursor-request')
-    await harness(async function () {
+    await harness(async () => {
         // META: script=support.js
 
         function cursorRequestTest({ useIndex, useKeyCursor }) {
@@ -13,7 +13,7 @@ require('proof')(16, async okay => {
             (t, db) => {
               const tx = db.transaction("my_objectstore");
               let source = tx.objectStore("my_objectstore");
-              if (useIndex) source = source.index('my_index');
+              if (useIndex) {source = source.index('my_index');}
               const req = useKeyCursor ? source.openKeyCursor() : source.openCursor();
               let cursor;
 

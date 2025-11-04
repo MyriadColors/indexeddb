@@ -1,6 +1,6 @@
 require('proof')(7, async okay => {
     await require('./harness')(okay, 'idbindex-request-source')
-    await harness(async function () {
+    await harness(async () => {
 
         [
           index => index.get(0),

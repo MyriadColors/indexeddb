@@ -25,7 +25,7 @@ require('proof')(3, async okay => {
                          .objectStore("store")
                          .openCursor();
 
-                rq.onsuccess = t.step_func(function onsuccess(e) {
+                rq.onsuccess = t.step_func(function onsuccess(_e) {
                     const cursor = e.target.result;
 
                     if (cursor) {

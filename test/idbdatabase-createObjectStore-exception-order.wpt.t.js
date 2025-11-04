@@ -1,6 +1,6 @@
 require('proof')(4, async okay => {
     await require('./harness')(okay, 'idbdatabase-createObjectStore-exception-order')
-    await harness(async function () {
+    await harness(async () => {
 
         indexeddb_test(
           (t, db, txn, rq) => {

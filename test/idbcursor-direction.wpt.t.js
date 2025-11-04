@@ -1,6 +1,6 @@
 require('proof')(30, async okay => {
     await require('./harness')(okay, 'idbcursor-direction')
-    await harness(async function () {
+    await harness(async () => {
 
         function cursor_direction(constant, dir)
         {
@@ -10,9 +10,9 @@ require('proof')(30, async okay => {
 
             var open_rq = createdb(t);
 
-            open_rq.onupgradeneeded = function(e) {
+            open_rq.onupgradeneeded = function onupgradeneeded(e) {
                 db = e.target.result;
-                t.add_cleanup(function() {
+                t.add_cleanup(function onupgradeneeded() {
                     db.close();
                     indexedDB.deleteDatabase(db.name);
                 });
@@ -22,16 +22,16 @@ require('proof')(30, async okay => {
                 objStore.add("data", "key");
             };
 
-            open_rq.onsuccess = t.step_func(function(e) {
+            open_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor_rq, count = 0;
                 var os = db.transaction("test")
                            .objectStore("test");
                 if (dir)
-                    cursor_rq = os.openCursor(undefined, dir);
+                    {cursor_rq = os.openCursor(undefined, dir);}
                 else
-                    cursor_rq = os.openCursor();
+                    {cursor_rq = os.openCursor();}
 
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     var cursor = e.target.result;
 
                     assert_equals(cursor.direction, constant, 'direction constant');
@@ -40,14 +40,14 @@ require('proof')(30, async okay => {
 
                     count++;
                     if (count >= 2)
-                        t.done();
+                        {t.done();}
                 });
 
                 var cursor_rq2 = db.transaction("test")
                                   .objectStore("test")
                                   .openCursor(undefined, constant);
 
-                cursor_rq2.onsuccess = t.step_func(function(e) {
+                cursor_rq2.onsuccess = t.step_func(function onsuccess(_e) {
                     var cursor = e.target.result;
 
                     assert_equals(cursor.direction, constant, 'direction constant (second try)');
@@ -56,7 +56,7 @@ require('proof')(30, async okay => {
 
                     count++;
                     if (count >= 2)
-                        t.done();
+                        {t.done();}
                 });
 
             });

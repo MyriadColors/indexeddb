@@ -1,20 +1,20 @@
 require('proof')(1, async okay => {
     await require('./harness')(okay, 'idbobjectstore_add15')
-    await harness(async function () {
+    await harness(async () => {
         var db,
             t = async_test();
 
         var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function (event) {
+        open_rq.onupgradeneeded = function  onupgradeneeded(event) {
             db = event.target.result;
             db.createObjectStore("store", {keyPath:"pKey"});
         }
 
-        open_rq.onsuccess = function (event) {
+        open_rq.onsuccess = function  onsuccess(event) {
             var txn = db.transaction("store");
             var ostore = txn.objectStore("store");
-            t.step(function(){
-                assert_throws_dom("ReadOnlyError", function(){
+            t.step(function onsuccess(){
+                assert_throws_dom("ReadOnlyError", function onsuccess(){
                 console.log('--- x ---')
                     ostore.add({ pKey: "primaryKey_0"});
                 });

@@ -24,7 +24,7 @@ require('proof')(2, async okay => {
                               .index("index")
                               .openCursor();
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor = e.target.result;
 
                 assert_throws_dom("DataError",

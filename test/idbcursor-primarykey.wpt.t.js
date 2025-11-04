@@ -1,6 +1,6 @@
 require('proof')(14, async okay => {
     await require('./harness')(okay, 'idbcursor-primarykey')
-    await harness(async function () {
+    await harness(async () => {
 
         function cursor_primarykey(key)
         {
@@ -8,7 +8,7 @@ require('proof')(14, async okay => {
               t = async_test(document.title + " - " + key);
 
             var open_rq = createdb(t);
-            open_rq.onupgradeneeded = function(e) {
+            open_rq.onupgradeneeded = function onupgradeneeded(e) {
                 db = e.target.result;
                 var objStore = db.createObjectStore("test");
                 objStore.createIndex("index", "");
@@ -16,13 +16,13 @@ require('proof')(14, async okay => {
                 objStore.add("data", key);
             };
 
-            open_rq.onsuccess = t.step_func(function(e) {
+            open_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor_rq = db.transaction("test")
                                   .objectStore("test")
                                   .index("index")
                                   .openCursor();
 
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     var cursor = e.target.result;
 
                     assert_equals(cursor.value, "data", "prequisite cursor.value");
@@ -31,7 +31,7 @@ require('proof')(14, async okay => {
                     assert_key_equals(cursor.primaryKey, key, 'primaryKey');
                     assert_readonly(cursor, 'primaryKey');
 
-                    if (key instanceof Array) {
+                    if (Array.isArray(key)) {
                         cursor.primaryKey.push("new");
                         key.push("new");
 

@@ -1,6 +1,6 @@
 require('proof')(18, async okay => {
     await require('./harness')(okay, 'keypath-exceptions')
-    await harness(async function () {
+    await harness(async () => {
 
         indexeddb_test(
           (t, db) => {
@@ -24,10 +24,9 @@ require('proof')(18, async okay => {
         }
 
         indexeddb_test(
-          function(t, db) {
+          (t, db) => {
             const o = {};
-            Object.defineProperty(o, 'throws', {get: throwingGetter,
-                enumerable: false, configurable: true});
+            Object.defineProperty(o, 'throws', {configurable: true, enumerable: false, get: throwingGetter});
 
             // Value should be cloned before key path is evaluated,
             // and non-enumerable getter will be ignored. The clone
@@ -52,7 +51,7 @@ require('proof')(18, async okay => {
             // will have no such property, so generated key can be
             // inserted.
             const s3 = db.createObjectStore('s3',
-                {keyPath: 'throws', autoIncrement: true});
+                {autoIncrement: true, keyPath: 'throws'});
             assert_class_string(s3.put(o), 'IDBRequest',
                 'Key injectability test at throwing getter should succeed');
 
@@ -61,7 +60,7 @@ require('proof')(18, async okay => {
             // will have no such property, so intermediate object
             // and generated key can be inserted.
             const s4 = db.createObjectStore('s4',
-                {keyPath: 'throws.x', autoIncrement: true});
+                {autoIncrement: true, keyPath: 'throws.x'});
             assert_class_string(s4.put(o), 'IDBRequest',
                 'Key injectability test past throwing getter should succeed');
           },
@@ -72,10 +71,9 @@ require('proof')(18, async okay => {
         );
 
         indexeddb_test(
-          function(t, db) {
+          (t, db) => {
             const o = {};
-            Object.defineProperty(o, 'throws', {get: throwingGetter,
-                enumerable: true, configurable: true});
+            Object.defineProperty(o, 'throws', {configurable: true, enumerable: true, get: throwingGetter});
 
             // Value should be cloned before key path is evaluated,
             // and enumerable getter will rethrow.
@@ -94,7 +92,7 @@ require('proof')(18, async okay => {
             // Value should be cloned before key path is evaluated,
             // and enumerable getter will rethrow.
             const s3 = db.createObjectStore('s3',
-                {keyPath: 'throws', autoIncrement: true});
+                {autoIncrement: true, keyPath: 'throws'});
             assert_throws_exactly(err, () => {
               s3.put(o);
             }, 'Key injectability test at throwing getter should rethrow');
@@ -102,7 +100,7 @@ require('proof')(18, async okay => {
             // Value should be cloned before key path is evaluated,
             // and enumerable getter will rethrow.
             const s4 = db.createObjectStore('s4',
-                {keyPath: 'throws.x', autoIncrement: true});
+                {autoIncrement: true, keyPath: 'throws.x'});
             assert_throws_exactly(err, () => {
               s4.put(o);
             }, 'Key injectability test past throwing getter should rethrow');
@@ -119,10 +117,9 @@ require('proof')(18, async okay => {
             // immediately after use, otherwise it may
             // interfere with the test harness.
             function with_proto_getter(f) {
-              return function() {
+              return () => {
                 Object.defineProperty(Object.prototype, 'throws', {
-                  get: throwingGetter,
-                  enumerable: false, configurable: true
+                  configurable: true, enumerable: false, get: throwingGetter
                 });
                 try {
                   f();
@@ -137,7 +134,7 @@ require('proof')(18, async okay => {
             // will have no own property, so key path evaluation will
             // fail and DataError should be thrown.
             const s1 = db.createObjectStore('s1', {keyPath: 'throws'});
-            assert_throws_dom('DataError', with_proto_getter(function() {
+            assert_throws_dom('DataError', with_proto_getter(() => {
               s1.put({});
             }), 'Key path resolving to no own property throws DataError');
 
@@ -146,7 +143,7 @@ require('proof')(18, async okay => {
             // will have no own property, so key path evaluation will
             // fail and DataError should be thrown.
             const s2 = db.createObjectStore('s2', {keyPath: 'throws.x'});
-            assert_throws_dom('DataError', with_proto_getter(function() {
+            assert_throws_dom('DataError', with_proto_getter(() => {
               s2.put({});
             }), 'Key path resolving past no own property throws DataError');
 
@@ -155,7 +152,7 @@ require('proof')(18, async okay => {
             // will have no own property, so key path evaluation will
             // fail and injection can succeed.
             const s3 = db.createObjectStore('s3',
-                {keyPath: 'throws', autoIncrement: true});
+                {autoIncrement: true, keyPath: 'throws'});
             assert_equals(s3.put({}).readyState, 'pending',
                           'put should not throw due to inherited property');
 
@@ -164,7 +161,7 @@ require('proof')(18, async okay => {
             // will have no own property, so key path evaluation will
             // fail and injection can succeed.
             const s4 = db.createObjectStore('s4',
-                {keyPath: 'throws.x', autoIncrement: true});
+                {autoIncrement: true, keyPath: 'throws.x'});
             assert_equals(s4.put({}).readyState, 'pending',
                           'put should not throw due to inherited property');
           },
@@ -182,8 +179,7 @@ require('proof')(18, async okay => {
             function with_proto_getter(f) {
               return () => {
                 Object.defineProperty(Object.prototype, 'throws', {
-                  get: throwingGetter,
-                  enumerable: true, configurable: true
+                  configurable: true, enumerable: true, get: throwingGetter
                 });
                 try {
                   f();
@@ -197,7 +193,7 @@ require('proof')(18, async okay => {
             // The clone will have no own property, so key path
             // evaluation will fail and DataError should be thrown.
             const s1 = db.createObjectStore('s1', {keyPath: 'throws'});
-            assert_throws_dom('DataError', with_proto_getter(function() {
+            assert_throws_dom('DataError', with_proto_getter(() => {
               s1.put({});
             }), 'Key path resolving to no own property throws DataError');
 
@@ -205,7 +201,7 @@ require('proof')(18, async okay => {
             // The clone will have no own property, so key path
             // evaluation will fail and DataError should be thrown.
             const s2 = db.createObjectStore('s2', {keyPath: 'throws.x'});
-            assert_throws_dom('DataError', with_proto_getter(function() {
+            assert_throws_dom('DataError', with_proto_getter(() => {
               s2.put({});
             }), 'Key path resolving past throwing getter rethrows');
 
@@ -213,7 +209,7 @@ require('proof')(18, async okay => {
             // The clone will have no own property, so key path
             // evaluation will fail and injection can succeed.
             var s3 = db.createObjectStore('s3',
-                {keyPath: 'throws', autoIncrement: true});
+                {autoIncrement: true, keyPath: 'throws'});
             assert_equals(s3.put({}).readyState, 'pending',
                           'put should not throw due to inherited property');
 
@@ -221,7 +217,7 @@ require('proof')(18, async okay => {
             // The clone will have no own property, so key path
             // evaluation will fail and injection can succeed.
             var s4 = db.createObjectStore('s4',
-                {keyPath: 'throws.x', autoIncrement: true});
+                {autoIncrement: true, keyPath: 'throws.x'});
             assert_equals(s4.put({}).readyState, 'pending',
                           'put should not throw due to inherited property');
           },
@@ -249,8 +245,7 @@ require('proof')(18, async okay => {
             function with_proto_getter(f) {
               const prop = '50';
               Object.defineProperty(Object.prototype, prop, {
-                enumerable: true, configurable: true,
-                get: () => {
+                configurable: true, enumerable: true, get: () => {
                   ++getter_called;
                   return 'foo';
                 }
@@ -265,7 +260,7 @@ require('proof')(18, async okay => {
             const request = with_proto_getter(
               () => tx.objectStore('store').put({index0: array}, 'key'));
             request.onerror = t.unreached_func('put should not fail');
-            request.onsuccess = t.step_func(function() {
+            request.onsuccess = t.step_func(function onsuccess() {
               assert_equals(getter_called, 0, 'Prototype getter should not be called');
               t.done();
             });

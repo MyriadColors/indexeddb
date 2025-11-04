@@ -1,6 +1,6 @@
 require('proof')(4, async okay => {
     await require('./harness')(okay, 'idbindex_keyPath')
-    await harness(async function () {
+    await harness(async () => {
         // META: title=IndexedDB: IDBIndex keyPath attribute - same object
         // META: script=support.js
 

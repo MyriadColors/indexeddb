@@ -1,17 +1,17 @@
 require('proof')(6, async okay => {
     await require('./harness')(okay, 'idbrequest-onupgradeneeded')
-    await harness(async function () {
+    await harness(async () => {
 
         function upgradeneeded_test(upgrade_func, success_func, error_func, description) {
-          async_test(function(t) {
+          async_test((t) => {
             var dbName = 'db' + self.location.pathname + '-' + description;
             var delete_request = indexedDB.deleteDatabase(dbName);
             delete_request.onerror = t.unreached_func('deleteDatabase should not fail');
-            delete_request.onsuccess = t.step_func(function() {
+            delete_request.onsuccess = t.step_func(function onsuccess() {
               var open_request = indexedDB.open(dbName);
 
-              open_request.onupgradeneeded = t.step_func(function() {
-                t.add_cleanup(function() {
+              open_request.onupgradeneeded = t.step_func(function onupgradeneeded() {
+                t.add_cleanup(function onupgradeneeded() {
                   if (open_request.result) {
                     open_request.result.close(),
                     indexedDB.deleteDatabase(dbName);
@@ -19,11 +19,11 @@ require('proof')(6, async okay => {
                 });
                 upgrade_func(t, open_request);
               });
-              open_request.onsuccess = t.step_func(function() {
+              open_request.onsuccess = t.step_func(function onsuccess() {
                 success_func(t, open_request);
               });
               if (error_func) {
-                open_request.onerror = function() { error_func(t, open_request); };
+                open_request.onerror = function onerror() { error_func(t, open_request); };
               } else {
                 open_request.onerror = t.unreached_func('open failed');
               }
@@ -31,14 +31,14 @@ require('proof')(6, async okay => {
           }, description);
         }
 
-        (function() {
+        (() => {
           var order = [];
           upgradeneeded_test(
             function upgrade(t, request) {
               order.push('Upgrade');
               var db = request.result;
               var deleteRequest = indexedDB.deleteDatabase(db.name);
-              deleteRequest.onsuccess = t.step_func(function() {
+              deleteRequest.onsuccess = t.step_func(function onsuccess() {
                 assert_array_equals(order, ['Upgrade', 'Open Success']);
                 t.done();
               });
@@ -54,7 +54,7 @@ require('proof')(6, async okay => {
           );
         }());
 
-        (function() {
+        (() => {
           var order = [];
           upgradeneeded_test(
             function upgrade(t, request) {
@@ -63,7 +63,7 @@ require('proof')(6, async okay => {
               order.push('Upgrade Transaction Aborted');
               var db = request.result;
               var deleteRequest = indexedDB.deleteDatabase(db.name);
-              deleteRequest.onsuccess = t.step_func(function() {
+              deleteRequest.onsuccess = t.step_func(function onsuccess() {
                 assert_array_equals(
                     order, ['Upgrade', 'Upgrade Transaction Aborted', 'Open Error']);
                 t.done();
@@ -81,7 +81,7 @@ require('proof')(6, async okay => {
           );
         }());
 
-        (function() {
+        (() => {
           var order = [];
           upgradeneeded_test(
             function upgrade(t, request) {
@@ -90,7 +90,7 @@ require('proof')(6, async okay => {
               var deleteRequest = indexedDB.deleteDatabase(db.name);
               request.transaction.abort();
               order.push('Upgrade Transaction Aborted');
-              deleteRequest.onsuccess = t.step_func(function() {
+              deleteRequest.onsuccess = t.step_func(function onsuccess() {
                 assert_array_equals(
                     order, ['Upgrade', 'Upgrade Transaction Aborted', 'Open Error']);
                 t.done();
@@ -108,19 +108,19 @@ require('proof')(6, async okay => {
           );
         }());
 
-        (function() {
+        (() => {
           var order = [];
           upgradeneeded_test(
             function upgrade(t, request) {
               order.push('Upgrade');
               var db = request.result;
               db.createObjectStore('store');
-              request.transaction.oncomplete = t.step_func(function() {
+              request.transaction.oncomplete = t.step_func(function oncomplete() {
                 order.push('Upgrade transaction complete');
                 var txn = db.transaction('store', 'readwrite');
                 var store = txn.objectStore('store');
                 store.put('value', 'key');
-                txn.oncomplete = t.step_func(function() {
+                txn.oncomplete = t.step_func(function oncomplete() {
                   assert_array_equals(
                       order,
                       ['Upgrade', 'Upgrade transaction complete', 'Open Success']);

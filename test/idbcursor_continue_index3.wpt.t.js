@@ -25,7 +25,7 @@ require('proof')(3, async okay => {
                               .index("index")
                               .openCursor(undefined, "next"); // XXX: Fx has issue with "undefined"
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor = e.target.result;
                 if (!cursor) {
                     assert_equals(count, 2, "ran number of times");

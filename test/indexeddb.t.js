@@ -43,13 +43,13 @@ require('proof')(2, async okay => {
         let [ _, firstName, lastName, start, end, born ] = /(\S+)\s+(.*)\s+(\S+)\s+(\S+)\s+(\S+)/.exec(line)
         let $ = /(\S)\.\s+(.*)/.exec(lastName)
         let middleInitial = null
-        if ($ != null) {
+        if ($ !== null) {
             middleInitial = $[1]
             lastName = $[2]
         }
         let suffix = null
         $ = /(.*)\s+(II|Jr)/.exec(lastName)
-        if ($ != null) {
+        if ($ !== null) {
             lastName = $[1]
             suffix = $[2]
         }

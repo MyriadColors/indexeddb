@@ -180,9 +180,9 @@ function openNamedDatabase(testCase, databaseName, version) {
 // The data in the 'books' object store records in the first example of the
 // IndexedDB specification.
 const BOOKS_RECORD_DATA = [
-  { author: 'Fred', isbn: 123456, title: 'Quarry Memories' },
-  { author: 'Fred', isbn: 234567, title: 'Water Buffaloes' },
-  { author: 'Barney', isbn: 345678, title: 'Bedrock Nights' },
+  { author: 'Fred', isbn: 123_456, title: 'Quarry Memories' },
+  { author: 'Fred', isbn: 234_567, title: 'Water Buffaloes' },
+  { author: 'Barney', isbn: 345_678, title: 'Bedrock Nights' },
 ];
 
 // Creates a 'books' object store whose contents closely resembles the first
@@ -315,8 +315,8 @@ function largeValue(size, seed) {
 async function deleteAllDatabases(testCase) {
   const dbs_to_delete = await indexedDB.databases();
   for( const db_info of dbs_to_delete) {
-    let request = indexedDB.deleteDatabase(db_info.name);
-    let eventWatcher = requestWatcher(testCase, request);
+    const request = indexedDB.deleteDatabase(db_info.name);
+    const eventWatcher = requestWatcher(testCase, request);
     await eventWatcher.wait_for('success');
   }
 }

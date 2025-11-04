@@ -1,6 +1,6 @@
 require('proof')(2, async okay => {
     await require('./harness')(okay, 'idbrequest_result')
-    await harness(async function () {
+    await harness(async () => {
         async_test(t => {
           var open = createdb(t);
           open.onupgradeneeded = t.step_func(e => {

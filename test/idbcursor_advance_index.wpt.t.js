@@ -26,7 +26,7 @@ require('proof')(4, async okay => {
                               .index("idx")
                               .openCursor();
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor = e.target.result;
                 assert_true(cursor instanceof IDBCursor);
 

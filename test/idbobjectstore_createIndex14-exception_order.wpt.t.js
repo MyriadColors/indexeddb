@@ -1,16 +1,16 @@
 require('proof')(6, async okay => {
     await require('./harness')(okay, 'idbobjectstore_createIndex14-exception_order')
-    await harness(async function () {
+    await harness(async () => {
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = db.createObjectStore("s");
             },
-            function(t, db) {
+            (t, db) => {
                 var txn = db.transaction("s");
                 var store = txn.objectStore("s");
-                txn.oncomplete = function() {
-                    assert_throws_dom("InvalidStateError", function() {
+                txn.oncomplete = function oncomplete() {
+                    assert_throws_dom("InvalidStateError", function oncomplete() {
                         store.createIndex("index", "foo");
                     }, "Mode check should precede state check of the transaction");
                     t.done();
@@ -21,11 +21,11 @@ require('proof')(6, async okay => {
 
         var gDeletedObjectStore;
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 gDeletedObjectStore = db.createObjectStore("s");
                 db.deleteObjectStore("s");
-                txn.oncomplete = function() {
-                    assert_throws_dom("InvalidStateError", function() {
+                txn.oncomplete = function oncomplete() {
+                    assert_throws_dom("InvalidStateError", function oncomplete() {
                         gDeletedObjectStore.createIndex("index", "foo");
                     }, "Deletion check should precede transaction-state check");
                     t.done();
@@ -36,11 +36,11 @@ require('proof')(6, async okay => {
         );
 
         indexeddb_test(
-            function(t, db, txn) {
+            (t, db, txn) => {
                 var store = db.createObjectStore("s");
                 store.createIndex("index", "foo");
-                txn.oncomplete = function() {
-                    assert_throws_dom("TransactionInactiveError", function() {
+                txn.oncomplete = function oncomplete() {
+                    assert_throws_dom("TransactionInactiveError", function oncomplete() {
                         store.createIndex("index", "foo");
                     }, "Transaction-state check should precede index name check");
                     t.done();
@@ -51,13 +51,13 @@ require('proof')(6, async okay => {
         );
 
         indexeddb_test(
-            function(t, db) {
+            (t, db) => {
                 var store = db.createObjectStore("s");
                 store.createIndex("index", "foo");
-                assert_throws_dom("ConstraintError", function() {
+                assert_throws_dom("ConstraintError", () => {
                     store.createIndex("index", "invalid key path");
                 }, "Index name check should precede syntax check of the key path");
-                assert_throws_dom("ConstraintError", function() {
+                assert_throws_dom("ConstraintError", () => {
                     store.createIndex("index",
                                       ["invalid key path 1", "invalid key path 2"]);
                 }, "Index name check should precede syntax check of the key path");
@@ -68,9 +68,9 @@ require('proof')(6, async okay => {
         );
 
         indexeddb_test(
-            function(t, db) {
+            (t, db) => {
                 var store = db.createObjectStore("s");
-                assert_throws_dom("SyntaxError", function() {
+                assert_throws_dom("SyntaxError", () => {
                     store.createIndex("index",
                                       ["invalid key path 1", "invalid key path 2"],
                                       { multiEntry: true });

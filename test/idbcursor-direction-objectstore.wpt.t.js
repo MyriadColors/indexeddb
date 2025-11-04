@@ -1,6 +1,6 @@
 require('proof')(16, async okay => {
     await require('./harness')(okay, 'idbcursor-direction-objectstore')
-    await harness(async function () {
+    await harness(async () => {
         var records = [ "Alice", "Bob", "Greg" ];
         var directions = ["next", "prev", "nextunique", "prevunique"];
         var cases = [
@@ -10,19 +10,19 @@ require('proof')(16, async okay => {
           {dir: 'prevunique', expect: ['Greg', 'Bob', 'Alice']},
         ];
 
-        cases.forEach(function(testcase) {
+        cases.forEach((testcase) => {
           var dir = testcase.dir;
           var expect = testcase.expect;
           indexeddb_test(
-            function(t, db, tx) {
+            (t, db, tx) => {
               var objStore = db.createObjectStore("test");
-              for (var i = 0; i < records.length; i++)
-                objStore.add(records[i], records[i]);
+              for (let i = 0; i < records.length; i++)
+                {objStore.add(records[i], records[i]);}
             },
-            function(t, db) {
+            (t, db) => {
               var count = 0;
               var rq = db.transaction("test").objectStore("test").openCursor(undefined, dir);
-              rq.onsuccess = t.step_func(function(e) {
+              rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor = e.target.result;
                 if (!cursor) {
                   assert_equals(count, expect.length, "cursor runs");
@@ -33,7 +33,7 @@ require('proof')(16, async okay => {
                 count++;
                 cursor.continue();
               });
-              rq.onerror = t.step_func(function(e) {
+              rq.onerror = t.step_func(function onerror(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 assert_unreached("rq.onerror - " + e.message);

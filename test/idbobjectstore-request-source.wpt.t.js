@@ -1,6 +1,6 @@
 require('proof')(11, async okay => {
     await require('./harness')(okay, 'idbobjectstore-request-source')
-    await harness(async function () {
+    await harness(async () => {
 
         [
           store => store.put(0),

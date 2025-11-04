@@ -1,6 +1,6 @@
 require('proof')(23, async okay => {
     await require('./harness')(okay, 'transaction-deactivation-timing')
-    await harness(async function () {
+    await harness(async () => {
 
         indexeddb_test(
           (t, db, tx) => {

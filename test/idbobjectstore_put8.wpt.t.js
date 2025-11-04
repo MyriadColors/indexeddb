@@ -1,15 +1,15 @@
 require('proof')(1, async okay => {
     await require('./harness')(okay, 'idbobjectstore_put8')
-    await harness(async function () {
+    await harness(async () => {
         var db,
           t = async_test(),
           record = { property: "data" },
           expected_keys = [ 1, 2, 3, 4 ];
 
         var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             db = e.target.result;
-            var objStore = db.createObjectStore("store", { keyPath: "test.obj.key", autoIncrement: true });
+            var objStore = db.createObjectStore("store", { autoIncrement: true, keyPath: "test.obj.key" });
 
             objStore.put(record);
             objStore.put(record);
@@ -17,13 +17,13 @@ require('proof')(1, async okay => {
             objStore.put(record);
         };
 
-        open_rq.onsuccess = function(e) {
+        open_rq.onsuccess = function onsuccess(_e) {
             var actual_keys = [],
               rq = db.transaction("store")
                      .objectStore("store")
                      .openCursor();
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor = e.target.result;
 
                 if (cursor) {

@@ -1,7 +1,7 @@
 require('proof')(3, async okay => {
     await require('./harness')(okay, 'idbfactory_cmp')
-    await harness(async function () {
-        test(function() {
+    await harness(async () => {
+        test(() => {
             var greater = window.indexedDB.cmp(2, 1);
             var equal = window.indexedDB.cmp(2, 2);
             var less = window.indexedDB.cmp(1, 2);

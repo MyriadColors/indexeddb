@@ -1,6 +1,6 @@
 require('proof')(5, async okay => {
     await require('./harness')(okay, 'transaction-scheduling-across-connections')
-    await harness(async function () {
+    await harness(async () => {
         // META: script=support.js
 
         indexeddb_test(

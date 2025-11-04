@@ -26,7 +26,7 @@ require('proof')(5, async okay => {
                             .index("index")
                             .openCursor(undefined, "prev"); // XXX Fx issues w undefined
 
-            cursor_rq.onsuccess = t.step_func(function onsuccess(e) {
+            cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor = e.target.result,
                   record = cursor.value;
 

@@ -1,7 +1,7 @@
 require('proof')(31, async okay => {
     await require('./harness')(okay, 'idbobjectstore-rename-abort')
-    await harness(async function () {
-        'use strict';
+    await harness(async () => {
+        
 
         promise_test(testCase => {
             const dbName = databaseName(testCase);
@@ -61,8 +61,7 @@ require('proof')(31, async okay => {
         promise_test(testCase => {
             const dbName = databaseName(testCase);
             let notBookStore = null;
-            return createDatabase(testCase, (database, transaction) => {
-            }).then(database => {
+            return createDatabase(testCase, (database, transaction) => {}).then(database => {
                 database.close();
             }).then(() => migrateDatabase(testCase, 2, (database, transaction) => {
                 notBookStore = createNotBooksStore(testCase, database);

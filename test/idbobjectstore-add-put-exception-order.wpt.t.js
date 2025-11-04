@@ -1,6 +1,6 @@
 require('proof')(6, async okay => {
     await require('./harness')(okay, 'idbobjectstore-add-put-exception-order')
-    await harness(async function () {
+    await harness(async () => {
 
         ['put', 'add'].forEach(method => {
           indexeddb_test(

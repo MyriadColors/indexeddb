@@ -1,14 +1,14 @@
 require('proof')(14, async okay => {
     await require('./harness')(okay, 'idbindex_reverse_cursor')
-    await harness(async function () {
+    await harness(async () => {
         // META: title=Reverse Cursor Validity
         // META: script=support-promises.js
 
         async function iterateAndReturnAllCursorResult(testCase, cursor) {
           return new Promise((resolve, reject) => {
-            let results = [];
-            cursor.onsuccess = testCase.step_func(function(e) {
-              let cursor = e.target.result;
+            const results = [];
+            cursor.onsuccess = testCase.step_func(function onsuccess(_e) {
+              const cursor = e.target.result;
               if (!cursor) {
                 resolve(results);
                 return;
@@ -26,15 +26,15 @@ require('proof')(14, async okay => {
                       .createIndex('index', 'indexedOn');
           });
           const txn1 = db.transaction(['objectStore'], 'readwrite');
-          txn1.objectStore('objectStore').add({'key': 'firstItem', 'indexedOn': 3});
+          txn1.objectStore('objectStore').add({'indexedOn': 3, 'key': 'firstItem'});
           const txn2 = db.transaction(['objectStore'], 'readwrite');
-          txn2.objectStore('objectStore').put({'key': 'firstItem', 'indexedOn': -1});
+          txn2.objectStore('objectStore').put({'indexedOn': -1, 'key': 'firstItem'});
           const txn3= db.transaction(['objectStore'], 'readwrite');
-          txn3.objectStore('objectStore').add({'key': 'secondItem', 'indexedOn': 2});
+          txn3.objectStore('objectStore').add({'indexedOn': 2, 'key': 'secondItem'});
 
           const txn4 = db.transaction(['objectStore'], 'readonly');
           const cursor = txn4.objectStore('objectStore').index('index').openCursor(IDBKeyRange.bound(0, 10), "prev");
-          let results = await iterateAndReturnAllCursorResult(testCase, cursor);
+          const results = await iterateAndReturnAllCursorResult(testCase, cursor);
 
           assert_equals(results.length, 1);
 
@@ -48,13 +48,13 @@ require('proof')(14, async okay => {
                       .createIndex('index', 'indexedOn');
           });
           const txn = db.transaction(['objectStore'], 'readwrite');
-          txn.objectStore('objectStore').add({'key': '1', 'indexedOn': 2});
-          txn.objectStore('objectStore').put({'key': '1', 'indexedOn': -1});
-          txn.objectStore('objectStore').add({'key': '2', 'indexedOn': 1});
+          txn.objectStore('objectStore').add({'indexedOn': 2, 'key': '1'});
+          txn.objectStore('objectStore').put({'indexedOn': -1, 'key': '1'});
+          txn.objectStore('objectStore').add({'indexedOn': 1, 'key': '2'});
 
           const txn2 = db.transaction(['objectStore'], 'readonly');
           const cursor = txn2.objectStore('objectStore').index('index').openCursor(IDBKeyRange.bound(0, 10), "prev");
-          let results = await iterateAndReturnAllCursorResult(testCase, cursor);
+          const results = await iterateAndReturnAllCursorResult(testCase, cursor);
 
           assert_equals(1, results.length);
 

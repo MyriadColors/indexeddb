@@ -1,6 +1,6 @@
 require('proof')(3, async okay => {
     await require('./harness')(okay, 'idbcursor-delete-exception-order')
-    await harness(async function () {
+    await harness(async () => {
 
         indexeddb_test(
           (t, db) => {

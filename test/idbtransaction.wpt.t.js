@@ -1,7 +1,7 @@
 require('proof')(8, async okay => {
     await require('./harness')(okay, 'idbtransaction')
-    await harness(async function () {
-        async_test(function(t) {
+    await harness(async () => {
+        async_test((t) => {
           var dbname = "idbtransaction-" + document.location + t.name;
           indexedDB.deleteDatabase(dbname);
           var open_rq = indexedDB.open(dbname);
@@ -9,9 +9,9 @@ require('proof')(8, async okay => {
           open_rq.onblocked = t.unreached_func('open_rq.onblocked');
           open_rq.onerror = t.unreached_func('open_rq.onerror');
 
-          open_rq.onupgradeneeded = t.step_func(function(e) {
-            t.add_cleanup(function() {
-              open_rq.onerror = function(e) {
+          open_rq.onupgradeneeded = t.step_func(function onupgradeneeded(e) {
+            t.add_cleanup(function onupgradeneeded() {
+              open_rq.onerror = function onerror(e) {
                 e.preventDefault();
               };
               open_rq.result.close();
@@ -27,7 +27,7 @@ require('proof')(8, async okay => {
 
         }, document.title + " - request gotten by the handler");
 
-        async_test(function(t) {
+        async_test((t) => {
           var dbname = "idbtransaction-" + document.location + t.name;
           indexedDB.deleteDatabase(dbname);
           var open_rq = indexedDB.open(dbname);
@@ -42,9 +42,9 @@ require('proof')(8, async okay => {
           open_rq.onblocked = t.unreached_func('open_rq.onblocked');
           open_rq.onerror = t.unreached_func('open_rq.onerror');
 
-          open_rq.onupgradeneeded = t.step_func(function() {
-            t.add_cleanup(function() {
-              open_rq.onerror = function(e) {
+          open_rq.onupgradeneeded = t.step_func(function onupgradeneeded() {
+            t.add_cleanup(function onupgradeneeded() {
+              open_rq.onerror = function onerror(e) {
                 e.preventDefault();
               };
               open_rq.result.close();

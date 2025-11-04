@@ -1,6 +1,6 @@
 require('proof')(12, async okay => {
     await require('./harness')(okay, 'idbindex-query-exception-order')
-    await harness(async function () {
+    await harness(async () => {
 
         ['get',
          'getAll',

@@ -1,11 +1,11 @@
 require('proof')(2, async okay => {
     await require('./harness')(okay, 'idbobjectstore_clear2')
-    await harness(async function () {
+    await harness(async () => {
         var db,
           t = async_test();
 
         var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             db = e.target.result;
             var objStore = db.createObjectStore("store", { autoIncrement: true });
             objStore.createIndex("index", "indexedProperty");
@@ -16,18 +16,18 @@ require('proof')(2, async okay => {
             objStore.add({ indexedProperty: [1, 2, 1234] });
             objStore.add(1234);
 
-            objStore.clear().onsuccess = t.step_func(function(e) {
-                assert_equals(e.target.result, undefined);
+            objStore.clear().onsuccess = t.step_func(function onsuccess(_e) {
+                assert_equals(e.target.result);
             });
         };
 
-        open_rq.onsuccess = function(e) {
+        open_rq.onsuccess = function onsuccess(_e) {
             var rq = db.transaction("store")
                        .objectStore("store")
                        .index("index")
                        .openCursor();
 
-            rq.onsuccess = t.step_func(function(e) {
+            rq.onsuccess = t.step_func(function onsuccess(_e) {
                 assert_equals(e.target.result, null, 'cursor');
                 t.done();
             });

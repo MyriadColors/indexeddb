@@ -1,6 +1,6 @@
 require('proof')(11, async okay => {
     await require('./harness')(okay, 'idbcursor-key')
-    await harness(async function () {
+    await harness(async () => {
 
         function cursor_key(key)
         {
@@ -8,26 +8,26 @@ require('proof')(11, async okay => {
               t = async_test(document.title + " - " + key);
 
             var open_rq = createdb(t);
-            open_rq.onupgradeneeded = function(e) {
+            open_rq.onupgradeneeded = function onupgradeneeded(e) {
                 db = e.target.result;
                 var objStore = db.createObjectStore("test");
 
                 objStore.add("data", key);
             };
 
-            open_rq.onsuccess = t.step_func(function(e) {
+            open_rq.onsuccess = t.step_func(function onsuccess(_e) {
                 var cursor_rq = db.transaction("test")
                                   .objectStore("test")
                                   .openCursor();
 
-                cursor_rq.onsuccess = t.step_func(function(e) {
+                cursor_rq.onsuccess = t.step_func(function onsuccess(_e) {
                     var cursor = e.target.result;
                     assert_equals(cursor.value, "data", "prequisite cursor.value");
 
                     assert_key_equals(cursor.key, key, 'key');
                     assert_readonly(cursor, 'key');
 
-                    if (key instanceof Array) {
+                    if (Array.isArray(key)) {
                         cursor.key.push("new");
                         key.push("new");
 

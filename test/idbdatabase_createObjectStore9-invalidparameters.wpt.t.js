@@ -1,11 +1,11 @@
 require('proof')(4, async okay => {
     await require('./harness')(okay, 'idbdatabase_createObjectStore9-invalidparameters')
-    await harness(async function () {
+    await harness(async () => {
         function invalid_optionalParameters(desc, params, exception = "InvalidAccessError") {
             var t = async_test(document.title + " - " + desc);
 
-            createdb(t).onupgradeneeded = function(e) {
-                assert_throws_dom(exception, function() {
+            createdb(t).onupgradeneeded = function onupgradeneeded(e) {
+                assert_throws_dom(exception, function onupgradeneeded() {
                     e.target.result.createObjectStore("store", params);
                 });
 

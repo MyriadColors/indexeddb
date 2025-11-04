@@ -1,10 +1,10 @@
 require('proof')(12, async okay => {
     await require('./harness')(okay, 'idbdatabase_createObjectStore8-parameters')
-    await harness(async function () {
+    await harness(async () => {
         function optionalParameters(desc, params) {
             var t = async_test(document.title + " - " + desc);
 
-            createdb(t).onupgradeneeded = function(e) {
+            createdb(t).onupgradeneeded = function onupgradeneeded(e) {
                 e.target.result.createObjectStore("store", params);
 
                 okay('made it')

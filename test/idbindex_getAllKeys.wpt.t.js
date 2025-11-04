@@ -1,38 +1,38 @@
 require('proof')(13, async okay => {
     await require('./harness')(okay, 'idbindex_getAllKeys')
-    await harness(async function () {
+    await harness(async () => {
 
-        var alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+        var alphabet = [...'abcdefghijklmnopqrstuvwxyz'];
 
         function getall_test(func, name) {
           indexeddb_test(
-            function(t, connection, tx) {
+            (t, connection, tx) => {
               var store = connection.createObjectStore('generated',
                     {autoIncrement: true, keyPath: 'id'});
               var index = store.createIndex('test_idx', 'upper');
-              alphabet.forEach(function(letter) {
+              alphabet.forEach((letter) => {
                 store.put({ch: letter, upper: letter.toUpperCase()});
               });
 
               store = connection.createObjectStore('out-of-line', null);
               index = store.createIndex('test_idx', 'upper');
-              alphabet.forEach(function(letter) {
+              alphabet.forEach((letter) => {
                 store.put({ch: letter, upper: letter.toUpperCase()}, letter);
               });
 
               store = connection.createObjectStore('out-of-line-multi', null);
               index = store.createIndex('test_idx', 'attribs', {multiEntry: true});
-              alphabet.forEach(function(letter) {
+              alphabet.forEach((letter) => {
                 const attrs = [];
-                if (['a', 'e', 'i', 'o', 'u'].indexOf(letter) != -1)
-                  attrs.push('vowel');
+                if (['a', 'e', 'i', 'o', 'u'].indexOf(letter) !== -1)
+                  {attrs.push('vowel');}
                 else
-                  attrs.push('consonant');
-                if (letter == 'a')
-                  attrs.push('first');
-                if (letter == 'z')
-                  attrs.push('last');
-                store.put({ch: letter, attribs: attrs}, letter.toUpperCase());
+                  {attrs.push('consonant');}
+                if (letter === 'a')
+                  {attrs.push('first');}
+                if (letter === 'z')
+                  {attrs.push('last');}
+                store.put({attribs: attrs, ch: letter}, letter.toUpperCase());
               });
 
               store = connection.createObjectStore('empty', null);
@@ -52,36 +52,36 @@ require('proof')(13, async okay => {
             return req;
         }
 
-        getall_test(function(t, connection) {
+        getall_test((t, connection) => {
               var req = createGetAllKeysRequest(t, 'out-of-line', connection, 'C');
-              req.onsuccess = t.step_func(function(evt) {
+              req.onsuccess = t.step_func(function onsuccess(evt) {
                   var data = evt.target.result;
                   assert_array_equals(evt.target.result, ['c']);
                   t.done();
               });
             }, 'Single item get');
 
-        getall_test(function(t, connection) {
+        getall_test((t, connection) => {
               var req = createGetAllKeysRequest(t, 'empty', connection);
-              req.onsuccess = t.step_func(function(evt) {
+              req.onsuccess = t.step_func(function onsuccess(evt) {
                   assert_array_equals(evt.target.result, [],
                       'getAllKeys() on empty object store should return empty array');
                   t.done();
               });
             }, 'Empty object store');
 
-        getall_test(function(t, connection) {
+        getall_test((t, connection) => {
               var req = createGetAllKeysRequest(t, 'out-of-line', connection);
-              req.onsuccess = t.step_func(function(evt) {
+              req.onsuccess = t.step_func(function onsuccess(evt) {
                   assert_array_equals(evt.target.result, alphabet,
                       'getAllKeys() should return a..z');
                   t.done();
               });
             }, 'Get all keys');
 
-        getall_test(function(t, connection) {
+        getall_test((t, connection) => {
               var req = createGetAllKeysRequest(t, 'generated', connection);
-              req.onsuccess = t.step_func(function(evt) {
+              req.onsuccess = t.step_func(function onsuccess(evt) {
                   assert_array_equals(evt.target.result,
                       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
                        19, 20, 21, 22, 23, 24, 25, 26],
@@ -90,32 +90,32 @@ require('proof')(13, async okay => {
               });
             }, 'Get all generated keys');
 
-        getall_test(function(t, connection) {
+        getall_test((t, connection) => {
               var req = createGetAllKeysRequest(t, 'out-of-line', connection, undefined,
                                             10);
-              req.onsuccess = t.step_func(function(evt) {
+              req.onsuccess = t.step_func(function onsuccess(evt) {
                   assert_array_equals(evt.target.result,
-                                     'abcdefghij'.split(''),
+                                     [...'abcdefghij'],
                                      'getAllKeys() should return a..j');
                   t.done();
               });
             }, 'maxCount=10');
 
-        getall_test(function(t, connection) {
+        getall_test((t, connection) => {
               var req = createGetAllKeysRequest(t, 'out-of-line', connection,
                                             IDBKeyRange.bound('G', 'M'));
-              req.onsuccess = t.step_func(function(evt) {
+              req.onsuccess = t.step_func(function onsuccess(evt) {
                   assert_array_equals(evt.target.result,
-                                      'ghijklm'.split(''),
+                                      [...'ghijklm'],
                                       'getAllKeys() should return g..m');
                   t.done();
               });
             }, 'Get bound range');
 
-        getall_test(function(t, connection) {
+        getall_test((t, connection) => {
               var req = createGetAllKeysRequest(t, 'out-of-line', connection,
                                             IDBKeyRange.bound('G', 'M'), 3);
-              req.onsuccess = t.step_func(function(evt) {
+              req.onsuccess = t.step_func(function onsuccess(evt) {
                   assert_array_equals(evt.target.result,
                                      ['g', 'h', 'i'],
                                      'getAllKeys() should return g..i');
@@ -123,10 +123,10 @@ require('proof')(13, async okay => {
               });
             }, 'Get bound range with maxCount');
 
-        getall_test(function(t, connection) {
+        getall_test((t, connection) => {
               var req = createGetAllKeysRequest(t, 'out-of-line', connection,
                   IDBKeyRange.bound('G', 'K', false, true));
-              req.onsuccess = t.step_func(function(evt) {
+              req.onsuccess = t.step_func(function onsuccess(evt) {
                   assert_array_equals(evt.target.result,
                                      ['g', 'h', 'i', 'j'],
                                      'getAllKeys() should return g..j');
@@ -134,10 +134,10 @@ require('proof')(13, async okay => {
               });
             }, 'Get upper excluded');
 
-        getall_test(function(t, connection) {
+        getall_test((t, connection) => {
               var req = createGetAllKeysRequest(t, 'out-of-line', connection,
                   IDBKeyRange.bound('G', 'K', true, false));
-              req.onsuccess = t.step_func(function(evt) {
+              req.onsuccess = t.step_func(function onsuccess(evt) {
                   assert_array_equals(evt.target.result,
                                      ['h', 'i', 'j', 'k'],
                                      'getAllKeys() should return h..k');
@@ -145,20 +145,20 @@ require('proof')(13, async okay => {
               });
             }, 'Get lower excluded');
 
-        getall_test(function(t, connection) {
+        getall_test((t, connection) => {
               var req = createGetAllKeysRequest(t, 'generated',
                   connection, IDBKeyRange.bound(4, 15), 3);
-              req.onsuccess = t.step_func(function(evt) {
+              req.onsuccess = t.step_func(function onsuccess(evt) {
                   assert_array_equals(evt.target.result, [],
                                       'getAllKeys() should return []');
                   t.done();
               });
             }, 'Get bound range (generated) with maxCount');
 
-        getall_test(function(t, connection) {
+        getall_test((t, connection) => {
               var req = createGetAllKeysRequest(t, 'out-of-line',
                   connection, "Doesn't exist");
-              req.onsuccess = t.step_func(function(evt) {
+              req.onsuccess = t.step_func(function onsuccess(evt) {
                   assert_array_equals(evt.target.result, [],
                       'getAllKeys() using a nonexistent key should return empty array');
                   t.done();
@@ -166,20 +166,20 @@ require('proof')(13, async okay => {
               });
             }, 'Non existent key');
 
-        getall_test(function(t, connection) {
+        getall_test((t, connection) => {
               var req = createGetAllKeysRequest(t, 'out-of-line', connection,
                   undefined, 0);
-              req.onsuccess = t.step_func(function(evt) {
+              req.onsuccess = t.step_func(function onsuccess(evt) {
                   assert_array_equals(evt.target.result, alphabet,
                       'getAllKeys() should return a..z');
                   t.done();
               });
             }, 'maxCount=0');
 
-        getall_test(function(t, connection) {
+        getall_test((t, connection) => {
               var req = createGetAllKeysRequest(t, 'out-of-line-multi', connection,
                                                 'vowel');
-              req.onsuccess = t.step_func(function(evt) {
+              req.onsuccess = t.step_func(function onsuccess(evt) {
                 assert_array_equals(evt.target.result, ['A','E','I','O','U'])
                 t.done();
               });

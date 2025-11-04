@@ -1,10 +1,10 @@
 require('proof')(1, async okay => {
     await require('./harness')(okay, 'transaction_bubble-and-capture')
-    await harness(async function () {
+    await harness(async () => {
         var events = [];
 
         var open_rq = createdb(async_test());
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             var db = e.target.result;
             var txn = e.target.transaction;
             var store = db.createObjectStore("store");
@@ -26,10 +26,10 @@ require('proof')(1, async okay => {
             log_events('rq2', rq2, 'error');
 
             // Don't let it get to abort
-            db.addEventListener('error', function(e) { e.preventDefault(); }, false);
+            db.addEventListener('error', function onupgradeneeded(e) { e.preventDefault(); }, false);
         }
 
-        open_rq.onsuccess = function(e) {
+        open_rq.onsuccess = function onsuccess(_e) {
             log("open_rq.success")(e);
             assert_array_equals(events, [
                                           "capture db.success",
@@ -57,11 +57,11 @@ require('proof')(1, async okay => {
         }
 
         function log(msg) {
-            return function(e) {
+            return (e) => {
                 if(e && e.target && e.target.error)
-                    events.push(msg + ": " + e.target.error.name);
+                    {events.push(msg + ": " + e.target.error.name);}
                 else
-                    events.push(msg);
+                    {events.push(msg);}
             };
         }
     })

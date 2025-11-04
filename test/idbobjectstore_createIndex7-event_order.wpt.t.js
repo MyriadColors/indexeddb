@@ -1,6 +1,6 @@
 require('proof')(1, async okay => {
     await require('./harness')(okay, 'idbobjectstore_createIndex7-event_order')
-    await harness(async function () {
+    await harness(async () => {
         // Transaction may fire window.onerror in some implementations.
         setup({allow_uncaught_exception:true});
 
@@ -9,7 +9,7 @@ require('proof')(1, async okay => {
           t = async_test()
 
         var open_rq = createdb(t);
-        open_rq.onupgradeneeded = function(e) {
+        open_rq.onupgradeneeded = function onupgradeneeded(e) {
             db = e.target.result;
             var txn = e.target.transaction;
             db.onerror = log("db.error");
@@ -35,7 +35,7 @@ require('proof')(1, async okay => {
             rq_add3.onerror   = log("rq_add3.error");
         }
 
-        open_rq.onerror = function(e) {
+        open_rq.onerror = function onerror(e) {
             log("open_rq.error")(e);
             assert_array_equals(events, [ "rq_add1.success",
 
@@ -56,11 +56,11 @@ require('proof')(1, async okay => {
         }
 
         function log(msg) {
-            return function(e) {
+            return (e) => {
                 if(e && e.target && e.target.error)
-                    events.push(msg + ": " + e.target.error.name);
+                    {events.push(msg + ": " + e.target.error.name);}
                 else
-                    events.push(msg);
+                    {events.push(msg);}
             };
         }
     })

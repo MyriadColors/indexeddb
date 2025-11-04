@@ -1,7 +1,7 @@
 require('proof')(18, async okay => {
     await require('./harness')(okay, 'transaction-abort-generator-revert')
-    await harness(async function () {
-        'use strict';
+    await harness(async () => {
+        
 
         promise_test(testCase => {
             return createDatabase(testCase, (database, transaction) => {
@@ -16,12 +16,12 @@ require('proof')(18, async okay => {
                         const transaction = event.target.transaction;
                         const store = transaction.objectStore('books');
                         const request2 = store.put(
-                            { title: 'Bedrock Nights II', author: 'Barney' });
+                            { author: 'Barney', title: 'Bedrock Nights II' });
                         request2.onerror = testCase.unreached_func(
                             'IDBObjectStore.put() should not receive an error request');
                         request2.onsuccess = testCase.step_func(event => {
                             assert_equals(
-                                event.target.result, 345679,
+                                event.target.result, 345_679,
                                 "The key generator's current number should be set by " +
                                 'the last put operation in the database creation ' +
                                 'transaction');
@@ -49,7 +49,7 @@ require('proof')(18, async okay => {
                 const store = transaction.objectStore('books');
 
                 return checkStoreGenerator(
-                    testCase, store, 345679,
+                    testCase, store, 345_679,
                     "The key generator's current number should be reverted after the " +
                     'transaction modifying it is aborted').then(() => database.close());
             });
@@ -64,12 +64,12 @@ require('proof')(18, async okay => {
                     const transaction = database.transaction(['books'], 'readwrite');
                     const store = transaction.objectStore('books');
                     const request = store.put(
-                        { title: 'Bedrock Nights II', author: 'Barney' });
+                        { author: 'Barney', title: 'Bedrock Nights II' });
                     request.onerror = testCase.unreached_func(
                         'IDBObjectStore.put() should not receive an error request');
                     request.onsuccess = testCase.step_func(event => {
                         assert_equals(
-                            event.target.result, 345679,
+                            event.target.result, 345_679,
                             "The key generator's current number should be set by the " +
                             'last put operation in the database creation transaction');
 
@@ -94,7 +94,7 @@ require('proof')(18, async okay => {
                 const store = transaction.objectStore('books');
 
                 return checkStoreGenerator(
-                    testCase, store, 345679,
+                    testCase, store, 345_679,
                     "The key generator's current number should be reverted after the " +
                     'transaction modifying it is aborted').then(() => database.close());
             });

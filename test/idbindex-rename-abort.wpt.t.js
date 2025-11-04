@@ -1,7 +1,7 @@
 require('proof')(26, async okay => {
     await require('./harness')(okay, 'idbindex-rename-abort')
-    await harness(async function () {
-        'use strict';
+    await harness(async () => {
+        
 
         promise_test(testCase => {
             const dbName = databaseName(testCase);

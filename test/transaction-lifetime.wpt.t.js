@@ -1,31 +1,31 @@
 require('proof')(7, async okay => {
     await require('./harness')(okay, 'transaction-lifetime')
-    await harness(async function () {
+    await harness(async () => {
 
         var db, db_got_versionchange, db2,
             events = [],
             t = async_test(),
             dbname = location + '-' + t.name;
 
-        t.step(function() {
+        t.step(() => {
             indexedDB.deleteDatabase(dbname);
 
             var openrq = indexedDB.open(dbname, 3);
 
             // 1
-            openrq.onupgradeneeded = t.step_func(function(e) {
+            openrq.onupgradeneeded = t.step_func(function onupgradeneeded(e) {
                 events.push("open." + e.type);
                 e.target.result.createObjectStore('store');
             });
 
             // 2
-            openrq.onsuccess = t.step_func(function(e) {
+            openrq.onsuccess = t.step_func(function onsuccess(_e) {
                 db = e.target.result;
 
                 events.push("open." + e.type);
 
                 // 3
-                db.onversionchange = t.step_func(function(e) {
+                db.onversionchange = t.step_func(function onversionchange(e) {
                     events.push("db." + e.type);
 
                     assert_equals(e.oldVersion, 3, "old version");
@@ -47,14 +47,14 @@ require('proof')(7, async okay => {
         });
 
         function OpenSecond (e) {
-            assert_equals(db2, undefined);
+            assert_equals(db2);
             assert_equals(db + "", "[object IDBDatabase]");
             assert_array_equals(db.objectStoreNames, [ "store" ]);
 
             var openrq2 = indexedDB.open(dbname, 4);
 
             // 4
-            openrq2.onupgradeneeded = t.step_func(function(e) {
+            openrq2.onupgradeneeded = t.step_func(function onupgradeneeded(e) {
                 db2 = e.target.result;
 
                 events.push("open2." + e.type);
@@ -68,7 +68,7 @@ require('proof')(7, async okay => {
             });
 
             // 5
-            openrq2.onsuccess = t.step_func(function(e) {
+            openrq2.onsuccess = t.step_func(function onsuccess(_e) {
                 events.push("open2." + e.type);
 
                 assert_array_equals(events,
@@ -79,7 +79,7 @@ require('proof')(7, async okay => {
                       "open2.success",
                     ]);
 
-                step_timeout(function() { t.done(); }, 10);
+                step_timeout(function onsuccess() { t.done(); }, 10);
             });
 
             // Errors
@@ -89,8 +89,8 @@ require('proof')(7, async okay => {
 
 
         // Cleanup
-        add_completion_callback(function(tests) {
-            if (db2) db2.close();
+        add_completion_callback((tests) => {
+            if (db2) {db2.close();}
             indexedDB.deleteDatabase(dbname);
         })
 
