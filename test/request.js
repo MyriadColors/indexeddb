@@ -18,7 +18,7 @@ require('proof')(5, okay => {
     const event = Event.create(object, [ 'success' ], {})
 
     const test = []
-    request.onsuccess = function () { test.push('called') }
+    request.onsuccess = function  onsuccess() { test.push('called') }
 
     request.dispatchEvent(event)
 
@@ -32,7 +32,7 @@ require('proof')(5, okay => {
 
     const openRequest = IDBOpenDBRequest.create(object, [], {})
 
-    openRequest.onblocked = function () { test.push('blocked') }
+    openRequest.onblocked = function  onblocked() { test.push('blocked') }
     openRequest.dispatchEvent(Event.create(object, [ 'blocked' ], {}))
     okay(test, [ 'called', 'called', 'called', 'blocked' ], 'called with did listeners error flag')
 })
