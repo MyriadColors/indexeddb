@@ -1,36 +1,36 @@
 require('proof')(3, async okay => {
     await require('./harness')(okay, 'value_recursive')
-    await harness(async function () {
+    await harness(async () => {
         function recursive_value(desc, value) {
-            var db, t = async_test(document.title + " - " + desc);
+            var db, t = async_test(`${document.title} - ${desc}`);
 
-            createdb(t).onupgradeneeded = function(e) {
+            createdb(t).onupgradeneeded = function onupgradeneeded(e) {
                 db = e.target.result
                 db.createObjectStore("store")
                   .add(value, 1);
 
-                e.target.onsuccess = t.step_func(function(e) {
+                e.target.onsuccess = t.step_func(function onsuccess(e) {
                     db.transaction('store')
                       .objectStore('store')
                       .get(1)
-                      .onsuccess = t.step_func(function(e)
+                      .onsuccess = t.step_func(function onsuccess(e)
                     {
 
                         try
                         {
-                            var fresh_value = JSON.stringify(value);
+                            const fresh_value = JSON.stringify(value);
                             assert_unreached("Testcase is written wrongly, must supply something recursive (that JSON won't stringify).");
                         }
-                        catch (e)
+                        catch (error)
                         {
-                            if (e.name == 'TypeError')
+                            if (error.name === 'TypeError')
                             {
                                 try
                                 {
-                                    JSON.stringify(e.target.result);
+                                    JSON.stringify(error.target.result);
                                     assert_unreached("Expected a non-JSON-serializable value back, didn't get that.");
                                 }
-                                catch (e)
+                                catch (_error)
                                 {
                                     okay(true)
                                     t.done();
@@ -38,7 +38,7 @@ require('proof')(3, async okay => {
                                 }
                             }
                             else
-                                throw e;
+                                throw error;
                         }
                     });
                 });
