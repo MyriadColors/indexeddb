@@ -1,5 +1,5 @@
 import { proof } from 'proof'
-import { indexeddb_test, harness } from './harness'
+import { harness, indexeddb_test } from './harness'
 
 proof(6, async okay => {
     await harness(okay, 'upgrade-transaction-deactivation-timing')

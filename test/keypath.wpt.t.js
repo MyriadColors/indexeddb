@@ -1,31 +1,31 @@
 require('proof')(19, async okay => {
     await require('./harness')(okay, 'keypath')
-    await harness(async function () {
+    await harness(async () => {
 
         var global_db = createdb_for_multiple_tests();
 
         function keypath(keypath, objects, expected_keys, desc) {
             var db,
-                t = async_test(document.title + " - " + (desc ? desc : keypath)),
+                t = async_test(`${document.title} - ${desc ? desc : keypath}`),
 
-                store_name = "store-"+(Date.now())+Math.random();
+                store_name = `store-${Date.now()}${Math.random()}`;
 
             var open_rq = global_db.setTest(t);
-            open_rq.onupgradeneeded = function(e) {
+            open_rq.onupgradeneeded = function onupgradeneeded(e) {
                 db = e.target.result;
                 var objStore = db.createObjectStore(store_name, { keyPath: keypath });
 
-                for (var i = 0; i < objects.length; i++)
-                    objStore.add(objects[i]);
+                for (let i = 0; i < objects.length; i++)
+                    {objStore.add(objects[i]);}
             };
 
-            open_rq.onsuccess = function(e) {
+            open_rq.onsuccess = function onsuccess(_e) {
                 var actual_keys = [],
                   rq = db.transaction(store_name)
                          .objectStore(store_name)
                          .openCursor();
 
-                rq.onsuccess = t.step_func(function(e) {
+                rq.onsuccess = t.step_func(function onsuccess(e) {
                     var cursor = e.target.result;
 
                     if (cursor) {
@@ -95,27 +95,27 @@ require('proof')(19, async okay => {
             "[''] uses value as [key]");
 
         keypath(['x', 'y'],
-            [ {x:10, y:20}, {y:1.337, x:100} ],
+            [ {x:10, y:20}, {x:100, y:1.337} ],
             [ [10, 20], [100, 1.337] ],
             "['x', 'y']");
 
         keypath([['x'], ['y']],
-            [ {x:10, y:20}, {y:1.337, x:100} ],
+            [ {x:10, y:20}, {x:100, y:1.337} ],
             [ [10, 20], [100, 1.337] ],
             "[['x'], 'y'] (stringifies)");
 
-        keypath(['x', {toString:function(){return 'y'}}],
-            [ {x:10, y:20}, {y:1.337, x:100} ],
+        keypath(['x', {toString:()=> 'y'}],
+            [ {x:10, y:20}, {x:100, y:1.337} ],
             [ [10, 20], [100, 1.337] ],
             "['x', {toString->'y'}] (stringifies)");
 
-        if (false) {
-            var myblob = Blob(["Yoda"], {type:'suprawsum'});
-            keypath(['length', 'type'],
-                [ myblob ],
-                [ 4, 'suprawsum' ],
-                "[Blob.length, Blob.type]");
-        }
+        // if (false) {
+        //     const myblob = Blob(["Yoda"], {type:'suprawsum'});
+        //     keypath(['length', 'type'],
+        //         [ myblob ],
+        //         [ 4, 'suprawsum' ],
+        //         "[Blob.length, Blob.type]");
+        // }
 
         // File.name and File.lastModified is not testable automatically
 
