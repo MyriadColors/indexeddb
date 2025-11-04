@@ -1,26 +1,20 @@
-const extractor = require('./extractor')
-const { createEventAccessor } = require('./living/helpers/create-event-accessor')
+import extractor from './extractor'
+import { Future } from 'perhaps'
 
-const { Future } = require('perhaps')
+import { setupForSimpleEventAccessors } from './living/helpers/create-event-accessor'
 
-const Queue = require('avenue')
+import { DOMStringList } from './living/generated/DOMStringList'
+import { IDBObjectStore } from './living/generated/IDBObjectStore.js'
+import { IDBTransaction } from './living/generated/IDBTransaction.js'
 
-const Schema = require('./schema')
+import { DOMException } from 'domexception/lib/DOMException'
 
-const { setupForSimpleEventAccessors } = require('./living/helpers/create-event-accessor')
+import { implementation as EventTargetImpl } from './living/idl/EventTarget-impl.js'
 
-const DOMStringList = require('./living/generated/DOMStringList')
-const IDBObjectStore = require('./living/generated/IDBObjectStore.js')
-const IDBTransaction = require('./living/generated/IDBTransaction.js')
-
-const DOMException = require('domexception/lib/DOMException')
-
-const EventTargetImpl = require('./living/idl/EventTarget-impl.js').implementation
-
-const webidl = require('./living/generated/utils.js')
+import { webidl } from './living/generated/utils.js'
 
 class IDBDatabaseImpl extends EventTargetImpl  {
-    constructor (globalObject, [], { name, schema, transactor, version }) {
+    constructor (globalObject, _args, { name, schema, transactor, version }) {
         super(globalObject, [], {})
         this._globalObject = globalObject
         this._schema = schema
@@ -34,7 +28,7 @@ class IDBDatabaseImpl extends EventTargetImpl  {
     }
 
     get objectStoreNames () {
-        return DOMStringList.create(this._globalObject, [], { array: this._schema.getObjectStoreNames().sort() })
+        return DOMStringList.create(this._globalObject, [], { array: this._schema.getObjectStoreNames().toSorted() })
     }
 
     transaction (names, mode, options) {
@@ -44,24 +38,24 @@ class IDBDatabaseImpl extends EventTargetImpl  {
         if (this._closing) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
-        if (typeof names == 'string') {
+        if (typeof names === 'string') {
             names = [ names ]
         }
-        names = names.filter((name, index) => names.indexOf(name) == index)
+        names = names.filter((name, index) => names.indexOf(name) === index)
         for (const name of names) {
             if (! this._schema.getObjectStore(name)) {
                 throw DOMException.create(this._globalObject, [ 'TODO: message', 'NotFoundError' ], {})
             }
         }
-        if (names.length == 0) {
+        if (names.length === 0) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidAccessError' ], {})
         }
-        if (mode != 'readonly' && mode != 'readwrite') {
+        if (mode !== 'readonly' && mode !== 'readwrite') {
             throw new TypeError
         }
-        const transaction = IDBTransaction.createImpl(this._globalObject, [], { schema: this._schema, names, database: this, mode, durability: options.durability })
+        const transaction = IDBTransaction.createImpl(this._globalObject, [], { database: this, durability: options.durability, mode, names, schema: this._schema })
         this._transactions.add(transaction)
-        this._transactor.transaction({ db: this, transaction }, names, mode == 'readonly')
+        this._transactor.transaction({ db: this, transaction }, names, mode === 'readonly')
         return webidl.wrapperForImpl(transaction)
     }
 
@@ -73,7 +67,7 @@ class IDBDatabaseImpl extends EventTargetImpl  {
         if (this._transaction == null) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
-        if (this._transaction._state != 'active') {
+        if (this._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         const canAutoIncrement = keyPath == null || extractor.verify(this._globalObject, keyPath)
@@ -84,8 +78,8 @@ class IDBDatabaseImpl extends EventTargetImpl  {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidAccessError' ], {})
         }
         const store = this._schema.createObjectStore(name, keyPath, autoIncrement)
-        this._transaction._queue.push({ method: 'create', type: 'store', store: store })
-        return IDBObjectStore.create(this._globalObject, [], { transaction: this._transaction, schema: this._schema, name, constructing: true })
+        this._transaction._queue.push({ method: 'create', store: store, type: 'store' })
+        return IDBObjectStore.create(this._globalObject, [], { constructing: true, name, schema: this._schema, transaction: this._transaction })
     }
 
     deleteObjectStore (name) {
@@ -95,7 +89,7 @@ class IDBDatabaseImpl extends EventTargetImpl  {
         if (this._transaction == null) {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
-        if (this._transaction._state != 'active') {
+        if (this._transaction._state !== 'active') {
             throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         const store = this._schema.getObjectStore(name)
@@ -109,7 +103,7 @@ class IDBDatabaseImpl extends EventTargetImpl  {
     // https://www.w3.org/TR/IndexedDB/#dom-idbdatabase-close
     close () {
         this._closing = true
-        this._transactor.queue.push({ method: 'close', extra: { db: this } })
+        this._transactor.queue.push({ extra: { db: this }, method: 'close' })
     }
 
     // **TODO** `onabort`, `onclose`, `onerror`, `onversionchange`.
