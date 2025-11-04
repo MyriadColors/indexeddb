@@ -5,8 +5,8 @@ require('proof')(2, async okay => {
     okay.leak('core')
     okay.leak('__core-js_shared__')
 
-    const fs = require('fs').promises
-    const path = require('path')
+    const fs = require('node:fs').promises
+    const path = require('node:path')
     const { coalesce } = require('extant')
 
     const directory = path.join(__dirname, 'tmp', 'indexeddb')
@@ -54,11 +54,7 @@ require('proof')(2, async okay => {
             suffix = $[2]
         }
         return {
-            order: index + 1,
-            firstName, middleInitial, lastName, suffix,
-            start: new Date(start),
-            end: end == 'Present' ? null : new Date(end),
-            born
+            born, end: end === 'Present' ? null : new Date(end), firstName, lastName, middleInitial, order: index + 1, start: new Date(start), suffix
         }
     })
 
@@ -87,7 +83,7 @@ require('proof')(2, async okay => {
         const request = indexedDB.open('test', 3)
         const future = new Future
 
-        request.onupgradeneeded = function (event) {
+        request.onupgradeneeded = function  onupgradeneeded(event) {
             okay(request.readyState, 'done', 'on upgrade done')
             const db = request.result
             const store = db.createObjectStore('chair', { keyPath: 'order' })
@@ -97,17 +93,18 @@ require('proof')(2, async okay => {
             store.put(chairs[2])
         }
 
-        request.onsuccess = function () {
+        request.onsuccess = function  onsuccess() {
             console.log('called!!!')
-            future.resolve()
-            return
             const db = request.result
             console.log('here')
             console.log('here')
             const transaction = db.transaction('chair')
             const store = transaction.objectStore('chair')
-            const request = store.getKey(1)
-            future.resolve()
+            const keyRequest = store.getKey(1)
+            keyRequest.onsuccess = function  onsuccess() {
+                okay(keyRequest.result, 1, 'key')
+                future.resolve()
+            }
         }
 
         await future.promise
