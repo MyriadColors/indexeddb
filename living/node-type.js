@@ -1,4 +1,4 @@
-"use strict";
+
 
 module.exports = Object.freeze({
   ELEMENT_NODE: 1,
