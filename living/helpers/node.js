@@ -1,4 +1,4 @@
-"use strict";
+
 
 const NODE_TYPE = require("../node-type");
 const { domSymbolTree } = require("./internal-constants");

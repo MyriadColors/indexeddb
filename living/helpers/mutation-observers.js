@@ -1,4 +1,4 @@
-"use strict";
+
 
 const { domSymbolTree } = require("./internal-constants");
 const reportException = require("./runtime-script-errors");

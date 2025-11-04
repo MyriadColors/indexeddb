@@ -1,4 +1,4 @@
-"use strict";
+
 
 const Event = require("../generated/Event");
 const { tryImplForWrapper } = require("../generated/utils");

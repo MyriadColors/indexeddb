@@ -1,4 +1,4 @@
-"use strict";
+
 
 // https://infra.spec.whatwg.org/#namespaces
 

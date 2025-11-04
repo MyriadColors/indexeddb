@@ -1,4 +1,4 @@
-"use strict";
+
 
 const idlUtils = require("../generated/utils");
 const ErrorEvent = require("../generated/ErrorEvent");
