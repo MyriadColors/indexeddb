@@ -1,19 +1,20 @@
-module.exports = async function (okay, name) {
+module.exports = async (okay, name) => {
     const { Future } = require('perhaps')
     const Destructible = require('destructible')
-    const fs = require('fs').promises
-    const assert = require('assert')
-    const path = require('path')
-    const { coalesce } = require('extant')
+    const fs = require('node:fs').promises
+    const assert = require('node:assert')
+    const path = require('node:path')
+    const { coalesce } = require('node:extant')
     const directory = path.join(__dirname, 'tmp', name)
     await coalesce(fs.rm, fs.rmdir).call(fs, directory, { force: true, recursive: true })
     await fs.mkdir(directory, { recursive: true })
     function globalize (value, name = null) {
         if (name == null) {
             switch (typeof value) {
-            case 'function':
+            case 'function': {
                 global[value.name] = value
                 okay.leak(value.name)
+            }
             }
         } else {
             global[name] = value
@@ -28,16 +29,12 @@ module.exports = async function (okay, name) {
     globalize('wpt', 'location')
     globalize({ location: { pathname: 'wpt' } }, 'self')
     globalize({
-        title: 'wpt',
-        location: 'wpt',
-        nodeType: 0,
-        insertBefore: function () {},
         getElementsByTagName(name) {
             return {
                 nodeType: 0,
                 insertBefore () {}
             }
-        }
+        }, insertBefore: function () {}, location: 'wpt', nodeType: 0, title: 'wpt'
     }, 'document')
     //const { IDBDatabase } = require('../database')
     /*
@@ -64,9 +61,7 @@ module.exports = async function (okay, name) {
     globalize(globalObject.IDBTransaction)
     globalize(globalObject.IDBDatabase)
     const comparator = require('../compare')
-    const compare = function (left, right) {
-        return comparator(globalObject, left, right)
-    }
+    const compare = (left, right) => comparator(globalObject, left, right)
     if (process.versions.node.split('.')[0] < 15) {
         globalize(globalObject.Event)
     } else {
@@ -77,44 +72,11 @@ module.exports = async function (okay, name) {
     // Copy and paste from WPT.
 
     const replacements = {
-        "0": "0",
-        "1": "x01",
-        "2": "x02",
-        "3": "x03",
-        "4": "x04",
-        "5": "x05",
-        "6": "x06",
-        "7": "x07",
-        "8": "b",
-        "9": "t",
-        "10": "n",
-        "11": "v",
-        "12": "f",
-        "13": "r",
-        "14": "x0e",
-        "15": "x0f",
-        "16": "x10",
-        "17": "x11",
-        "18": "x12",
-        "19": "x13",
-        "20": "x14",
-        "21": "x15",
-        "22": "x16",
-        "23": "x17",
-        "24": "x18",
-        "25": "x19",
-        "26": "x1a",
-        "27": "x1b",
-        "28": "x1c",
-        "29": "x1d",
-        "30": "x1e",
-        "31": "x1f",
-        "0xfffd": "ufffd",
-        "0xfffe": "ufffe",
-        "0xffff": "uffff",
+        "0": "0", "0xfffd": "ufffd", "0xfffe": "ufffe", "0xffff": "uffff", "1": "x01", "10": "n", "11": "v", "12": "f", "13": "r", "14": "x0e", "15": "x0f", "16": "x10", "17": "x11", "18": "x12", "19": "x13", "2": "x02", "20": "x14", "21": "x15", "22": "x16", "23": "x17", "24": "x18", "25": "x19", "26": "x1a", "27": "x1b", "28": "x1c", "29": "x1d", "3": "x03", "30": "x1e", "31": "x1f", "4": "x04", "5": "x05", "6": "x06", "7": "x07", "8": "b", "9": "t",
     }
     function format_value(val, seen)
     {
+        var ret, i;
         if (!seen) {
             seen = [];
         }
@@ -129,32 +91,35 @@ module.exports = async function (okay, name) {
             if (val.beginEllipsis !== undefined) {
                 output += "…, ";
             }
-            output += val.map(function(x) {return format_value(x, seen);}).join(", ");
+            output += val.map((x) => format_value(x, seen)).join(", ");
             if (val.endEllipsis !== undefined) {
                 output += ", …";
             }
-            return output + "]";
+            return `${output}]`;
         }
-
+        let replace;
         switch (typeof val) {
-        case "string":
+        case "string": {
             val = val.replace(/\\/g, "\\\\");
             for (var p in replacements) {
-                var replace = "\\" + replacements[p];
+                replace = `\\${replacements[p]}`;
                 val = val.replace(RegExp(String.fromCharCode(p), "g"), replace);
             }
-            return '"' + val.replace(/"/g, '\\"') + '"';
+            return `"${val.replace(/"/g, '\\"')}"`;
+        }
         case "boolean":
-        case "undefined":
+        case "undefined": {
             return String(val);
-        case "number":
+        }
+        case "number": {
             // In JavaScript, -0 === 0 and String(-0) == "0", so we have to
             // special-case.
-            if (val === -0 && 1/val === -Infinity) {
+            if (val === 0 || (val !== 0 && 1/val === -Infinity)) {
                 return "-0";
             }
             return String(val);
-        case "object":
+        }
+        case "object": {
             if (val === null) {
                 return "null";
             }
@@ -164,43 +129,41 @@ module.exports = async function (okay, name) {
             // ignore namespaces.
             if (is_node(val)) {
                 switch (val.nodeType) {
-                case Node.ELEMENT_NODE:
-                    var ret = "<" + val.localName;
-                    for (var i = 0; i < val.attributes.length; i++) {
-                        ret += " " + val.attributes[i].name + '="' + val.attributes[i].value + '"';
+                case Node.ELEMENT_NODE: {
+                    ret = `<${val.localName}`;
+                    for (i = 0; i < val.attributes.length; i++) {
+                        ret += ` ${val.attributes[i].name}="${val.attributes[i].value}"`;
                     }
-                    ret += ">" + val.innerHTML + "</" + val.localName + ">";
-                    return "Element node " + truncate(ret, 60);
+                    ret += `>${val.innerHTML}</${val.localName}>`;
+                    return `Element node ${truncate(ret, 60)}`;
+                }
                 case Node.TEXT_NODE:
-                    return 'Text node "' + truncate(val.data, 60) + '"';
+                    return `Text node "${truncate(val.data, 60)}"`;
                 case Node.PROCESSING_INSTRUCTION_NODE:
-                    return "ProcessingInstruction node with target " + format_value(truncate(val.target, 60)) + " and data " + format_value(truncate(val.data, 60));
+                    return `ProcessingInstruction node with target ${format_value(truncate(val.target, 60))} and data ${format_value(truncate(val.data, 60))}`;
                 case Node.COMMENT_NODE:
-                    return "Comment node <!--" + truncate(val.data, 60) + "-->";
+                    return `Comment node <!--${truncate(val.data, 60)}-->`;
                 case Node.DOCUMENT_NODE:
-                    return "Document node with " + val.childNodes.length + (val.childNodes.length == 1 ? " child" : " children");
+                    return `Document node with ${val.childNodes.length} ${val.childNodes.length === 1 ? "child" : "children"}`;
                 case Node.DOCUMENT_TYPE_NODE:
                     return "DocumentType node";
                 case Node.DOCUMENT_FRAGMENT_NODE:
-                    return "DocumentFragment node with " + val.childNodes.length + (val.childNodes.length == 1 ? " child" : " children");
+                    return `DocumentFragment node with ${val.childNodes.length} ${val.childNodes.length === 1 ? "child" : "children"}`;
                 default:
                     return "Node object of unknown type";
                 }
             }
-
-        /* falls through */
-        default:
-            try {
-                return typeof val + ' "' + truncate(String(val), 1000) + '"';
-            } catch(e) {
-                return ("[stringifying object threw " + String(e) +
-                        " with type " + String(typeof e) + "]");
-            }
+            break;
+        }
+        }
+        try {
+            return `${typeof val} "${truncate(String(val), 1000)}"`;
+        } catch(error) {
+            return `[stringifying object threw ${String(error)} with type ${String(typeof error)}]`;
         }
     }
     globalize(format_value)
-    function setup () {
-    }
+    function setup () {}
     globalize(setup)
     const tests = []
     let count = 0
@@ -217,51 +180,37 @@ module.exports = async function (okay, name) {
             tests.push(this)
         }
         statuses = {
-            PASS:0,
-            FAIL:1,
-            TIMEOUT:2,
-            NOTRUN:3,
-            PRECONDITION_FAILED:4
+            FAIL:1, NOTRUN:3, PASS:0, PRECONDITION_FAILED:4, TIMEOUT:2
         }
         phases = {
-            INITIAL:0,
-            STARTED:1,
-            HAS_RESULT:2,
-            CLEANING:3,
-            COMPLETE:4
+            CLEANING:3, COMPLETE:4, HAS_RESULT:2, INITIAL:0, STARTED:1
         }
         unreached_func (description) {
-            return this.step_func(function () {
+            return this.step_func(() => {
                 throw new Error(`should not reach: ${description}`)
             })
         }
         step (func, ...vargs) {
-            const self = vargs.length == 0 ? this : vargs.shift()
+            const self = vargs.length === 0 ? this : vargs.shift()
             if (this.phase > this.phases.STARTED) {
                 return
             }
             this.phase = this.phases.STARTED
-            try {
                 scope.name = this.name
                 return func.apply(self, vargs)
-            } catch (error) {
-                throw error
-            }
         }
-        step_func (f, self, ...vargs) {
-            if (arguments.length == 1) {
-                self = this
-            }
+        step_func (...args) {
+            const f = args[0]
+            const self = args.length === 1 ? this : args[1]
             const step = this.step
-            return function (...vargs) {
+            return (...vargs) => {
                 return step.apply(self, [ f, self ].concat(vargs))
             }
         }
-        step_func_done (f, self) {
-            if (arguments.length == 1) {
-                self = this
-            }
-            return function (...vargs) {
+        step_func_done (...args) {
+            const f = args[0]
+            const self = args.length === 1 ? this : args[1]
+            return function  exports(...vargs) {
                 if (f) {
                     this.step.apply(self, [ f, self ].concat(vargs))
                 }
@@ -273,7 +222,7 @@ module.exports = async function (okay, name) {
         }
         done () {
             this.phase = this.phases.COMPLETE
-            while (this._janitors.length != 0) {
+            while (this._janitors.length > 0) {
                 this._janitors.shift()()
             }
             this._future.resolve()
@@ -282,8 +231,8 @@ module.exports = async function (okay, name) {
     globalize(Test)
     const scope = {}, futures = []
     function async_test (...vargs) {
-        const f = typeof vargs[0] == 'function' ? vargs.shift() : null
-        scope.name = typeof vargs[0] == 'string' ? vargs.shift() : name
+        const f = typeof vargs[0] === 'function' ? vargs.shift() : null
+        scope.name = typeof vargs[0] === 'string' ? vargs.shift() : name
         const properties = vargs.pop() || null
         scope.count = 0
         const future = new Future
@@ -301,48 +250,49 @@ module.exports = async function (okay, name) {
     }
     globalize(test)
     function step_timeout (f, t, ...vargs) {
-        setTimeout(function () {
+        setTimeout(function  exports() {
             f.apply(this, vargs)
         }.bind(this), t)
     }
     globalize(step_timeout)
     function fail (test, message) {
-        return function(e) {
-            if (e && e.message && e.target.error) {
-                assert.fail(message + " (" + e.target.error.name + ": " + e.message + ")")
-            } else if (e && e.message) {
-                assert.fail(message + " (" + e.message + ")")
+        return (e) => {
+            if (e?.message && e.target.error) {
+                assert.fail(`${message} (${e.target.error.name}: ${e.message})`)
+            } else if (e?.message) {
+                assert.fail(`${message} (${e.message})`)
             } else if (e && e.target.readyState === 'done' && e.target.error) {
-                assert.fail(message + " (" + e.target.error.name + ")")
+                assert.fail(`${message} (${e.target.error.name})`)
             } else {
                 assert.fail(message)
             }
         }
     }
     globalize(fail)
+    function get_assertion_message(message) {
+        if (!message) {
+            message = `assertion ${scope.count++}`
+        }
+        return message
+    }
     function assert_true (condition, message) {
-        message || (message = `assertion ${scope.count++}`)
-        okay(condition, message)
+        okay(condition, get_assertion_message(message))
     }
     globalize(assert_true)
     function assert_false (condition, message) {
-        message || (message = `assertion ${scope.count++}`)
-        okay(! condition, message)
+        okay(! condition, get_assertion_message(message))
     }
     globalize(assert_false)
     function assert_equals (actual, expected, message) {
-        message || (message = `assertion ${scope.count++}`)
-        okay(actual, expected, `${scope.name} - ${message}`)
+        okay(actual, expected, `${scope.name} - ${get_assertion_message(message)}`)
     }
     globalize(assert_equals)
     function assert_object_equals (actual, expected, message) {
-        message || (message = `assertion ${scope.count++}`)
-        okay(actual, expected, `${scope.name} - ${message}`)
+        okay(actual, expected, `${scope.name} - ${get_assertion_message(message)}`)
     }
     globalize(assert_object_equals)
     function assert_not_equals (actual, expected, message) {
-        message || (message = `assertion ${scope.count++}`)
-        okay(actual !== expected || actual != expected, `${scope.name} - ${message}`)
+        okay(actual !== expected, `${scope.name} - ${get_assertion_message(message)}`)
     }
     globalize(assert_not_equals)
     function assert_key_equals (actual, expected, message)  {
@@ -350,9 +300,8 @@ module.exports = async function (okay, name) {
     }
     globalize(assert_key_equals)
     function assert_class_string (object, className, message) {
-        message || (message = `assertion ${scope.count++}`)
-        const actual = {}.toString.call(object)
-        okay(`[object ${className}]`, actual, message)
+        const actual = Object.prototype.toString.call(object)
+        okay(`[object ${className}]`, actual, get_assertion_message(message))
     }
     globalize(assert_class_string)
     function toArray (list) {
@@ -372,15 +321,17 @@ module.exports = async function (okay, name) {
     function assert_readonly (object, property, message) {
         const save = object[property]
         try {
-            object[property] = save + 'a'
+            object[property] = `${save}a`
             okay(object[property], save, message)
         } finally {
             object[property] = save
         }
     }
     globalize(assert_readonly)
-    function assert_throws_js(constructor, func, message) {
-        message || (message = `assertion ${scope.count++}`)
+    function assert_throws_js(expectedConstructor, func, message) {
+        if (!message) {
+            message = `assertion ${scope.count++}`
+        }
         try {
             func.call(null)
             assert(false, 'did not throw')
@@ -388,10 +339,10 @@ module.exports = async function (okay, name) {
             if (error instanceof assert.AssertionError) {
                 throw error
             }
-            if (error.constructor !== constructor) {
+            if (error.constructor !== expectedConstructor) {
                 console.log(error.stack)
             }
-            okay(error.constructor === constructor, `${scope.name} - ${message}`)
+            okay(error.constructor === expectedConstructor, `${scope.name} - ${message}`)
         }
     }
     globalize(assert_throws_js)
@@ -404,127 +355,82 @@ module.exports = async function (okay, name) {
         }
     }
     globalize(assert_throws_exactly)
+    const DOM_ERROR_NAMES = Object.freeze({
+        ABORT_ERR: 'AbortError', DATA_CLONE_ERR: 'DataCloneError', HIERARCHY_REQUEST_ERR: 'HierarchyRequestError', INDEX_SIZE_ERR: 'IndexSizeError', INUSE_ATTRIBUTE_ERR: 'InUseAttributeError', INVALID_ACCESS_ERR: 'InvalidAccessError', INVALID_CHARACTER_ERR: 'InvalidCharacterError', INVALID_MODIFICATION_ERR: 'InvalidModificationError', INVALID_NODE_TYPE_ERR: 'InvalidNodeTypeError', INVALID_STATE_ERR: 'InvalidStateError', NAMESPACE_ERR: 'NamespaceError', NETWORK_ERR: 'NetworkError', NOT_FOUND_ERR: 'NotFoundError', NOT_SUPPORTED_ERR: 'NotSupportedError', NO_MODIFICATION_ALLOWED_ERR: 'NoModificationAllowedError', QUOTA_EXCEEDED_ERR: 'QuotaExceededError', SECURITY_ERR: 'SecurityError', SYNTAX_ERR: 'SyntaxError', TIMEOUT_ERR: 'TimeoutError', TYPE_MISMATCH_ERR: 'TypeMismatchError', URL_MISMATCH_ERR: 'URLMismatchError', WRONG_DOCUMENT_ERR: 'WrongDocumentError'
+    });
+
+    const DOM_ERROR_CODES = Object.freeze({
+        AbortError: 20, ConstraintError: 0, DataCloneError: 25, DataError: 0, EncodingError: 0, HierarchyRequestError: 3, InUseAttributeError: 10, IndexSizeError: 1, InvalidAccessError: 15, InvalidCharacterError: 5, InvalidModificationError: 13, InvalidNodeTypeError: 24, InvalidStateError: 11, NamespaceError: 14, NetworkError: 19, NoModificationAllowedError: 7, NotAllowedError: 0, NotFoundError: 8, NotReadableError: 0, NotSupportedError: 9, OperationError: 0, QuotaExceededError: 22, ReadOnlyError: 0, SecurityError: 18, SyntaxError: 12, TimeoutError: 23, TransactionInactiveError: 0, TypeMismatchError: 17, URLMismatchError: 21, UnknownError: 0, VersionError: 0, WrongDocumentError: 4
+    });
+
+    // Build reverse mapping: code -> error name for human-readable error messages
+    const DOM_ERROR_CODE_NAMES = Object.freeze((() => {
+        const codeNames = {}
+        for (const key in DOM_ERROR_CODES) {
+            codeNames[DOM_ERROR_CODES[key]] = key
+        }
+        return codeNames
+    })());
+
     function assert_throws_dom(type, func, description) {
         try {
             func.call(null)
-            okay(false, 'failed to throw ' + description)
+            okay(false, `failed to throw ${description}`)
         } catch (error) {
             if (error instanceof assert.AssertionError) {
                 throw error
             }
-            const names = {
-                INDEX_SIZE_ERR: 'IndexSizeError',
-                HIERARCHY_REQUEST_ERR: 'HierarchyRequestError',
-                WRONG_DOCUMENT_ERR: 'WrongDocumentError',
-                INVALID_CHARACTER_ERR: 'InvalidCharacterError',
-                NO_MODIFICATION_ALLOWED_ERR: 'NoModificationAllowedError',
-                NOT_FOUND_ERR: 'NotFoundError',
-                NOT_SUPPORTED_ERR: 'NotSupportedError',
-                INUSE_ATTRIBUTE_ERR: 'InUseAttributeError',
-                INVALID_STATE_ERR: 'InvalidStateError',
-                SYNTAX_ERR: 'SyntaxError',
-                INVALID_MODIFICATION_ERR: 'InvalidModificationError',
-                NAMESPACE_ERR: 'NamespaceError',
-                INVALID_ACCESS_ERR: 'InvalidAccessError',
-                TYPE_MISMATCH_ERR: 'TypeMismatchError',
-                SECURITY_ERR: 'SecurityError',
-                NETWORK_ERR: 'NetworkError',
-                ABORT_ERR: 'AbortError',
-                URL_MISMATCH_ERR: 'URLMismatchError',
-                QUOTA_EXCEEDED_ERR: 'QuotaExceededError',
-                TIMEOUT_ERR: 'TimeoutError',
-                INVALID_NODE_TYPE_ERR: 'InvalidNodeTypeError',
-                DATA_CLONE_ERR: 'DataCloneError'
-            }
 
-            const codes = {
-                IndexSizeError: 1,
-                HierarchyRequestError: 3,
-                WrongDocumentError: 4,
-                InvalidCharacterError: 5,
-                NoModificationAllowedError: 7,
-                NotFoundError: 8,
-                NotSupportedError: 9,
-                InUseAttributeError: 10,
-                InvalidStateError: 11,
-                SyntaxError: 12,
-                InvalidModificationError: 13,
-                NamespaceError: 14,
-                InvalidAccessError: 15,
-                TypeMismatchError: 17,
-                SecurityError: 18,
-                NetworkError: 19,
-                AbortError: 20,
-                URLMismatchError: 21,
-                QuotaExceededError: 22,
-                TimeoutError: 23,
-                InvalidNodeTypeError: 24,
-                DataCloneError: 25,
+            // Translate error constant name to error class name if needed
+            const expectedName = DOM_ERROR_NAMES[type] || type
+            const expectedCode = DOM_ERROR_CODES[expectedName]
 
-                EncodingError: 0,
-                NotReadableError: 0,
-                UnknownError: 0,
-                ConstraintError: 0,
-                DataError: 0,
-                TransactionInactiveError: 0,
-                ReadOnlyError: 0,
-                VersionError: 0,
-                OperationError: 0,
-                NotAllowedError: 0
-            }
-
-            const codeNames = {}
-
-            for (const key in codes) {
-                codeNames[codes[key]] = key
-            }
+            // Get human-readable names for better error messages
+            const actualErrorName = DOM_ERROR_CODE_NAMES[error.code] || error.name || `Unknown (code: ${error.code})`
+            const expectedErrorName = expectedName || `Unknown`
 
             assert_equals({
-                name: error.name,
-                code: error.code
+                code: error.code, name: error.name
             }, {
-                name: type,
-                code: codes[type],
-            }, description)
+                code: expectedCode, name: expectedName,
+            }, description || `Expected ${expectedErrorName} (code: ${expectedCode}), got ${actualErrorName} (code: ${error.code})`)
 
-            if (typeof type == 'number') {
-                throw new Error
-            } else {
-                const name = type in codes ? codes[type] : type
+            if (typeof type === 'number') {
+                throw new TypeError
             }
         }
     }
     globalize(assert_throws_dom)
     function add_test_done_callback (test, callback) {
-        if (test.phase === test.phases.COMPELTE) {
+        if (test.phase === test.phases.COMPLETED) {
             callback()
         } else {
             test._janitors.push(callback)
         }
     }
     function promise_test(func, name, properties) {
-        if (typeof func !== "function") {
+        if (typeof func !== 'function') {
             properties = name;
             name = func;
             func = null;
         }
-        if (name == null) {
-            name = 'promise-test-' + (count++)
+        if (name === null) {
+            name = `promise-test-${count++}`
         }
         const future = new Future
         futures.push(future)
-        var test = new Test(future, name, properties);
+        const test = new Test(future, name, properties);
         test._is_promise_test = true;
 
         // If there is no promise tests queue make one.
         if (!tests.promise_tests) {
             tests.promise_tests = Promise.resolve();
         }
-        tests.promise_tests = tests.promise_tests.then(function() {
-            return new Promise(function(resolve) {
-                var promise = test.step(func, test, test);
+        tests.promise_tests = tests.promise_tests.then(() => {
+            return new Promise((resolve) => {
+                const promise = test.step(func, test, test);
 
-                test.step(function() {
+                test.step(() => {
                     assert(!!promise, "promise_test", null,
                            "test body must return a 'thenable' object (received ${value})",
                            {value:promise});
@@ -544,7 +450,7 @@ module.exports = async function (okay, name) {
 
                 Promise.resolve(promise)
                     .catch(test.step_func(
-                        function(value) {
+                        (value) => {
                             if (value instanceof assert.AssertionError) {
                                 throw value;
                             }
@@ -552,11 +458,11 @@ module.exports = async function (okay, name) {
                             assert(false, "promise_test", null,
                                    "Unhandled rejection with value: ${value}", {value:value});
                         }))
-                    .then(function() {
-                        test.done();
-                    });
-                });
-        });
+                    .then(() => {
+                        test.done()
+                    })
+            })
+        })
     }
     globalize(promise_test)
     const janitors = []
@@ -574,18 +480,19 @@ module.exports = async function (okay, name) {
     // raise an exception if the user has not explicitly set a handler for those
     // events.
     function createdb (test, ...vargs) {
-        const name = vargs.shift() || 'test-db' + new Date().getTime() + Math.random()
+        const name = vargs.shift() || `test-db${Date.now()}${Math.random()}`
         const version = vargs.shift() || null
         const request = version ? indexedDB.open(name, version) : indexedDB.open(name)
         const handled = {}
         function fail (eventName, currentTest) {
-            request.addEventListener(eventName, function (event) {
+            request.addEventListener(eventName, (event) => {
                 if (currentTest === test) {
                     // This step thing kills me. It's a synchronous function. What's
                     // the point?
-                    test.step(function () {
+                    // TODO: Consider if we should use a Promise instead.
+                    test.step(() => {
                         if (! handled[eventName]) {
-                            assert(false, 'unexpected open.' + eventName + ' event')
+                            assert(false, `unexpected open.${eventName} event`)
                         }
                         // What are we asserting here?
                         if (! this.db) {
@@ -597,10 +504,10 @@ module.exports = async function (okay, name) {
                     })
                 }
             })
-            request.__defineSetter__('on' + eventName, function(handler) {
+            request.__defineSetter__(`on${eventName}`, (handler) => {
                 handled[eventName] = true
                 if (! handler) {
-                    request.addEventListener(eventName, function() {})
+                    request.addEventListener(eventName, () => {})
                 } else {
                     request.addEventListener(eventName, test.step_func(handler))
                 }
@@ -615,7 +522,7 @@ module.exports = async function (okay, name) {
     globalize(createdb)
     async function harness (f) {
         destructible.promise.catch(error => console.log(error.stack))
-        add_completion_callback(function () {
+        add_completion_callback(() => {
             for (const test of tests) {
                 if (test.db) {
                     test.db.close()
@@ -624,10 +531,10 @@ module.exports = async function (okay, name) {
             }
         })
         await f()
-        while (futures.length != 0) {
+        while (futures.length > 0) {
             await futures.shift().promise
         }
-        while (janitors.length != 0) {
+        while (janitors.length > 0) {
             janitors.shift()()
         }
         await destructible.destroy().promise
@@ -635,17 +542,17 @@ module.exports = async function (okay, name) {
     globalize(harness)
     let nameCount = 0
     function indexeddb_test(upgrade_func, open_func, description, options) {
-      async_test(function(t) {
-        options = Object.assign({upgrade_will_abort: false}, options);
-        var dbname = location + '-' + t.name + '-' + (++nameCount);
+      async_test((t) => {
+        options = {upgrade_will_abort: false, ...options};
+        var dbname = `${location}-${t.name}-${++nameCount}`;
         var del = indexedDB.deleteDatabase(dbname);
         del.onerror = t.unreached_func('deleteDatabase should succeed');
         var open = indexedDB.open(dbname, 1);
-        open.onupgradeneeded = t.step_func(function() {
+        open.onupgradeneeded = t.step_func(() => {
           var db = open.result;
-          t.add_cleanup(function() {
+          t.add_cleanup(() => {
             // If open didn't succeed already, ignore the error.
-            open.onerror = function(e) {
+            open.onerror = (e) => {
               e.preventDefault();
             };
             db.close();
@@ -658,10 +565,10 @@ module.exports = async function (okay, name) {
           open.onsuccess = t.unreached_func('open should not succeed');
         } else {
           open.onerror = t.unreached_func('open should succeed');
-          open.onsuccess = t.step_func(function() {
+          open.onsuccess = t.step_func(() => {
             var db = open.result;
             if (open_func)
-              open_func(t, db, open);
+              {open_func(t, db, open);}
           });
         }
       }, description);
@@ -676,7 +583,7 @@ module.exports = async function (okay, name) {
      */
     function EventWatcher(test, watchedNode, eventTypes, timeoutPromise)
     {
-        if (typeof eventTypes == 'string') {
+        if (typeof eventTypes === 'string') {
             eventTypes = [eventTypes];
         }
 
@@ -686,12 +593,11 @@ module.exports = async function (okay, name) {
         // will be an Array object.
         var recordedEvents = null;
 
-        var eventHandler = test.step_func(function(evt) {
+        var eventHandler = test.step_func((evt) => {
             assert_true(!!waitingFor,
-                        'Not expecting event, but got ' + evt.type + ' event');
+                        `Not expecting event, but got ${evt.type} event`);
             assert_equals(evt.type, waitingFor.types[0],
-                          'Expected ' + waitingFor.types[0] + ' event, but got ' +
-                          evt.type + ' event instead');
+                          `Expected ${waitingFor.types[0]} event, but got ${evt.type} event instead`);
 
             if (Array.isArray(recordedEvents)) {
                 recordedEvents.push(evt);
@@ -713,9 +619,9 @@ module.exports = async function (okay, name) {
             var result = recordedEvents || evt;
             recordedEvents = null;
             resolveFunc(result);
-        });
+        })
 
-        for (var i = 0; i < eventTypes.length; i++) {
+        for (let i = 0; i < eventTypes.length; i++) {
             watchedNode.addEventListener(eventTypes[i], eventHandler, false);
         }
 
@@ -742,27 +648,27 @@ module.exports = async function (okay, name) {
          * });
          * ```
          */
-        this.wait_for = function(types, options) {
+        this.wait_for = (types, options) => {
             if (waitingFor) {
                 return Promise.reject('Already waiting for an event or events');
             }
-            if (typeof types == 'string') {
+            if (typeof types === 'string') {
                 types = [types];
             }
-            if (options && options.record && options.record === 'all') {
+            if (options?.record && options.record === 'all') {
                 recordedEvents = [];
             }
-            return new Promise(function(resolve, reject) {
-                var timeout = test.step_func(function() {
+            return new Promise((resolve, reject) => {
+                var timeout = test.step_func(() => {
                     // If the timeout fires after the events have been received
                     // or during a subsequent call to wait_for, ignore it.
                     if (!waitingFor || waitingFor.resolve !== resolve)
-                        return;
+                        {return;}
 
                     // This should always fail, otherwise we should have
                     // resolved the promise.
-                    assert_true(waitingFor.types.length == 0,
-                                'Timed out waiting for ' + waitingFor.types.join(', '));
+                    assert_true(waitingFor.types.length === 0,
+                                `Timed out waiting for ${waitingFor.types.join(', ')}`);
                     var result = recordedEvents;
                     recordedEvents = null;
                     var resolveFunc = waitingFor.resolve;
@@ -775,18 +681,16 @@ module.exports = async function (okay, name) {
                 }
 
                 waitingFor = {
-                    types: types,
-                    resolve: resolve,
-                    reject: reject
+                    reject: reject, resolve: resolve, types: types
                 };
             });
         };
 
         function stop_watching() {
-            for (var i = 0; i < eventTypes.length; i++) {
+            for (let i = 0; i < eventTypes.length; i++) {
                 watchedNode.removeEventListener(eventTypes[i], eventHandler, false);
             }
-        };
+        }
 
         test._janitors.push(stop_watching);
 
@@ -796,7 +700,7 @@ module.exports = async function (okay, name) {
 
     // Returns an IndexedDB database name that is unique to the test case.
     function databaseName(testCase) {
-      return 'db-wpt-' + testCase.name;
+      return `db-wpt-${testCase.name}`;
     }
     globalize(databaseName)
 
@@ -831,13 +735,6 @@ module.exports = async function (okay, name) {
 
     // Promise that resolves when an IDBTransaction completes.
     //
-    // The promise resolves with undefined if IDBTransaction receives the "complete"
-    // event, and rejects with an error for any other event.
-    function promiseForTransaction(testCase, request) {
-      const eventWatcher = transactionWatcher(testCase, request);
-      return eventWatcher.wait_for('complete').then(() => {});
-    }
-
     // Migrates an IndexedDB database whose name is unique for the test case.
     //
     // newVersion must be greater than the database's current version.
@@ -846,87 +743,6 @@ module.exports = async function (okay, name) {
     // given the created database, the versionchange transaction, and the database
     // open request.
     //
-    // Returns a promise. If the versionchange transaction goes through, the promise
-    // resolves to an IndexedDB database that should be closed by the caller. If the
-    // versionchange transaction is aborted, the promise resolves to an error.
-    function migrateDatabase(testCase, newVersion, migrationCallback) {
-      return migrateNamedDatabase(
-          testCase, databaseName(testCase), newVersion, migrationCallback);
-    }
-
-    // Migrates an IndexedDB database.
-    //
-    // newVersion must be greater than the database's current version.
-    //
-    // migrationCallback will be called during a versionchange transaction and will
-    // given the created database, the versionchange transaction, and the database
-    // open request.
-    //
-    // Returns a promise. If the versionchange transaction goes through, the promise
-    // resolves to an IndexedDB database that should be closed by the caller. If the
-    // versionchange transaction is aborted, the promise resolves to an error.
-    function migrateNamedDatabase(
-        testCase, databaseName, newVersion, migrationCallback) {
-      // We cannot use eventWatcher.wait_for('upgradeneeded') here, because
-      // the versionchange transaction auto-commits before the Promise's then
-      // callback gets called.
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open(databaseName, newVersion);
-        request.onupgradeneeded = testCase.step_func(event => {
-          const database = event.target.result;
-          const transaction = event.target.transaction;
-          let shouldBeAborted = false;
-          let requestEventPromise = null;
-
-          // We wrap IDBTransaction.abort so we can set up the correct event
-          // listeners and expectations if the test chooses to abort the
-          // versionchange transaction.
-          const transactionAbort = transaction.abort.bind(transaction);
-          transaction.abort = () => {
-            transaction._willBeAborted();
-            transactionAbort();
-          }
-          transaction._willBeAborted = () => {
-            requestEventPromise = new Promise((resolve, reject) => {
-              request.onerror = event => {
-                event.preventDefault();
-                resolve(event.target.error);
-              };
-              request.onsuccess = () => reject(new Error(
-                  'indexedDB.open should not succeed for an aborted ' +
-                  'versionchange transaction'));
-            });
-            shouldBeAborted = true;
-          }
-
-          // If migration callback returns a promise, we'll wait for it to resolve.
-          // This simplifies some tests.
-          const callbackResult = migrationCallback(database, transaction, request);
-          if (!shouldBeAborted) {
-            request.onerror = null;
-            request.onsuccess = null;
-            requestEventPromise = promiseForRequest(testCase, request);
-          }
-
-          // requestEventPromise needs to be the last promise in the chain, because
-          // we want the event that it resolves to.
-          resolve(Promise.resolve(callbackResult).then(() => requestEventPromise));
-        });
-        request.onerror = event => reject(event.target.error);
-        request.onsuccess = () => {
-          const database = request.result;
-          testCase.add_cleanup(() => { database.close(); });
-          reject(new Error(
-              'indexedDB.open should not succeed without creating a ' +
-              'versionchange transaction'));
-        };
-      }).then(databaseOrError => {
-        if (databaseOrError instanceof IDBDatabase)
-          testCase.add_cleanup(() => { databaseOrError.close(); });
-        return databaseOrError;
-      });
-    }
-
     // Creates an IndexedDB database whose name is unique for the test case.
     //
     // setupCallback will be called during a versionchange transaction, and will be
@@ -984,9 +800,9 @@ module.exports = async function (okay, name) {
     // The data in the 'books' object store records in the first example of the
     // IndexedDB specification.
     const BOOKS_RECORD_DATA = [
-      { title: 'Quarry Memories', author: 'Fred', isbn: 123456 },
-      { title: 'Water Buffaloes', author: 'Fred', isbn: 234567 },
-      { title: 'Bedrock Nights', author: 'Barney', isbn: 345678 },
+      { author: 'Fred', isbn: 123456, title: 'Quarry Memories' },
+      { author: 'Fred', isbn: 234567, title: 'Water Buffaloes' },
+      { author: 'Barney', isbn: 345678, title: 'Bedrock Nights' },
     ];
 
     globalize(BOOKS_RECORD_DATA, 'BOOKS_RECORD_DATA')
@@ -995,11 +811,11 @@ module.exports = async function (okay, name) {
     // example in the IndexedDB specification.
     const createBooksStore = (testCase, database) => {
       const store = database.createObjectStore('books',
-          { keyPath: 'isbn', autoIncrement: true });
+          { autoIncrement: true, keyPath: 'isbn' });
       store.createIndex('by_author', 'author');
       store.createIndex('by_title', 'title', { unique: true });
       for (const record of BOOKS_RECORD_DATA)
-          store.put(record);
+          {store.put(record);}
       return store;
     }
     globalize(createBooksStore)
@@ -1012,16 +828,7 @@ module.exports = async function (okay, name) {
       store.createIndex('by_author', 'author');
       store.createIndex('by_title', 'title', { unique: true });
       for (const record of BOOKS_RECORD_DATA)
-          store.put(record);
-      return store;
-    }
-
-    // Creates a 'not_books' object store used to test renaming into existing or
-    // deleted store names.
-    function createNotBooksStore(testCase, database) {
-      const store = database.createObjectStore('not_books');
-      store.createIndex('not_by_author', 'author');
-      store.createIndex('not_by_title', 'title', { unique: true });
+          {store.put(record);}
       return store;
     }
 
@@ -1051,7 +858,7 @@ module.exports = async function (okay, name) {
     // is using it incorrectly.
     function checkStoreGenerator(testCase, store, expectedKey, errorMessage) {
       const request = store.put(
-          { title: 'Bedrock Nights ' + expectedKey, author: 'Barney' });
+          { author: 'Barney', title: `Bedrock Nights ${expectedKey}` });
       return promiseForRequest(testCase, request).then(result => {
         assert_equals(result, expectedKey, errorMessage);
       });
@@ -1065,7 +872,7 @@ module.exports = async function (okay, name) {
     // IndexedDB implementation being tested is incorrect, or that the testing code
     // is using it incorrectly.
     function checkStoreContents(testCase, store, errorMessage) {
-      const request = store.get(123456);
+      const request = store.get(123_456);
       return promiseForRequest(testCase, request).then(result => {
         assert_equals(result.isbn, BOOKS_RECORD_DATA[0].isbn, errorMessage);
         assert_equals(result.author, BOOKS_RECORD_DATA[0].author, errorMessage);
@@ -1118,7 +925,7 @@ module.exports = async function (okay, name) {
         state ^= state << 13;
         state ^= state >> 17;
         state ^= state << 5;
-        buffer[i] = state & 0xff;
+        buffer[i] = state & 0xFF;
       }
 
       return buffer;
@@ -1145,7 +952,7 @@ module.exports = async function (okay, name) {
 
       function spin() {
         if (!keepSpinning)
-          return;
+          {return;}
         transaction.objectStore(storeName).get(0).onsuccess = spin;
       }
       spin();
@@ -1189,66 +996,65 @@ module.exports = async function (okay, name) {
     // Returns a promise. If the versionchange transaction goes through, the promise
     // resolves to an IndexedDB database that should be closed by the caller. If the
     // versionchange transaction is aborted, the promise resolves to an error.
-    function migrateNamedDatabase(
+    async function migrateNamedDatabase(
         testCase, databaseName, newVersion, migrationCallback) {
       // We cannot use eventWatcher.wait_for('upgradeneeded') here, because
       // the versionchange transaction auto-commits before the Promise's then
       // callback gets called.
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open(databaseName, newVersion);
+      const databaseOrError = await new Promise((resolve, reject) => {
+        const request = indexedDB.open(databaseName, newVersion)
         request.onupgradeneeded = testCase.step_func(event => {
-          const database = event.target.result;
-          const transaction = event.target.transaction;
-          let shouldBeAborted = false;
-          let requestEventPromise = null;
+          const database = event.target.result
+          const transaction = event.target.transaction
+          let shouldBeAborted = false
+          let requestEventPromise = null
 
           // We wrap IDBTransaction.abort so we can set up the correct event
           // listeners and expectations if the test chooses to abort the
           // versionchange transaction.
-          const transactionAbort = transaction.abort.bind(transaction);
+          const transactionAbort = transaction.abort.bind(transaction)
           transaction.abort = () => {
-            transaction._willBeAborted();
-            transactionAbort();
+            transaction._willBeAborted()
+            transactionAbort()
           }
           transaction._willBeAborted = () => {
-            requestEventPromise = new Promise((resolve, reject) => {
-              request.onerror = event => {
-                event.preventDefault();
-                resolve(event.target.error);
-              };
-              request.onsuccess = () => reject(new Error(
-                  'indexedDB.open should not succeed for an aborted ' +
-                  'versionchange transaction'));
-            });
-            shouldBeAborted = true;
+            requestEventPromise = new Promise((resolve_1, reject_1) => {
+              request.onerror = event_1 => {
+                event_1.preventDefault()
+                resolve_1(event_1.target.error)
+              }
+              request.onsuccess = () => reject_1(new Error(
+                'indexedDB.open should not succeed for an aborted ' +
+                'versionchange transaction'))
+            })
+            shouldBeAborted = true
           }
 
           // If migration callback returns a promise, we'll wait for it to resolve.
           // This simplifies some tests.
-          const callbackResult = migrationCallback(database, transaction, request);
+          const callbackResult = migrationCallback(database, transaction, request)
           if (!shouldBeAborted) {
-            request.onerror = null;
-            request.onsuccess = null;
-            requestEventPromise = promiseForRequest(testCase, request);
+            request.onerror = null
+            request.onsuccess = null
+            requestEventPromise = promiseForRequest(testCase, request)
           }
 
           // requestEventPromise needs to be the last promise in the chain, because
           // we want the event that it resolves to.
-          resolve(Promise.resolve(callbackResult).then(() => requestEventPromise));
-        });
-        request.onerror = event => reject(event.target.error);
+          resolve(Promise.resolve(callbackResult).then(() => requestEventPromise))
+        })
+        request.onerror = event_2 => reject(event_2.target.error)
         request.onsuccess = () => {
-          const database = request.result;
-          testCase.add_cleanup(() => { database.close(); });
+          const database_1 = request.result
+          testCase.add_cleanup(() => { database_1.close() })
           reject(new Error(
-              'indexedDB.open should not succeed without creating a ' +
-              'versionchange transaction'));
-        };
-      }).then(databaseOrError => {
-        if (databaseOrError instanceof IDBDatabase)
-          testCase.add_cleanup(() => { databaseOrError.close(); });
-        return databaseOrError;
-      });
+            'indexedDB.open should not succeed without creating a ' +
+            'versionchange transaction'))
+        }
+      })
+      if (databaseOrError instanceof IDBDatabase)
+        {testCase.add_cleanup(() => { databaseOrError.close() })}
+      return databaseOrError
     }
 
     // Creates a 'not_books' object store used to test renaming into existing or
@@ -1272,7 +1078,7 @@ module.exports = async function (okay, name) {
 
       function spin() {
         if (!keepSpinning)
-          return;
+          {return;}
         tx.objectStore(store_name).get(0).onsuccess = spin;
       }
       spin();
@@ -1293,8 +1099,8 @@ module.exports = async function (okay, name) {
           e.stopPropagation();
         };
         return true;
-      } catch (ex) {
-        assert_equals(ex.name, 'TransactionInactiveError',
+      } catch (error) {
+        assert_equals(error.name, 'TransactionInactiveError',
                       'Active check should either not throw anything, or throw ' +
                       'TransactionInactiveError');
         return false;
@@ -1319,38 +1125,39 @@ module.exports = async function (okay, name) {
       let n = 0;
       return () => {
         if (++n === count)
-          func();
+          {func();}
       };
     }
     globalize(barrier_func)
     function createdb_for_multiple_tests(dbname, version) {
         var rq_open,
             fake_open = {},
-            test = null,
-            dbname = (dbname ? dbname : "testdb-" + new Date().getTime() + Math.random() );
+            test = null;
+        
+        dbname = dbname || `testdb-${Date.now()}-${Math.random()}`;
 
         if (version)
-            rq_open = indexedDB.open(dbname, version);
+            {rq_open = indexedDB.open(dbname, version);}
         else
-            rq_open = indexedDB.open(dbname);
+            {rq_open = indexedDB.open(dbname);}
 
         function auto_fail(evt, current_test) {
             /* Fail handlers, if we haven't set on/whatever/, don't
              * expect to get event whatever. */
             rq_open.manually_handled = {};
 
-            rq_open.addEventListener(evt, function(e) {
+            rq_open.addEventListener(evt, (e) => {
                 if (current_test !== test) {
                     return;
                 }
 
-                test.step(function() {
+                test.step(function exports() {
                     if (!rq_open.manually_handled[evt]) {
-                        assert_unreached("unexpected open." + evt + " event");
+                        assert_unreached(`unexpected open.${evt} event`);
                     }
 
-                    if (e.target.result + '' == '[object IDBDatabase]' &&
-                        !this.db) {
+                    if (`${e.target.result}` === '[object IDBDatabase]' &&
+                        !this?.db) {
                       this.db = e.target.result;
 
                       this.db.onerror = fail(test, 'unexpected db.error');
@@ -1360,25 +1167,25 @@ module.exports = async function (okay, name) {
                     }
                 });
             });
-            rq_open.__defineSetter__("on" + evt, function(h) {
+            rq_open.__defineSetter__(`on${evt}`, (h) => {
                 rq_open.manually_handled[evt] = true;
                 if (!h)
-                    rq_open.addEventListener(evt, function() {});
+                    {rq_open.addEventListener(evt, () => {});}
                 else
-                    rq_open.addEventListener(evt, test.step_func(h));
+                    {rq_open.addEventListener(evt, test.step_func(h));}
             });
         }
 
         // add a .setTest method to the IDBOpenDBRequest object
         Object.defineProperty(rq_open, 'setTest', {
             enumerable: false,
-            value: function(t) {
+            value: (t) => {
                 test = t;
 
-                auto_fail("upgradeneeded", test);
-                auto_fail("success", test);
-                auto_fail("blocked", test);
-                auto_fail("error", test);
+                auto_fail('upgradeneeded', test);
+                auto_fail('success', test);
+                auto_fail('blocked', test);
+                auto_fail('error', test);
 
                 return this;
             }
@@ -1397,26 +1204,28 @@ module.exports = async function (okay, name) {
     //
     // See the bottom of the file for descriptor samples.
     function createValue(descriptor) {
-      if (typeof(descriptor) != 'object')
-        return descriptor;
+      if (typeof(descriptor) !== 'object')
+        {return descriptor;}
 
       if (Array.isArray(descriptor))
-        return descriptor.map((element) => createValue(element));
+        {return descriptor.map((element) => createValue(element));}
 
-      if (!descriptor.hasOwnProperty('type')) {
+      if (!Object.hasOwn(descriptor, 'type')) {
         const value = {};
-        for (let property of Object.getOwnPropertyNames(descriptor))
-          value[property] = createValue(descriptor[property]);
+        for (const property of Object.getOwnPropertyNames(descriptor))
+          {value[property] = createValue(descriptor[property]);}
         return value;
       }
 
       switch (descriptor.type) {
-        case 'blob':
+        case 'blob': {
           return new Blob(
               [largeValue(descriptor.size, descriptor.seed)],
               { type: descriptor.mimeType });
-        case 'buffer':
+        }
+        case 'buffer': {
           return largeValue(descriptor.size, descriptor.seed);
+        }
       }
     }
 
@@ -1426,7 +1235,7 @@ module.exports = async function (okay, name) {
     //
     // See the bottom of the file for descriptor samples.
     function checkValue(testCase, value, descriptor) {
-      if (typeof(descriptor) != 'object') {
+      if (typeof(descriptor) !== 'object') {
         assert_equals(
             descriptor, value,
             'IndexedDB result should match put() argument');
@@ -1443,14 +1252,14 @@ module.exports = async function (okay, name) {
 
         const subChecks = [];
         for (let i = 0; i < descriptor.length; ++i)
-          subChecks.push(checkValue(testCase, value[i], descriptor[i]));
+          {subChecks.push(checkValue(testCase, value[i], descriptor[i]));}
         return Promise.all(subChecks);
       }
 
-      if (!descriptor.hasOwnProperty('type')) {
+      if (!Object.hasOwn(descriptor, 'type')) {
         assert_array_equals(
-            Object.getOwnPropertyNames(value).sort(),
-            Object.getOwnPropertyNames(descriptor).sort(),
+            Object.getOwnPropertyNames(value).toSorted(),
+            Object.getOwnPropertyNames(descriptor).toSorted(),
             'IndexedDB result object properties should match put() argument');
         const subChecks = [];
         return Promise.all(Object.getOwnPropertyNames(descriptor).map(property =>
@@ -1458,7 +1267,7 @@ module.exports = async function (okay, name) {
       }
 
       switch (descriptor.type) {
-        case 'blob':
+        case 'blob': {
           assert_class_string(
               value, 'Blob',
               'IndexedDB result class should match put() argument');
@@ -1482,8 +1291,9 @@ module.exports = async function (okay, name) {
             });
             reader.readAsArrayBuffer(value);
           });
+        }
 
-        case 'buffer':
+        case 'buffer': {
           assert_class_string(
               value, 'Uint8Array',
               'IndexedDB result type should match put() argument');
@@ -1492,6 +1302,7 @@ module.exports = async function (okay, name) {
               largeValue(descriptor.size, descriptor.seed).join(','),
               'IndexedDB result typed array content should match put() argument');
           return Promise.resolve();
+        }
       }
     }
 
@@ -1501,7 +1312,7 @@ module.exports = async function (okay, name) {
           let store;
           if (options.useKeyGenerator) {
             store = database.createObjectStore(
-                'test-store', { keyPath: 'primaryKey', autoIncrement: true });
+                'test-store', { autoIncrement: true, keyPath: 'primaryKey' });
           } else {
             store = database.createObjectStore('test-store');
           }
@@ -1596,7 +1407,7 @@ module.exports = async function (okay, name) {
     function cloningTestWithKeyGenerator(label, valueDescriptors) {
       cloningTestInternal(label, valueDescriptors, { useKeyGenerator: false });
       cloningTestInternal(
-          label + " with key generator", valueDescriptors,
+          `${label} with key generator`, valueDescriptors,
           { useKeyGenerator: true });
     }
     globalize(cloningTestWithKeyGenerator)
