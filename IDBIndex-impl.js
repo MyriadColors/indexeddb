@@ -1,11 +1,11 @@
-const IDBRequest = require('./living/generated/IDBRequest')
-const IDBKeyRange = require('./living/generated/IDBKeyRange')
-const DOMException = require('domexception/lib/DOMException')
-const IDBCursor = require('./living/generated/IDBCursor')
-const IDBCursorWithValue = require('./living/generated/IDBCursorWithValue')
+import { createImpl } from './living/generated/IDBRequest'
+import { createImpl as _createImpl } from './living/generated/IDBKeyRange'
+import { create } from 'domexception/lib/DOMException'
+import IDBCursor from './living/generated/IDBCursor'
+import IDBCursorWithValue from './living/generated/IDBCursorWithValue'
 
-const webidl = require('./living/generated/utils')
-const convert = require('./convert')
+import { wrapperForImpl } from './living/generated/utils'
+import { key as _key } from './convert'
 
 class IDBIndexImpl {
     // TODO Make loop a property of transaction.
@@ -29,24 +29,21 @@ class IDBIndexImpl {
 
     set name (to) {
         if (this._isDeleted()) {
-            throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
+            throw create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
         if (this.objectStore._transaction.mode !== 'versionchange') {
-            throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
+            throw create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
         if (this.objectStore._transaction._state !== 'active') {
-            throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
+            throw create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         if (this._index.name !== to) {
             if (to in this.objectStore._store.index) {
-                throw DOMException.create(this._globalObject, [ 'TODO: message', 'ConstraintError' ], {})
+                throw create(this._globalObject, [ 'TODO: message', 'ConstraintError' ], {})
             }
             this.objectStore._schema.renameIndex(this.objectStore._store.id, this._index.name, to)
             this.objectStore._transaction._queue.push({
-                method: 'rename',
-                type: 'index',
-                store: JSON.parse(JSON.stringify(this.objectStore._store)),
-                index: JSON.parse(JSON.stringify(this._index))
+                index: JSON.parse(JSON.stringify(this._index)), method: 'rename', store: JSON.parse(JSON.stringify(this.objectStore._store)), type: 'index'
             })
         }
     }
@@ -61,25 +58,19 @@ class IDBIndexImpl {
 
     _get (query, key) {
         if (this._isDeleted()) {
-            throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
+            throw create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
         if (this.objectStore._transaction._state !== 'active') {
-            throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
+            throw create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         if (query == null) {
-            query = IDBKeyRange.createImpl(this._globalObject, [ null, null ], {})
+            query = _createImpl(this._globalObject, [ null, null ], {})
         } else if (! (query instanceof this._globalObject.IDBKeyRange)) {
-            query = this._globalObject.IDBKeyRange.only(convert.key(this._globalObject, query))
+            query = this._globalObject.IDBKeyRange.only(_key(this._globalObject, query))
         }
-        const request = IDBRequest.createImpl(this._globalObject, [], { transaction: this.objectStore._transaction, source: this })
+        const request = createImpl(this._globalObject, [], { source: this, transaction: this.objectStore._transaction })
         this.objectStore._transaction._queue.push({
-            method: 'get',
-            type: 'index',
-            key: key,
-            store: this.objectStore._store,
-            index: this._index,
-            query: query,
-            request: request
+            index: this._index, key: key, method: 'get', query: query, request: request, store: this.objectStore._store, type: 'index'
         })
         return request
     }
@@ -94,26 +85,19 @@ class IDBIndexImpl {
 
     _getAll (query, count, keys) {
         if (this._isDeleted()) {
-            throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
+            throw create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
         if (this.objectStore._transaction._state !== 'active') {
-            throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
+            throw create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         if (query == null) {
-            query = IDBKeyRange.createImpl(this._globalObject, [ null, null ], {})
+            query = _createImpl(this._globalObject, [ null, null ], {})
         } else if (! (query instanceof this._globalObject.IDBKeyRange)) {
-            query = this._globalObject.IDBKeyRange.only(convert.key(this._globalObject, query))
+            query = this._globalObject.IDBKeyRange.only(_key(this._globalObject, query))
         }
-        const request = IDBRequest.createImpl(this._globalObject, {}, { transaction: this.objectStore._transaction, source: this })
+        const request = createImpl(this._globalObject, {}, { source: this, transaction: this.objectStore._transaction })
         this.objectStore._transaction._queue.push({
-            method: 'getAll',
-            type: 'index',
-            request: request,
-            store: JSON.parse(JSON.stringify(this.objectStore._store)),
-            index: this._index,
-            query: query,
-            count: count,
-            keys: keys
+            count: count, index: this._index, keys: keys, method: 'getAll', query: query, request: request, store: JSON.parse(JSON.stringify(this.objectStore._store)), type: 'index'
         })
         return request
     }
@@ -128,66 +112,45 @@ class IDBIndexImpl {
 
     count (query) {
         if (this._isDeleted()) {
-            throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
+            throw create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
         if (this.objectStore._transaction._state !== 'active') {
-            throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
+            throw create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         if (query == null) {
-            query = IDBKeyRange.createImpl(this._globalObject, [ null, null ], {})
+            query = _createImpl(this._globalObject, [ null, null ], {})
         } else if (! (query instanceof this._globalObject.IDBKeyRange)) {
-            query = this._globalObject.IDBKeyRange.only(convert.key(this._globalObject, query))
+            query = this._globalObject.IDBKeyRange.only(_key(this._globalObject, query))
         }
-        const request = IDBRequest.createImpl(this._globalObject, [], { transaction: this.objectStore._transaction, source: this })
+        const request = createImpl(this._globalObject, [], { source: this, transaction: this.objectStore._transaction })
         this.objectStore._transaction._queue.push({
-            method: 'count',
-            type: 'index',
-            request: request,
-            store: JSON.parse(JSON.stringify(this.objectStore._store)),
-            index: this._index,
-            query: query
+            index: this._index, method: 'count', query: query, request: request, store: JSON.parse(JSON.stringify(this.objectStore._store)), type: 'index'
         })
         return request
     }
 
     _openCursor (Cursor, query, direction = 'next') {
         if (this._isDeleted()) {
-            throw DOMException.create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
+            throw create(this._globalObject, [ 'TODO: message', 'InvalidStateError' ], {})
         }
         if (this.objectStore._transaction._state !== 'active') {
-            throw DOMException.create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
+            throw create(this._globalObject, [ 'TODO: message', 'TransactionInactiveError' ], {})
         }
         if (query == null) {
-            query = IDBKeyRange.createImpl(this._globalObject, [ null, null ], {})
+            query = _createImpl(this._globalObject, [ null, null ], {})
         } else if (! (query instanceof this._globalObject.IDBKeyRange)) {
-            query = this._globalObject.IDBKeyRange.only(convert.key(this._globalObject, query))
+            query = this._globalObject.IDBKeyRange.only(_key(this._globalObject, query))
         }
-        const request = IDBRequest.createImpl(this._globalObject, [], {
+        const request = createImpl(this._globalObject, [], {
             source: this,
             transaction: this.objectStore._transaction
         })
         const cursor = Cursor.createImpl(this._globalObject, [], {
-            type: 'index',
-            hello: 'world',
-            transaction: this.objectStore._transaction,
-            direction: direction,
-            request: request,
-            store: this.objectStore._store,
-            index: this._index,
-            query: query,
-            source: this
+            direction: direction, hello: 'world', index: this._index, query: query, request: request, source: this, store: this.objectStore._store, transaction: this.objectStore._transaction, type: 'index'
         })
-        request._result = webidl.wrapperForImpl(cursor)
+        request._result = wrapperForImpl(cursor)
         this.objectStore._transaction._queue.push({
-            method: 'openCursor',
-            type: 'index',
-            store: JSON.parse(JSON.stringify(this.objectStore._store)),
-            index: this._index,
-            request: request,
-            cursor: cursor,
-            query: query,
-            direction: direction,
-            source: this
+            cursor: cursor, direction: direction, index: this._index, method: 'openCursor', query: query, request: request, source: this, store: JSON.parse(JSON.stringify(this.objectStore._store)), type: 'index'
         })
         return request
     }
@@ -201,4 +164,4 @@ class IDBIndexImpl {
     }
 }
 
-module.exports = { implementation: IDBIndexImpl }
+export const implementation = IDBIndexImpl
